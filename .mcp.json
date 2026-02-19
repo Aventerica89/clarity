@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=lktavesbpbpmyexcmrjp"
+    },
+    "gcloud": {
+      "type": "stdio",
+      "command": "/opt/homebrew/share/google-cloud-sdk/bin/gcloud",
+      "args": [
+        "mcp",
+        "serve"
+      ],
+      "env": {}
+    }
+  }
+}
