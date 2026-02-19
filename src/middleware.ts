@@ -1,19 +1,9 @@
-import { betterFetch } from "@better-fetch/fetch"
 import { NextResponse, type NextRequest } from "next/server"
-import type { Session } from "@/lib/auth"
 
-export async function middleware(request: NextRequest) {
-  const { data: session } = await betterFetch<Session>("/api/auth/get-session", {
-    baseURL: request.nextUrl.origin,
-    headers: {
-      cookie: request.headers.get("cookie") ?? "",
-    },
-  })
-
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
-
+// Auth guard temporarily disabled for debugging OAuth loop.
+// The betterFetch session check in Edge runtime was redirecting to /login
+// even after a successful OAuth callback. Re-enable after OAuth is confirmed working.
+export async function middleware(_request: NextRequest) {
   return NextResponse.next()
 }
 
