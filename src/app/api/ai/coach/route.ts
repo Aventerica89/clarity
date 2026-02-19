@@ -61,7 +61,8 @@ export async function POST(request: NextRequest) {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     })
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
     console.error("[coach] error:", err)
-    return NextResponse.json({ error: "Coach request failed." }, { status: 500 })
+    return NextResponse.json({ error: `Coach error: ${msg}` }, { status: 500 })
   }
 }
