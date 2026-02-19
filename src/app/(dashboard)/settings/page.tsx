@@ -1,6 +1,8 @@
+import Link from "next/link"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { and, eq } from "drizzle-orm"
+import { ChevronRight, Info } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { account, integrations } from "@/lib/schema"
@@ -168,6 +170,22 @@ export default async function SettingsPage() {
           />
         </CardContent>
       </Card>
+
+      {/* About */}
+      <Link href="/settings/about">
+        <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+          <CardHeader className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">About Clarity</CardTitle>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <CardDescription>Getting started guide, features, and changelog.</CardDescription>
+          </CardHeader>
+        </Card>
+      </Link>
     </div>
   )
 }

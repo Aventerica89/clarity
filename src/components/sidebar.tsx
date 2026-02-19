@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard, RotateCcw, Settings, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+const APP_VERSION = "0.1.0"
+
 const NAV_ITEMS = [
   { href: "/", label: "Today", icon: LayoutDashboard },
   { href: "/routines", label: "Routines", icon: RotateCcw },
@@ -20,7 +22,7 @@ export function Sidebar() {
         <Sparkles className="h-5 w-5 text-primary" />
         <span className="font-semibold text-lg">Clarity</span>
       </div>
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-1 flex-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
@@ -37,6 +39,12 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
+      <Link
+        href="/changelog"
+        className="px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+      >
+        v{APP_VERSION}
+      </Link>
     </aside>
   )
 }

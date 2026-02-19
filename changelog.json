@@ -1,0 +1,14 @@
+[
+  {
+    "version": "0.1.0",
+    "date": "2026-02-19",
+    "entries": [
+      { "type": "added", "text": "Daily \"Today\" view showing unified tasks and calendar events" },
+      { "type": "added", "text": "Google Calendar sync — events pulled automatically" },
+      { "type": "added", "text": "Todoist sync — tasks pulled and kept in sync" },
+      { "type": "added", "text": "AI coach — ask \"What should I do right now?\" and get a direct answer" },
+      { "type": "added", "text": "Routine builder with streak tracking" },
+      { "type": "added", "text": "Settings page with connected integrations" }
+    ]
+  }
+]
