@@ -4,6 +4,7 @@ import { db } from "./db"
 import * as schema from "./schema"
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -21,6 +22,12 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       scope: ["openid", "profile", "email"],
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
     },
   },
   trustedOrigins: [

@@ -1,16 +1,10 @@
-import { betterFetch } from "@better-fetch/fetch"
 import { NextResponse, type NextRequest } from "next/server"
-import type { Session } from "@/lib/auth"
+import { getSessionCookie } from "better-auth/cookies"
 
 export async function proxy(request: NextRequest) {
-  const { data: session } = await betterFetch<Session>("/api/auth/get-session", {
-    baseURL: request.nextUrl.origin,
-    headers: {
-      cookie: request.headers.get("cookie") ?? "",
-    },
-  })
+  const sessionCookie = getSessionCookie(request)
 
-  if (!session) {
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
