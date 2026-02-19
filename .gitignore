@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Environment files (NEVER commit secrets)
+.env
+.env.local
+.env.*.local
+# Allow templates and examples
+!.env.example
+!.env*.tpl
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.DS_Store
+*.pem
+.vercel
+*.log
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Supabase
+supabase/.temp/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
