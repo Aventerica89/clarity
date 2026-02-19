@@ -11,7 +11,7 @@
 | Layer | Technology |
 |-------|-----------|
 | Web app | Next.js 15 (App Router) |
-| Database | Supabase (Postgres + RLS) |
+| Database | Turso (LibSQL via Drizzle ORM) |
 | Auth | Better Auth (Google OAuth + email/password) |
 | Hosting | Vercel (+ Vercel Cron for sync) |
 | UI | Tailwind CSS + shadcn/ui + Lucide icons |
@@ -22,15 +22,15 @@
 ## Architecture
 
 ```
-Browser (Vercel) <-> Supabase (Postgres/RLS)
+Browser (Vercel) <-> Turso (LibSQL/Drizzle)
                           ^
-Mac companion ------> Supabase (Apple data push)
+Mac companion ------> Turso via Vercel API (Apple data push)
 Google APIs --------> Vercel API routes (sync cron)
 Todoist API --------> Vercel API routes (sync cron)
 Claude API ---------> Vercel API routes (AI coach + scoring)
 ```
 
-**Mac companion** (`clarity-companion/`): Small Bun/Node.js process on each Mac. Uses AppleScript to read Apple Reminders, Calendar, Notes, Mail. Runs on a schedule and pushes data to Supabase. Uses same auth session.
+**Mac companion** (`clarity-companion/`): Small Bun/Node.js process on each Mac. Uses AppleScript to read Apple Reminders, Calendar, Notes, Mail. Runs on a schedule and pushes data via Vercel API. Uses same auth session.
 
 ## Documentation
 
@@ -62,14 +62,18 @@ See `.env.example` for full list. Use `npm run env:inject` to populate from 1Pas
 - Pattern: `token.startsWith('sk-ant-oat') ? new Anthropic({ authToken: token }) : new Anthropic({ apiKey: token })`
 
 ### Data Access
-- ALWAYS use Supabase server client (not anon client) for API routes
-- NEVER expose service role key to client code
-- ALWAYS filter by `user_id` even with RLS (defense in depth)
+- ALWAYS use Drizzle ORM with Turso client (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`)
+- NEVER expose `TURSO_AUTH_TOKEN` to client code — server/API routes only
+- ALWAYS filter by `userId` in queries (no RLS — enforced in application layer)
 
 ### Apple companion
 - Never store Apple app-specific passwords in Supabase
 - Companion authenticates to the web API using the user's Better Auth session
 - Companion runs on user's Mac only, no cloud deployment
+
+### Vercel Cron
+- Current schedule: `0 0 * * *` (daily) — limited by Hobby plan
+- Intended schedule: `*/5 * * * *` (every 5 min) — requires Vercel Pro upgrade
 
 ## Commands
 
