@@ -29,7 +29,12 @@ export const auth = betterAuth({
       ],
     },
   },
-  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"],
+  trustedOrigins: [
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    "http://localhost:3000",
+    "https://clarity.vercel.app",
+    /^https:\/\/clarity-.*\.vercel\.app$/,
+  ],
 })
 
 export type Session = typeof auth.$Infer.Session

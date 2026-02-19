@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { signIn } from "@/lib/auth-client"
+import { signIn, signUp } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,25 +9,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 
 export default function LoginPage() {
-  const router = useRouter()
+  const [mode, setMode] = useState<"signin" | "signup">("signin")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleEmailLogin(e: React.FormEvent) {
+  async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
     try {
-      await signIn.email(
-        { email, password, callbackURL: "/" },
-        {
-          onError: (ctx) => {
-            setError(ctx.error.message ?? "Sign in failed")
-          },
-        }
-      )
+      if (mode === "signup") {
+        await signUp.email(
+          { email, password, name, callbackURL: "/" },
+          { onError: (ctx) => setError(ctx.error.message ?? "Sign up failed") }
+        )
+      } else {
+        await signIn.email(
+          { email, password, callbackURL: "/" },
+          { onError: (ctx) => setError(ctx.error.message ?? "Sign in failed") }
+        )
+      }
     } finally {
       setLoading(false)
     }
@@ -39,11 +42,15 @@ export default function LoginPage() {
     await signIn.social({ provider: "google", callbackURL: "/" })
   }
 
+  const isSignUp = mode === "signup"
+
   return (
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Clarity</CardTitle>
-        <CardDescription>Sign in to your productivity hub</CardDescription>
+        <CardDescription>
+          {isSignUp ? "Create your account" : "Sign in to your productivity hub"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Button variant="outline" className="w-full" onClick={handleGoogleLogin} type="button">
@@ -58,7 +65,20 @@ export default function LoginPage() {
           </span>
         </div>
 
-        <form onSubmit={handleEmailLogin} className="space-y-3">
+        <form onSubmit={handleEmailSubmit} className="space-y-3">
+          {isSignUp && (
+            <div className="space-y-1">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+          )}
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -83,9 +103,20 @@ export default function LoginPage() {
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? (isSignUp ? "Creating account..." : "Signing in...") : (isSignUp ? "Create account" : "Sign in")}
           </Button>
         </form>
+
+        <p className="text-center text-sm text-muted-foreground">
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+          <button
+            type="button"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+            onClick={() => { setMode(isSignUp ? "signin" : "signup"); setError(null) }}
+          >
+            {isSignUp ? "Sign in" : "Sign up"}
+          </button>
+        </p>
       </CardContent>
     </Card>
   )
