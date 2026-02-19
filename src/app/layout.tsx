@@ -31,7 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Script
           src="https://devtools.jbcloud.app/widget.js"
           data-project="ohnfqin4-qsi1-w2ez"
-          data-pin="YOUR_PIN_HASH"
+          data-pin="21bbda1d1794b7a4ae9bb53822b5787bc637d91e9131847a9ac86572bcdd3de0"
           strategy="lazyOnload"
         />
       </body>

@@ -46,7 +46,9 @@ async function fetchTodoistTasks(token: string): Promise<TodoistTask[]> {
   if (!res.ok) {
     throw new Error(`Todoist API error: ${res.status} ${res.statusText}`)
   }
-  return res.json() as Promise<TodoistTask[]>
+  // API v1 returns paginated shape: { results: TodoistTask[], next_cursor: string | null }
+  const data = (await res.json()) as { results: TodoistTask[] } | TodoistTask[]
+  return Array.isArray(data) ? data : data.results
 }
 
 export async function syncTodoistTasks(userId: string): Promise<{
