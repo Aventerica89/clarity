@@ -19,7 +19,8 @@ export function SyncButton({ provider, label = "Sync now" }: Props) {
     startTransition(async () => {
       setMessage(null)
       const res = await fetch(`/api/sync/${provider}`, { method: "POST" })
-      const data = (await res.json()) as { synced?: number; error?: string }
+      let data: { synced?: number; error?: string } = {}
+      try { data = (await res.json()) as typeof data } catch { /* empty body */ }
       if (res.ok) {
         setMessage(`Synced ${data.synced ?? 0} items.`)
         router.refresh()

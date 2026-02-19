@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import Script from "next/script"
 import { ThemeProvider } from "next-themes"
 import { DevButton } from "@/components/dev-button"
 import "./globals.css"
@@ -27,6 +28,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <DevButton />
         </ThemeProvider>
+        <Script
+          src="https://devtools.jbcloud.app/widget.js"
+          data-project="ohnfqin4-qsi1-w2ez"
+          data-pin="YOUR_PIN_HASH"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   )
