@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function TodoistConnectForm({ connected }: Props) {
+  const router = useRouter()
   const [token, setToken] = useState("")
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -24,8 +26,8 @@ export function TodoistConnectForm({ connected }: Props) {
         body: JSON.stringify({ token: trimmed }),
       })
       if (res.ok) {
-        setMessage("Token saved. Refresh to see updated status.")
         setToken("")
+        router.refresh()
       } else {
         setMessage("Failed to save token.")
       }
@@ -36,7 +38,7 @@ export function TodoistConnectForm({ connected }: Props) {
     startTransition(async () => {
       const res = await fetch("/api/integrations/todoist", { method: "DELETE" })
       if (res.ok) {
-        setMessage("Disconnected. Refresh to see updated status.")
+        router.refresh()
       } else {
         setMessage("Failed to disconnect.")
       }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function SyncButton({ provider, label = "Sync now" }: Props) {
+  const router = useRouter()
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -20,6 +22,7 @@ export function SyncButton({ provider, label = "Sync now" }: Props) {
       const data = (await res.json()) as { synced?: number; error?: string }
       if (res.ok) {
         setMessage(`Synced ${data.synced ?? 0} items.`)
+        router.refresh()
       } else {
         setMessage(data.error ?? "Sync failed.")
       }
