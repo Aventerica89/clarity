@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows] = await Promise.all([
+  const [googleRows, todoistRows, anthropicRows, geminiRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -34,11 +34,17 @@ export default async function SettingsPage() {
       .from(integrations)
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
       .limit(1),
+    db
+      .select({ id: integrations.id })
+      .from(integrations)
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
+      .limit(1),
   ])
 
   const googleConnected = Boolean(googleRows[0]?.accessToken)
   const todoist = todoistRows[0] ?? null
   const anthropicConnected = anthropicRows.length > 0
+  const geminiConnected = geminiRows.length > 0
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -138,6 +144,43 @@ export default async function SettingsPage() {
             connected={anthropicConnected}
             label="Anthropic API Key"
             placeholder="sk-ant-api01-..."
+          />
+        </CardContent>
+      </Card>
+
+      {/* Gemini AI */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Gemini AI</CardTitle>
+            <Badge
+              variant="outline"
+              className={geminiConnected
+                ? "text-green-600 border-green-200 bg-green-50"
+                : "text-muted-foreground"}
+            >
+              {geminiConnected ? "Connected" : "Not connected"}
+            </Badge>
+          </div>
+          <CardDescription>
+            {geminiConnected
+              ? "Gemini API key saved. Used as AI coach when no Anthropic key is set."
+              : (
+                <>
+                  Enter your Gemini API key as an alternative to Claude.{" "}
+                  <span className="text-foreground/70">
+                    Get it at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline underline-offset-2">aistudio.google.com</a> — free tier available.
+                  </span>
+                </>
+              )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AIConnectForm
+            provider="gemini"
+            connected={geminiConnected}
+            label="Gemini API Key"
+            placeholder="AIza..."
           />
         </CardContent>
       </Card>

@@ -1,8 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk"
+import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai"
 
 export function createAnthropicClient(token: string): Anthropic {
-  if (token.startsWith("sk-ant-oat")) {
-    return new Anthropic({ authToken: token })
-  }
   return new Anthropic({ apiKey: token })
+}
+
+export function createGeminiClient(apiKey: string): GenerativeModel {
+  const genAI = new GoogleGenerativeAI(apiKey)
+  return genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 }
