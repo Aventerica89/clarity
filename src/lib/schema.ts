@@ -135,3 +135,25 @@ export const integrations = sqliteTable("integrations", {
 }, (t) => [
   uniqueIndex("integrations_user_provider_idx").on(t.userId, t.provider),
 ])
+
+// Life Context — free-text situation cards
+export const lifeContextItems = sqliteTable("life_context_items", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  urgency: text("urgency").notNull().default("active"), // "active" | "critical"
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
+
+// Financial snapshot — one row per user, updated manually
+export const financialSnapshot = sqliteTable("financial_snapshot", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().unique().references(() => user.id, { onDelete: "cascade" }),
+  bankBalanceCents: integer("bank_balance_cents").notNull().default(0),
+  monthlyBurnCents: integer("monthly_burn_cents").notNull().default(0),
+  notes: text("notes"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
