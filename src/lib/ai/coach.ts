@@ -18,6 +18,16 @@ export async function getAnthropicToken(userId: string): Promise<string | null> 
   return enc ? decryptToken(enc) : null
 }
 
+export async function getGeminiToken(userId: string): Promise<string | null> {
+  const rows = await db
+    .select({ token: integrations.accessTokenEncrypted })
+    .from(integrations)
+    .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
+    .limit(1)
+  const enc = rows[0]?.token
+  return enc ? decryptToken(enc) : null
+}
+
 export async function buildContext(userId: string, now: Date): Promise<string> {
   const today = todayString()
 

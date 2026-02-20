@@ -29,7 +29,7 @@ export default async function TodayPage() {
   const { start, end } = todayRange()
   const today = todayDateString()
 
-  const [todayEvents, pendingTasks, anthropicRows] = await Promise.all([
+  const [todayEvents, pendingTasks, geminiRows] = await Promise.all([
     db
       .select()
       .from(events)
@@ -53,11 +53,11 @@ export default async function TodayPage() {
     db
       .select({ id: integrations.id })
       .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
       .limit(1),
   ])
 
-  const hasAnthropicToken = anthropicRows.length > 0
+  const hasGeminiToken = geminiRows.length > 0
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -66,7 +66,7 @@ export default async function TodayPage() {
         <p className="text-muted-foreground text-sm">Your unified view</p>
       </div>
 
-      <CoachPanel hasAnthropicToken={hasAnthropicToken} />
+      <CoachPanel hasGeminiToken={hasGeminiToken} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-3">

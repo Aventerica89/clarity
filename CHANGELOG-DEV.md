@@ -4,6 +4,11 @@ Technical log. Updated on every deploy.
 
 <!-- Entries added automatically by deploy hook -->
 
+### 2026-02-20 00:46 · 44a911d · v0.1.0
+FEAT    ai-coach — switch AI provider to Gemini via REST (removes Anthropic dependency)
+CHORE   settings — remove Claude AI section, Gemini is now the only AI provider
+FIX     coach-panel — update prop name and UI copy to reflect Gemini
+
 ### 2026-02-20 00:10 · 6c2dc39 · v0.1.0
 FIX     ai-coach — require sk-ant-api key, reject OAuth tokens with clear error
 FIX     settings — update label/description to direct users to console.anthropic.com

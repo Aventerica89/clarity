@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
 interface Props {
-  hasAnthropicToken: boolean
+  hasGeminiToken: boolean
 }
 
-export function CoachPanel({ hasAnthropicToken }: Props) {
+export function CoachPanel({ hasGeminiToken }: Props) {
   const [response, setResponse] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -77,9 +77,9 @@ export function CoachPanel({ hasAnthropicToken }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {!hasAnthropicToken ? (
+        {!hasGeminiToken ? (
           <p className="text-sm text-muted-foreground">
-            Connect your Claude AI token in{" "}
+            Add a Gemini API key in{" "}
             <a href="/settings" className="underline underline-offset-2">Settings</a>{" "}
             to enable the AI coach.
           </p>
@@ -110,7 +110,7 @@ export function CoachPanel({ hasAnthropicToken }: Props) {
                     Stop
                   </>
                 ) : (
-                  "Ask Claude"
+                  "Ask"
                 )}
               </Button>
             </div>

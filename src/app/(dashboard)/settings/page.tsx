@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows, geminiRows] = await Promise.all([
+  const [googleRows, todoistRows, geminiRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -32,18 +32,12 @@ export default async function SettingsPage() {
     db
       .select({ id: integrations.id })
       .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
-      .limit(1),
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
       .limit(1),
   ])
 
   const googleConnected = Boolean(googleRows[0]?.accessToken)
   const todoist = todoistRows[0] ?? null
-  const anthropicConnected = anthropicRows.length > 0
   const geminiConnected = geminiRows.length > 0
 
   return (
@@ -108,36 +102,6 @@ export default async function SettingsPage() {
           {todoist?.lastError && <p className="text-xs text-red-500">{todoist.lastError}</p>}
           <TodoistConnectForm connected={Boolean(todoist)} />
           {todoist && <SyncButton provider="todoist" label="Sync now" />}
-        </CardContent>
-      </Card>
-
-      {/* Claude AI */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Claude AI</CardTitle>
-            <Badge
-              variant="outline"
-              className={anthropicConnected
-                ? "text-green-600 border-green-200 bg-green-50"
-                : "text-muted-foreground"}
-            >
-              {anthropicConnected ? "Connected" : "Not connected"}
-            </Badge>
-          </div>
-          <CardDescription>
-            {anthropicConnected
-              ? "Claude AI token saved. The coach is active."
-              : "Paste your Claude AI token to enable the AI coach."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AIConnectForm
-            provider="anthropic"
-            connected={anthropicConnected}
-            label="Claude AI Token"
-            placeholder="sk-ant-oat... or sk-ant-api..."
-          />
         </CardContent>
       </Card>
 
