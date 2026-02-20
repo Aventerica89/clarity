@@ -10,11 +10,11 @@
 
 | Layer | Technology |
 |-------|-----------|
-| Web app | Next.js 15 (App Router) |
+| Web app | Next.js 16.x (App Router) |
 | Database | Turso (LibSQL via Drizzle ORM) |
 | Auth | Better Auth (Google OAuth + email/password) |
 | Hosting | Vercel (+ Vercel Cron for sync) |
-| UI | Tailwind CSS + shadcn/ui + Lucide icons |
+| UI | Tailwind CSS v4 + shadcn/ui + Lucide icons |
 | AI | Claude API (Haiku for batch scoring, Sonnet for "What now?" coach) |
 | Apple bridge | clarity-companion (local Node.js AppleScript process on each Mac) |
 | Mobile | Expo (React Native) — Phase 5 |
@@ -67,7 +67,7 @@ See `.env.example` for full list. Use `npm run env:inject` to populate from 1Pas
 - ALWAYS filter by `userId` in queries (no RLS — enforced in application layer)
 
 ### Apple companion
-- Never store Apple app-specific passwords in Supabase
+- Never store Apple app-specific passwords in the database or cloud
 - Companion authenticates to the web API using the user's Better Auth session
 - Companion runs on user's Mac only, no cloud deployment
 
@@ -101,15 +101,17 @@ clarity/
       settings/        # Connection cards, sync status
     lib/
       auth.ts          # Better Auth config
-      db.ts            # Supabase client
-      integrations/    # Google, Todoist, Apple adapters
+      auth-client.ts   # Better Auth browser client
+      db.ts            # Turso/LibSQL + Drizzle client
+      schema.ts        # Drizzle schema (all tables)
+      integrations/    # Google, Todoist adapters (Apple: planned)
       ai/              # Claude scoring + coach
       sync/            # Orchestrator
-      routines/        # Streak engine
+      # routines/      # Streak engine (planned, not yet built)
     types/             # Shared TypeScript types
   clarity-companion/   # Local Mac AppleScript bridge
   supabase/
-    migrations/        # SQL migrations
+    migrations/        # Drizzle-generated migrations (dialect: turso)
   docs/                # Architecture + plan
   tests/               # Unit, integration, e2e
 ```
