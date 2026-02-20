@@ -31,29 +31,20 @@ export async function POST(request: NextRequest) {
 
     const client = createAnthropicClient(token)
 
-    const stream = await client.messages.stream({
+    const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 300,
       system: COACH_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userContent }],
     })
 
+    const text =
+      message.content[0]?.type === "text" ? message.content[0].text : ""
+
     const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            if (
-              chunk.type === "content_block_delta" &&
-              chunk.delta.type === "text_delta"
-            ) {
-              controller.enqueue(new TextEncoder().encode(chunk.delta.text))
-            }
-          }
-        } catch (err) {
-          controller.error(err)
-        } finally {
-          controller.close()
-        }
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(text))
+        controller.close()
       },
     })
 
@@ -62,7 +53,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error("[coach] error:", err)
-    return NextResponse.json({ error: `Coach error: ${msg}` }, { status: 500 })
+    console.error("[coach] error:", msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

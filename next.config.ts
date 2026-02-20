@@ -9,7 +9,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",  // unsafe-* required by Next.js
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://devtools.jbcloud.app",  // unsafe-* required by Next.js
       "style-src 'self' 'unsafe-inline'",                 // unsafe-inline required by Tailwind
       "img-src 'self' data: https:",
       "font-src 'self'",
