@@ -4,6 +4,9 @@ Technical log. Updated on every deploy.
 
 <!-- Entries added automatically by deploy hook -->
 
+### 2026-02-20 · latest · v0.1.0
+FIX     ai-client — remove spurious x-app:cli header from OAuth token path (authToken alone is correct per manifesto)
+
 ### 2026-02-20 02:00 · 5088e99 · v0.1.0
 FIX     ai-coach — switch back to Claude.ai OAuth via @anthropic-ai/sdk + x-app: cli header
 CHORE   settings — restore Claude AI card (anthropic provider), remove Gemini card
