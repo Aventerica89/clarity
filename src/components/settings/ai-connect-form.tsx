@@ -33,7 +33,8 @@ export function AIConnectForm({ provider, connected, placeholder, label }: Props
         setMessage(null)
         router.refresh()
       } else {
-        setMessage("Failed to save. Check the token and try again.")
+        const data = await res.json().catch(() => ({})) as { error?: string }
+        setMessage(data.error ?? "Failed to save. Check the token and try again.")
       }
     })
   }
