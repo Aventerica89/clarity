@@ -40,10 +40,13 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { id } = await params
   const now = new Date()
 
-  await db
+  const [deleted] = await db
     .update(lifeContextItems)
     .set({ isActive: false, updatedAt: now })
     .where(and(eq(lifeContextItems.id, id), eq(lifeContextItems.userId, session.user.id)))
+    .returning()
+
+  if (!deleted) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   return NextResponse.json({ ok: true })
 }
