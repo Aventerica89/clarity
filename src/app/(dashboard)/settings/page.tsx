@@ -127,16 +127,16 @@ export default async function SettingsPage() {
           </div>
           <CardDescription>
             {anthropicConnected
-              ? "Claude AI API key saved. The coach is active."
-              : "Enter your API key from console.anthropic.com to enable the AI coach. Use an sk-ant-api... key, not a Claude.ai OAuth token."}
+              ? "Claude AI token saved. The coach is active."
+              : "Paste your Claude AI token to enable the AI coach."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <AIConnectForm
             provider="anthropic"
             connected={anthropicConnected}
-            label="Anthropic API Key (from console.anthropic.com)"
-            placeholder="sk-ant-api..."
+            label="Claude AI Token"
+            placeholder="sk-ant-oat... or sk-ant-api..."
           />
         </CardContent>
       </Card>

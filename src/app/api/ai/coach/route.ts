@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const anthropic = createAnthropicClient(token)
 
     const stream = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 300,
       stream: true,
       system: COACH_SYSTEM_PROMPT,

@@ -17,13 +17,6 @@ export async function POST(request: NextRequest) {
   const parsed = saveSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: "Token is required" }, { status: 400 })
 
-  if (parsed.data.token.startsWith("sk-ant-oat")) {
-    return NextResponse.json(
-      { error: "This is a Claude.ai OAuth token — it cannot be used with the Anthropic API. Please create an API key at console.anthropic.com instead." },
-      { status: 400 },
-    )
-  }
-
   const encrypted = encryptToken(parsed.data.token)
 
   await db
