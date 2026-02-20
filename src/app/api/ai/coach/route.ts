@@ -33,25 +33,36 @@ export async function POST(request: NextRequest) {
     const context = await buildContext(session.user.id, now)
     const userContent = `Here is my current context:\n\n${context}\n\n${question}`
 
-    let text: string
+    let text: string | undefined
 
     if (anthropicToken) {
-      const client = createAnthropicClient(anthropicToken)
-      const message = await client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
-        system: COACH_SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userContent }],
-      })
-      text = message.content[0]?.type === "text" ? message.content[0].text : ""
-    } else {
-      const model = createGeminiClient(geminiToken!)
+      try {
+        const client = createAnthropicClient(anthropicToken)
+        const message = await client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 300,
+          system: COACH_SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userContent }],
+        })
+        text = message.content[0]?.type === "text" ? message.content[0].text : ""
+      } catch (anthropicErr) {
+        console.error("[coach] Anthropic failed, trying Gemini fallback:", anthropicErr instanceof Error ? anthropicErr.message : anthropicErr)
+        if (!geminiToken) throw anthropicErr
+      }
+    }
+
+    if (text === undefined && geminiToken) {
+      const model = createGeminiClient(geminiToken)
       const result = await model.generateContent({
         contents: [{ role: "user", parts: [{ text: userContent }] }],
         systemInstruction: COACH_SYSTEM_PROMPT,
         generationConfig: { maxOutputTokens: 300 },
       })
       text = result.response.text()
+    }
+
+    if (!text) {
+      return NextResponse.json({ error: "AI provider call returned no content." }, { status: 500 })
     }
 
     const readable = new ReadableStream({
