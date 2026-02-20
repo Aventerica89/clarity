@@ -45,6 +45,16 @@ describe("formatLifeContext", () => {
     expect(result).toContain("~2.3 months")
   })
 
+  it("omits runway when monthly burn is zero", () => {
+    const result = formatLifeContext([], {
+      bankBalanceCents: 500000,
+      monthlyBurnCents: 0,
+      notes: null,
+    })
+    expect(result).toContain("Bank: $5,000")
+    expect(result).not.toContain("Runway")
+  })
+
   it("orders critical items before active items", () => {
     const result = formatLifeContext(
       [

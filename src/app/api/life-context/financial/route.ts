@@ -29,7 +29,12 @@ export async function PUT(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const body: unknown = await request.json()
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
   const parsed = updateSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
@@ -38,7 +43,7 @@ export async function PUT(request: NextRequest) {
     .insert(financialSnapshot)
     .values({ userId: session.user.id, ...parsed.data, updatedAt: now })
     .onConflictDoUpdate({
-      target: [financialSnapshot.userId],
+      target: financialSnapshot.userId,
       set: { ...parsed.data, updatedAt: now },
     })
     .returning()

@@ -11,7 +11,10 @@ export function formatLifeContext(items: LifeContextItem[], snap: FinancialSnap)
 
   const lines: string[] = ["[Life Context]"]
 
-  const sorted = [...items].sort((a, b) => (a.urgency === "critical" ? -1 : 1))
+  const sorted = [...items].sort((a, b) => {
+    if (a.urgency === b.urgency) return 0
+    return a.urgency === "critical" ? -1 : 1
+  })
   for (const item of sorted) {
     const label = item.urgency === "critical" ? "CRITICAL" : "ACTIVE"
     lines.push(`${label}: ${item.title}${item.description ? ` — ${item.description}` : ""}`)
