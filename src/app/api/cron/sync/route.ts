@@ -5,11 +5,11 @@ import { syncAllUsers } from "@/lib/sync/orchestrator"
 
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const authHeader = request.headers.get("authorization")
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: "Cron not configured" }, { status: 503 })
+  }
+  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   // Collect all distinct userIds that have a Google account
