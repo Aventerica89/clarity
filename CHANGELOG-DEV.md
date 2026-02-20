@@ -4,6 +4,11 @@ Technical log. Updated on every deploy.
 
 <!-- Entries added automatically by deploy hook -->
 
+### 2026-02-20 00:10 · 6c2dc39 · v0.1.0
+FIX     ai-coach — require sk-ant-api key, reject OAuth tokens with clear error
+FIX     settings — update label/description to direct users to console.anthropic.com
+FIX     ai-connect-form — surface server error message instead of generic failure text
+
 ### 2026-02-20 00:00 · ff1f167 · v0.1.0
 FIX     ai-coach — restore authToken (Bearer) for Claude.ai OAuth tokens
 FIX     ai-coach — use apiKey (x-api-key) only for sk-ant-api keys

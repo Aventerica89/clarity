@@ -1,2 +1,3 @@
 { "v": "0.1.0", "ts": "2026-02-19T00:00:00Z", "msg": "Initial launch: AI coach, calendar + task sync", "hash": "7fcd382" }
 { "v": "0.1.0", "ts": "2026-02-20T00:00:14Z", "msg": "Fix: AI coach OAuth auth + model ID", "hash": "ff1f167" }
+{ "v": "0.1.0", "ts": "2026-02-20T00:10:00Z", "msg": "Fix: require real API key, reject OAuth tokens", "hash": "6c2dc39" }
