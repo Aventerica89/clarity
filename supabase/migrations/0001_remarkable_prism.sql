@@ -1,0 +1,1 @@
+ALTER TABLE `financial_snapshot` ADD `created_at` integer DEFAULT (unixepoch()) NOT NULL;

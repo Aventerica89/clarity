@@ -142,7 +142,7 @@ export const lifeContextItems = sqliteTable("life_context_items", {
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
-  urgency: text("urgency").notNull().default("active"), // "active" | "critical"
+  urgency: text("urgency", { enum: ["active", "critical"] }).notNull().default("active"),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
@@ -155,5 +155,6 @@ export const financialSnapshot = sqliteTable("financial_snapshot", {
   bankBalanceCents: integer("bank_balance_cents").notNull().default(0),
   monthlyBurnCents: integer("monthly_burn_cents").notNull().default(0),
   notes: text("notes"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
