@@ -1,7 +1,37 @@
-import { and, asc, eq, gte, isNull, lte, or } from "drizzle-orm"
+import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { events, integrations, routineCompletions, routines, tasks } from "@/lib/schema"
+import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, tasks } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
+
+type LifeContextItem = { title: string; description: string; urgency: "active" | "critical" }
+type FinancialSnap = { bankBalanceCents: number; monthlyBurnCents: number; notes: string | null } | null
+
+export function formatLifeContext(items: LifeContextItem[], snap: FinancialSnap): string {
+  if (items.length === 0 && !snap) return ""
+
+  const lines: string[] = ["[Life Context]"]
+
+  const sorted = [...items].sort((a, b) => (a.urgency === "critical" ? -1 : 1))
+  for (const item of sorted) {
+    const label = item.urgency === "critical" ? "CRITICAL" : "ACTIVE"
+    lines.push(`${label}: ${item.title}${item.description ? ` — ${item.description}` : ""}`)
+  }
+
+  if (snap && (snap.bankBalanceCents > 0 || snap.monthlyBurnCents > 0)) {
+    lines.push("")
+    lines.push("[Financial Context]")
+    const bank = (snap.bankBalanceCents / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })
+    const burn = (snap.monthlyBurnCents / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })
+    const runway = snap.monthlyBurnCents > 0
+      ? (snap.bankBalanceCents / snap.monthlyBurnCents).toFixed(1)
+      : null
+    const runwayStr = runway ? ` | Runway: ~${runway} months` : ""
+    lines.push(`Bank: $${bank} | Burn: $${burn}/mo${runwayStr}`)
+    if (snap.notes) lines.push(`Note: ${snap.notes}`)
+  }
+
+  return lines.join("\n")
+}
 
 function todayString(): string {
   const d = new Date()
@@ -33,7 +63,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
 
   const nextThreeHours = new Date(now.getTime() + 3 * 60 * 60 * 1000)
 
-  const [upcomingEvents, pendingTasks, todayRoutines, todayCompletions] = await Promise.all([
+  const [upcomingEvents, pendingTasks, todayRoutines, todayCompletions, lifeContextRows, financialRows] = await Promise.all([
     // Next 3 hours of events
     db
       .select({ title: events.title, startAt: events.startAt, endAt: events.endAt, location: events.location })
@@ -65,6 +95,28 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
       .select({ routineId: routineCompletions.routineId })
       .from(routineCompletions)
       .where(and(eq(routineCompletions.userId, userId), eq(routineCompletions.completedDate, today))),
+
+    // Active life context items
+    db
+      .select({
+        title: lifeContextItems.title,
+        description: lifeContextItems.description,
+        urgency: lifeContextItems.urgency,
+      })
+      .from(lifeContextItems)
+      .where(and(eq(lifeContextItems.userId, userId), eq(lifeContextItems.isActive, true)))
+      .orderBy(desc(lifeContextItems.urgency)),
+
+    // Financial snapshot (one row per user)
+    db
+      .select({
+        bankBalanceCents: financialSnapshot.bankBalanceCents,
+        monthlyBurnCents: financialSnapshot.monthlyBurnCents,
+        notes: financialSnapshot.notes,
+      })
+      .from(financialSnapshot)
+      .where(eq(financialSnapshot.userId, userId))
+      .limit(1),
   ])
 
   const completedRoutineIds = new Set(todayCompletions.map((r) => r.routineId))
@@ -85,10 +137,17 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
   const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
   const dayStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
 
-  const lines: string[] = [
-    `Current time: ${timeStr}, ${dayStr}`,
-    "",
-  ]
+  const lifeContextBlock = formatLifeContext(lifeContextRows, financialRows[0] ?? null)
+
+  const lines: string[] = []
+
+  if (lifeContextBlock) {
+    lines.push(lifeContextBlock)
+    lines.push("")
+  }
+
+  lines.push(`Current time: ${timeStr}, ${dayStr}`)
+  lines.push("")
 
   if (upcomingEvents.length > 0) {
     lines.push("Upcoming events (next 3 hours):")
