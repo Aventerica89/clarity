@@ -31,6 +31,7 @@ export function LifeContextList({ initialItems }: Props) {
   const [showCreate, setShowCreate] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [archiving, setArchiving] = useState<string | null>(null)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
 
   function handleCreated(item: ContextItem) {
     setItems((prev) => [item, ...prev])
@@ -44,11 +45,16 @@ export function LifeContextList({ initialItems }: Props) {
 
   async function handleArchive(id: string) {
     setArchiving(id)
+    setArchiveError(null)
     try {
       const res = await fetch(`/api/life-context/${id}`, { method: "DELETE" })
       if (res.ok) {
         setItems((prev) => prev.filter((it) => it.id !== id))
+      } else {
+        setArchiveError("Failed to archive. Please try again.")
       }
+    } catch {
+      setArchiveError("Failed to archive. Please try again.")
     } finally {
       setArchiving(null)
     }
@@ -127,15 +133,21 @@ export function LifeContextList({ initialItems }: Props) {
         ))}
       </div>
 
+      {archiveError && (
+        <p className="text-sm text-red-500 mt-2">{archiveError}</p>
+      )}
+
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add context item</DialogTitle>
           </DialogHeader>
-          <LifeContextForm
-            onSave={handleCreated}
-            onCancel={() => setShowCreate(false)}
-          />
+          {showCreate && (
+            <LifeContextForm
+              onSave={handleCreated}
+              onCancel={() => setShowCreate(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
