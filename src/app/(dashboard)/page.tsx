@@ -1,12 +1,13 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
-import { and, asc, eq, gte, isNull, lte, or } from "drizzle-orm"
+import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { events, integrations, tasks } from "@/lib/schema"
+import { events, financialSnapshot, integrations, lifeContextItems, tasks } from "@/lib/schema"
 import { EventCard } from "@/components/dashboard/event-card"
 import { TaskCard } from "@/components/dashboard/task-card"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
+import { LifeContextStrip } from "@/components/dashboard/life-context-strip"
 
 function todayRange() {
   const start = new Date()
@@ -29,39 +30,59 @@ export default async function TodayPage() {
   const { start, end } = todayRange()
   const today = todayDateString()
 
-  const [todayEvents, pendingTasks, anthropicRows, geminiRows] = await Promise.all([
-    db
-      .select()
-      .from(events)
-      .where(and(eq(events.userId, userId), gte(events.startAt, start), lte(events.startAt, end)))
-      .orderBy(asc(events.startAt))
-      .limit(20),
+  const [todayEvents, pendingTasks, anthropicRows, geminiRows, lifeContextRows, financialRows] =
+    await Promise.all([
+      db
+        .select()
+        .from(events)
+        .where(and(eq(events.userId, userId), gte(events.startAt, start), lte(events.startAt, end)))
+        .orderBy(asc(events.startAt))
+        .limit(20),
 
-    db
-      .select()
-      .from(tasks)
-      .where(
-        and(
-          eq(tasks.userId, userId),
-          eq(tasks.isCompleted, false),
-          or(isNull(tasks.dueDate), lte(tasks.dueDate, today)),
-        ),
-      )
-      .orderBy(asc(tasks.dueDate), asc(tasks.priorityManual))
-      .limit(30),
+      db
+        .select()
+        .from(tasks)
+        .where(
+          and(
+            eq(tasks.userId, userId),
+            eq(tasks.isCompleted, false),
+            or(isNull(tasks.dueDate), lte(tasks.dueDate, today)),
+          ),
+        )
+        .orderBy(asc(tasks.dueDate), asc(tasks.priorityManual))
+        .limit(30),
 
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
-      .limit(1),
+      db
+        .select({ id: integrations.id })
+        .from(integrations)
+        .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
+        .limit(1),
 
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
-      .limit(1),
-  ])
+      db
+        .select({ id: integrations.id })
+        .from(integrations)
+        .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
+        .limit(1),
+
+      db
+        .select({
+          id: lifeContextItems.id,
+          title: lifeContextItems.title,
+          urgency: lifeContextItems.urgency,
+        })
+        .from(lifeContextItems)
+        .where(and(eq(lifeContextItems.userId, userId), eq(lifeContextItems.isActive, true)))
+        .orderBy(desc(lifeContextItems.urgency)),
+
+      db
+        .select({
+          bankBalanceCents: financialSnapshot.bankBalanceCents,
+          monthlyBurnCents: financialSnapshot.monthlyBurnCents,
+        })
+        .from(financialSnapshot)
+        .where(eq(financialSnapshot.userId, userId))
+        .limit(1),
+    ])
 
   const hasAnthropicToken = anthropicRows.length > 0
   const hasGeminiToken = geminiRows.length > 0
@@ -74,6 +95,11 @@ export default async function TodayPage() {
       </div>
 
       <CoachPanel hasAnthropicToken={hasAnthropicToken} hasGeminiToken={hasGeminiToken} />
+
+      <LifeContextStrip
+        items={lifeContextRows}
+        snapshot={financialRows[0] ?? null}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
