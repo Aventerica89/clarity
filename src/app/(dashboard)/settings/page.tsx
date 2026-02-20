@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, geminiRows] = await Promise.all([
+  const [googleRows, todoistRows, anthropicRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -32,13 +32,13 @@ export default async function SettingsPage() {
     db
       .select({ id: integrations.id })
       .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
       .limit(1),
   ])
 
   const googleConnected = Boolean(googleRows[0]?.accessToken)
   const todoist = todoistRows[0] ?? null
-  const geminiConnected = geminiRows.length > 0
+  const anthropicConnected = anthropicRows.length > 0
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -105,32 +105,32 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Gemini */}
+      {/* Claude AI */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Gemini</CardTitle>
+            <CardTitle className="text-base">Claude AI</CardTitle>
             <Badge
               variant="outline"
-              className={geminiConnected
+              className={anthropicConnected
                 ? "text-green-600 border-green-200 bg-green-50"
                 : "text-muted-foreground"}
             >
-              {geminiConnected ? "Connected" : "Not connected"}
+              {anthropicConnected ? "Connected" : "Not connected"}
             </Badge>
           </div>
           <CardDescription>
-            {geminiConnected
-              ? "Gemini API key saved."
-              : "Paste your Gemini API key from Google AI Studio."}
+            {anthropicConnected
+              ? "Claude.ai OAuth token saved. AI coach is enabled."
+              : "Paste your Claude.ai OAuth token to enable the AI coach. Get it from claude.ai \u2192 Settings \u2192 API."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <AIConnectForm
-            provider="gemini"
-            connected={geminiConnected}
-            label="Gemini API Key"
-            placeholder="AIza..."
+            provider="anthropic"
+            connected={anthropicConnected}
+            label="Claude.ai OAuth Token"
+            placeholder="sk-ant-oat01-..."
           />
         </CardContent>
       </Card>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { buildContext, getGeminiToken } from "@/lib/ai/coach"
+import { buildContext, getAnthropicToken } from "@/lib/ai/coach"
+import { createAnthropicClient } from "@/lib/ai/client"
 import { COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts"
 
 export async function POST(request: NextRequest) {
@@ -10,10 +11,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const geminiToken = await getGeminiToken(session.user.id)
-    if (!geminiToken) {
+    const token = await getAnthropicToken(session.user.id)
+    if (!token) {
       return NextResponse.json(
-        { error: "No AI provider configured. Add a Gemini API key in Settings." },
+        { error: "No Claude.ai token configured. Add your OAuth token in Settings." },
         { status: 422 },
       )
     }
@@ -28,36 +29,31 @@ export async function POST(request: NextRequest) {
     const context = await buildContext(session.user.id, now)
     const userContent = `Here is my current context:\n\n${context}\n\n${question}`
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiToken}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: COACH_SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: userContent }] }],
-          generationConfig: { maxOutputTokens: 300 },
-        }),
-      },
-    )
+    const client = createAnthropicClient(token)
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text()
-      throw new Error(`Gemini error ${geminiRes.status}: ${errText}`)
-    }
-
-    type GeminiResponse = {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: string }> }
-      }>
-    }
-    const data = await geminiRes.json() as GeminiResponse
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ""
+    const stream = await client.messages.stream({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 300,
+      system: COACH_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userContent }],
+    })
 
     const readable = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(text))
-        controller.close()
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            if (
+              chunk.type === "content_block_delta" &&
+              chunk.delta.type === "text_delta"
+            ) {
+              controller.enqueue(new TextEncoder().encode(chunk.delta.text))
+            }
+          }
+        } catch (err) {
+          controller.error(err)
+        } finally {
+          controller.close()
+        }
       },
     })
 

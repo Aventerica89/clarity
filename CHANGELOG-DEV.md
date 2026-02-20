@@ -4,6 +4,12 @@ Technical log. Updated on every deploy.
 
 <!-- Entries added automatically by deploy hook -->
 
+### 2026-02-20 02:00 · 5088e99 · v0.1.0
+FIX     ai-coach — switch back to Claude.ai OAuth via @anthropic-ai/sdk + x-app: cli header
+CHORE   settings — restore Claude AI card (anthropic provider), remove Gemini card
+CHORE   dashboard — check anthropic token for CoachPanel, not gemini
+CHORE   coach-panel — update prop name and copy to reflect Claude.ai OAuth
+
 ### 2026-02-20 00:46 · 44a911d · v0.1.0
 FEAT    ai-coach — switch AI provider to Gemini via REST (removes Anthropic dependency)
 CHORE   settings — remove Claude AI section, Gemini is now the only AI provider
