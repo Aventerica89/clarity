@@ -79,7 +79,7 @@ export function CoachPanel({ hasAnthropicToken }: Props) {
       <CardContent className="space-y-3">
         {!hasAnthropicToken ? (
           <p className="text-sm text-muted-foreground">
-            Add your Claude.ai OAuth token in{" "}
+            Add your Anthropic API key or Claude Code OAuth token in{" "}
             <a href="/settings" className="underline underline-offset-2">Settings</a>{" "}
             to enable the AI coach.
           </p>

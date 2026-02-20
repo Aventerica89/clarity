@@ -121,16 +121,24 @@ export default async function SettingsPage() {
           </div>
           <CardDescription>
             {anthropicConnected
-              ? "Claude.ai OAuth token saved. AI coach is enabled."
-              : "Paste your Claude.ai OAuth token to enable the AI coach. Get it from claude.ai \u2192 Settings \u2192 API."}
+              ? "Anthropic token saved. AI coach is enabled."
+              : (
+                <>
+                  Enter your Anthropic API key or Claude Code OAuth token.{" "}
+                  <span className="text-foreground/70">
+                    API key: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" className="underline underline-offset-2">console.anthropic.com</a> (starts with <code className="font-mono text-xs">sk-ant-api01-</code>).{" "}
+                    OAuth token: run <code className="font-mono text-xs">claude setup-token</code> in your terminal (starts with <code className="font-mono text-xs">sk-ant-oat01-</code>).
+                  </span>
+                </>
+              )}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <AIConnectForm
             provider="anthropic"
             connected={anthropicConnected}
-            label="Claude.ai OAuth Token"
-            placeholder="sk-ant-oat01-..."
+            label="Anthropic API Key or OAuth Token"
+            placeholder="sk-ant-api01-... or sk-ant-oat01-..."
           />
         </CardContent>
       </Card>
