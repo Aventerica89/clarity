@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, RotateCcw, Settings, Sparkles } from "lucide-react"
+import { LayoutDashboard, MapPin, RotateCcw, Settings, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const APP_VERSION = "0.1.0"
@@ -10,6 +10,7 @@ const APP_VERSION = "0.1.0"
 const NAV_ITEMS = [
   { href: "/", label: "Today", icon: LayoutDashboard },
   { href: "/routines", label: "Routines", icon: RotateCcw },
+  { href: "/life-context", label: "Life Context", icon: MapPin },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
