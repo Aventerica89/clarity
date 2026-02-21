@@ -5,25 +5,34 @@ import { Ratelimit } from "@upstash/ratelimit"
 
 type Limiter = { limit: InstanceType<typeof Ratelimit>["limit"] }
 
+const ipIdentifier = (req: NextRequest): string =>
+  req.headers.get("x-forwarded-for") ?? "unknown"
+
 function selectLimiter(
   pathname: string,
 ): { limiter: Limiter; identifier: (req: NextRequest) => string } | null {
-  if (pathname.startsWith("/api/plaid") || pathname.startsWith("/api/webhooks/plaid")) {
+  if (pathname.startsWith("/api/webhooks/plaid")) {
     return {
       limiter: plaidRatelimit,
-      identifier: (req) => req.headers.get("x-forwarded-for") ?? "unknown",
+      identifier: () => "plaid-webhook", // server-to-server: constant bucket
+    }
+  }
+  if (pathname.startsWith("/api/plaid")) {
+    return {
+      limiter: plaidRatelimit,
+      identifier: ipIdentifier,
     }
   }
   if (pathname.startsWith("/api/ai/")) {
     return {
       limiter: coachRatelimit,
-      identifier: (req) => req.headers.get("x-forwarded-for") ?? "unknown",
+      identifier: ipIdentifier,
     }
   }
   if (pathname.startsWith("/api/auth/")) {
     return {
       limiter: authRatelimit,
-      identifier: (req) => req.headers.get("x-forwarded-for") ?? "unknown",
+      identifier: ipIdentifier,
     }
   }
   return null
@@ -44,11 +53,16 @@ export async function proxy(request: NextRequest) {
             "X-RateLimit-Limit": String(limit),
             "X-RateLimit-Remaining": String(remaining),
             "X-RateLimit-Reset": String(reset),
-            "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
+            "Retry-After": String(Math.max(0, Math.ceil((reset - Date.now()) / 1000))),
           },
         },
       )
     }
+  }
+
+  // Plaid webhooks are server-to-server — no session cookie expected
+  if (request.nextUrl.pathname === "/api/webhooks/plaid") {
+    return NextResponse.next()
   }
 
   const sessionCookie = getSessionCookie(request)
