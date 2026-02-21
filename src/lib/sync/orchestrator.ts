@@ -13,7 +13,6 @@ interface SyncResult {
 }
 
 export async function syncAllForUser(userId: string): Promise<SyncResult> {
-  // Check if user has Plaid items before calling Plaid sync
   const userPlaidItems = await db
     .select({ id: plaidItems.id })
     .from(plaidItems)
@@ -22,17 +21,29 @@ export async function syncAllForUser(userId: string): Promise<SyncResult> {
 
   const hasPlaid = userPlaidItems.length > 0
 
-  const tasks: Promise<unknown>[] = [
+  const settled = await Promise.allSettled([
     syncGoogleCalendarEvents(userId),
     syncTodoistTasks(userId),
     ...(hasPlaid ? [syncPlaidForUser(userId)] : []),
-  ]
+  ])
 
-  const [google, todoist, plaid] = await Promise.all(tasks) as [
-    { synced: number; error?: string },
-    { synced: number; error?: string },
-    { synced: number; error?: string } | undefined,
-  ]
+  function extractResult(
+    result: PromiseSettledResult<{ synced: number; error?: string }>,
+  ): { synced: number; error?: string } {
+    if (result.status === "fulfilled") return result.value
+    const message = result.reason instanceof Error ? result.reason.message : String(result.reason)
+    return { synced: 0, error: message }
+  }
+
+  const google = extractResult(
+    settled[0] as PromiseSettledResult<{ synced: number; error?: string }>,
+  )
+  const todoist = extractResult(
+    settled[1] as PromiseSettledResult<{ synced: number; error?: string }>,
+  )
+  const plaid = hasPlaid
+    ? extractResult(settled[2] as PromiseSettledResult<{ synced: number; error?: string }>)
+    : undefined
 
   return { userId, google, todoist, ...(hasPlaid ? { plaid } : {}) }
 }
