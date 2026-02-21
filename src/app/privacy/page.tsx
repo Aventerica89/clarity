@@ -124,10 +124,10 @@ export default function PrivacyPage() {
               <br />
               For privacy-related requests:{" "}
               <a
-                href="mailto:privacy@jbcloud.app"
+                href="mailto:support@jbmdcreations.com"
                 className="underline underline-offset-2 text-foreground"
               >
-                privacy@jbcloud.app
+                support@jbmdcreations.com
               </a>
             </p>
           </section>
