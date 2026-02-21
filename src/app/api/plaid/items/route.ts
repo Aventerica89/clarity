@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       id: item.id,
       institutionName: item.institutionName,
       syncStatus: item.syncStatus,
-      lastSyncedAt: item.lastSyncedAt,
+      lastSyncedAt: item.lastSyncedAt ? Math.floor(item.lastSyncedAt.getTime() / 1000) : null,
       lastError: item.lastError,
       accounts: (accountsByItemId.get(item.id) ?? []).map((a) => ({
         id: a.id,
