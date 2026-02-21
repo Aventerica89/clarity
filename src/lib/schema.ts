@@ -188,3 +188,32 @@ export const financialSnapshot = sqliteTable("financial_snapshot", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
+
+// Plaid Items — one row per connected bank (Plaid "Item")
+export const plaidItems = sqliteTable("plaid_items", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  plaidItemId: text("plaid_item_id").notNull().unique(),
+  institutionId: text("institution_id").notNull(),
+  institutionName: text("institution_name").notNull(),
+  accessTokenEncrypted: text("access_token_encrypted").notNull(),
+  syncStatus: text("sync_status").notNull().default("idle"),
+  lastSyncedAt: integer("last_synced_at", { mode: "timestamp" }),
+  lastError: text("last_error"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
+
+// Plaid Accounts — one row per account within an Item
+export const plaidAccounts = sqliteTable("plaid_accounts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  plaidItemId: text("plaid_item_id").notNull().references(() => plaidItems.id, { onDelete: "cascade" }),
+  plaidAccountId: text("plaid_account_id").notNull().unique(),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  subtype: text("subtype"),
+  currentBalanceCents: integer("current_balance_cents").notNull().default(0),
+  availableBalanceCents: integer("available_balance_cents"),
+  lastUpdatedAt: integer("last_updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
