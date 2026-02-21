@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { type PlaidApi } from "plaid"
-import { computeNetCashFlowCents, aggregateBalanceCents, syncPlaidForUser } from "../sync"
+import { computeNetCashFlowCents, aggregateBalanceCents, syncPlaidForUser, type TransactionLike } from "../sync"
 
 describe("computeNetCashFlowCents", () => {
   it("returns 0 for empty transactions", () => {
@@ -14,7 +14,7 @@ describe("computeNetCashFlowCents", () => {
       { amount: 50.00 },  // $50 expense
     ]
     // Net outflow = $150 → 15000 cents
-    expect(computeNetCashFlowCents(transactions as any)).toBe(15000)
+    expect(computeNetCashFlowCents(transactions as TransactionLike[])).toBe(15000)
   })
 
   it("negative result = net inflow (saving money)", () => {
@@ -23,7 +23,7 @@ describe("computeNetCashFlowCents", () => {
       { amount: 500.00 },   // $500 expenses
     ]
     // Net = 500 - 2000 = -1500 → -150000 cents
-    expect(computeNetCashFlowCents(transactions as any)).toBe(-150000)
+    expect(computeNetCashFlowCents(transactions as TransactionLike[])).toBe(-150000)
   })
 
   it("excludes transfer transactions to avoid double-counting", () => {
@@ -33,7 +33,7 @@ describe("computeNetCashFlowCents", () => {
       { amount: -50.00, personal_finance_category: { primary: "TRANSFER_IN" } },
     ]
     // Only $100 food expense counts
-    expect(computeNetCashFlowCents(transactions as any)).toBe(10000)
+    expect(computeNetCashFlowCents(transactions as TransactionLike[])).toBe(10000)
   })
 })
 

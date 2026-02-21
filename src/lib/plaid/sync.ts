@@ -9,7 +9,7 @@ interface PlaidItem {
   accessTokenEncrypted: string
 }
 
-interface TransactionLike {
+export interface TransactionLike {
   amount: number
   personal_finance_category?: { primary: string } | null
 }
