@@ -19,28 +19,31 @@ interface ProviderConfig {
   docsUrl: string
   avatarColor: string
   initial: string
+  logoSrc?: string
 }
 
 const PROVIDERS: ProviderConfig[] = [
   {
     id: "anthropic",
     label: "Claude",
-    model: "claude-sonnet-4-5",
+    model: "claude-sonnet-4-6",
     description: "Primary coach — best reasoning",
     placeholder: "sk-ant-api01-...",
     docsUrl: "https://console.anthropic.com/settings/keys",
     avatarColor: "bg-violet-500",
     initial: "A",
+    logoSrc: "/logos/claude-logo.svg",
   },
   {
     id: "gemini",
     label: "Gemini",
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash",
     description: "Google AI — free tier available",
     placeholder: "AIza...",
     docsUrl: "https://aistudio.google.com/app/apikey",
     avatarColor: "bg-blue-500",
     initial: "G",
+    logoSrc: "/logos/google-logo.svg",
   },
   {
     id: "deepseek",
@@ -55,12 +58,13 @@ const PROVIDERS: ProviderConfig[] = [
   {
     id: "groq",
     label: "Groq",
-    model: "llama-3.3-70b",
+    model: "llama-3.3-70b-versatile",
     description: "Free tier — fastest inference",
     placeholder: "gsk_...",
     docsUrl: "https://console.groq.com/keys",
     avatarColor: "bg-orange-500",
     initial: "Gr",
+    logoSrc: "/logos/groq-logo.svg",
   },
 ]
 
@@ -132,15 +136,23 @@ export function AIProvidersPanel({ connected }: Props) {
                 className={cn("px-6 py-4 transition-colors", isLast && "rounded-b-lg")}
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "h-8 w-8 rounded-md flex items-center justify-center",
-                      "text-white text-xs font-bold shrink-0",
-                      p.avatarColor
-                    )}
-                  >
-                    {p.initial}
-                  </div>
+                  {p.logoSrc ? (
+                    <img
+                      src={p.logoSrc}
+                      alt={p.label}
+                      className="h-8 w-8 rounded-md object-contain shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className={cn(
+                        "h-8 w-8 rounded-md flex items-center justify-center",
+                        "text-white text-xs font-bold shrink-0",
+                        p.avatarColor
+                      )}
+                    >
+                      {p.initial}
+                    </div>
+                  )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
