@@ -9,17 +9,20 @@ import { TaskCard } from "@/components/dashboard/task-card"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
 import { LifeContextStrip } from "@/components/dashboard/life-context-strip"
 
+const TIMEZONE = "America/Phoenix"
+
 function todayRange() {
-  const start = new Date()
-  start.setHours(0, 0, 0, 0)
-  const end = new Date()
-  end.setHours(23, 59, 59, 999)
-  return { start, end }
+  // Compute midnight-to-midnight in Phoenix time, expressed as UTC Date objects
+  const nowStr = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
+  const start = new Date(`${nowStr}T00:00:00`)
+  const end = new Date(`${nowStr}T23:59:59.999`)
+  // Adjust for Phoenix offset (UTC-7, no DST)
+  const offsetMs = 7 * 60 * 60 * 1000
+  return { start: new Date(start.getTime() + offsetMs), end: new Date(end.getTime() + offsetMs) }
 }
 
 function todayDateString() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
 }
 
 export default async function TodayPage() {

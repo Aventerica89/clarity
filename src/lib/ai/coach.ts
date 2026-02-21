@@ -3,6 +3,9 @@ import { db } from "@/lib/db"
 import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, tasks } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
 
+// User timezone — America/Phoenix has no DST (UTC-7 year-round)
+const TIMEZONE = process.env.CLARITY_TIMEZONE ?? "America/Phoenix"
+
 type LifeContextItem = { title: string; description: string; urgency: "active" | "critical" }
 type FinancialSnap = { bankBalanceCents: number; monthlyBurnCents: number; notes: string | null } | null
 
@@ -37,8 +40,7 @@ export function formatLifeContext(items: LifeContextItem[], snap: FinancialSnap)
 }
 
 function todayString(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
 }
 
 export async function getAnthropicToken(userId: string): Promise<string | null> {
@@ -157,8 +159,8 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     return false
   })
 
-  const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
-  const dayStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+  const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: TIMEZONE })
+  const dayStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: TIMEZONE })
 
   const lifeContextBlock = formatLifeContext(lifeContextRows, financialRows[0] ?? null)
 
