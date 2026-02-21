@@ -8,13 +8,16 @@ export async function POST(request: NextRequest) {
 
   const client = createPlaidClient()
 
-  const response = await client.linkTokenCreate({
-    user: { client_user_id: session.user.id },
-    client_name: "Clarity",
-    products: [...PLAID_PRODUCTS],
-    country_codes: [...PLAID_COUNTRY_CODES],
-    language: "en",
-  })
-
-  return NextResponse.json({ link_token: response.data.link_token })
+  try {
+    const response = await client.linkTokenCreate({
+      user: { client_user_id: session.user.id },
+      client_name: "Clarity",
+      products: [...PLAID_PRODUCTS],
+      country_codes: [...PLAID_COUNTRY_CODES],
+      language: "en",
+    })
+    return NextResponse.json({ link_token: response.data.link_token })
+  } catch {
+    return NextResponse.json({ error: "Failed to create link token" }, { status: 502 })
+  }
 }

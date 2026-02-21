@@ -29,29 +29,34 @@ export async function POST(request: NextRequest) {
   const { public_token, institution_id, institution_name } = parsed.data
 
   const client = createPlaidClient()
-  const exchangeResponse = await client.itemPublicTokenExchange({ public_token })
 
-  const { access_token, item_id } = exchangeResponse.data
+  try {
+    const exchangeResponse = await client.itemPublicTokenExchange({ public_token })
+    const { access_token, item_id } = exchangeResponse.data
+    const encryptedToken = encryptToken(access_token)
 
-  await db
-    .insert(plaidItems)
-    .values({
-      userId: session.user.id,
-      plaidItemId: item_id,
-      institutionId: institution_id,
-      institutionName: institution_name,
-      accessTokenEncrypted: encryptToken(access_token),
-      syncStatus: "idle",
-    })
-    .onConflictDoUpdate({
-      target: plaidItems.plaidItemId,
-      set: {
-        accessTokenEncrypted: encryptToken(access_token),
+    await db
+      .insert(plaidItems)
+      .values({
+        userId: session.user.id,
+        plaidItemId: item_id,
+        institutionId: institution_id,
+        institutionName: institution_name,
+        accessTokenEncrypted: encryptedToken,
         syncStatus: "idle",
-        lastError: null,
-        updatedAt: new Date(),
-      },
-    })
+      })
+      .onConflictDoUpdate({
+        target: plaidItems.plaidItemId,
+        set: {
+          accessTokenEncrypted: encryptedToken,
+          syncStatus: "idle",
+          lastError: null,
+          updatedAt: new Date(),
+        },
+      })
 
-  return NextResponse.json({ ok: true, institution: institution_name }, { status: 201 })
+    return NextResponse.json({ ok: true, institution: institution_name }, { status: 201 })
+  } catch {
+    return NextResponse.json({ error: "Failed to exchange token" }, { status: 502 })
+  }
 }
