@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { type PlaidApi } from "plaid"
 import { computeNetCashFlowCents, aggregateBalanceCents, syncPlaidForUser } from "../sync"
 
 describe("computeNetCashFlowCents", () => {
@@ -130,25 +131,40 @@ describe("syncPlaidForUser", () => {
 
     // Mock the plaidClient inside the dynamic import by pre-configuring
     // createPlaidClient to return a client whose methods resolve successfully.
+    // Include one real account so the batch upsert code path (accountRows.length > 0)
+    // is exercised.
     const { createPlaidClient } = await import("@/lib/plaid")
     vi.mocked(createPlaidClient).mockReturnValue({
       accountsBalanceGet: vi.fn().mockResolvedValue({
-        data: { accounts: [] },
+        data: {
+          accounts: [
+            {
+              account_id: "acc_1",
+              name: "Checking",
+              type: "depository",
+              subtype: "checking",
+              balances: { current: 1000, available: 900 },
+            },
+          ],
+          item: {},
+          request_id: "req_1",
+        },
       }),
       transactionsGet: vi.fn().mockResolvedValue({
         data: { transactions: [] },
       }),
-    } as any)
+    } as unknown as PlaidApi)
 
-    // financialSnapshot insert (synced will be 0 since accounts list is empty
-    // and aggregateBalanceCents returns 0, but the item itself succeeds).
-    // Because accounts is empty, bankBalanceCents = 0, netFlowCents = 0,
-    // synced = 1 → snapshot insert runs.
-    const insertChain = {
-      values: vi.fn().mockReturnThis(),
-      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
-    }
-    mockDb.insert.mockReturnValue(insertChain)
+    // db.insert must support two call shapes:
+    //   1. insert(plaidAccounts).values([...]).onConflictDoUpdate(...)  — accounts batch upsert
+    //   2. insert(financialSnapshot).values({...}).onConflictDoUpdate(...) — snapshot upsert
+    // Both return a fluent builder that resolves on onConflictDoUpdate.
+    const mockInsert = vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+      }),
+    })
+    mockDb.insert.mockImplementation(mockInsert)
 
     await expect(syncPlaidForUser(userId)).resolves.toMatchObject({ synced: 1 })
   })
@@ -165,7 +181,7 @@ describe("syncPlaidForUser", () => {
     vi.mocked(createPlaidClient).mockReturnValue({
       accountsBalanceGet: vi.fn().mockRejectedValue(new Error("Plaid API error")),
       transactionsGet: vi.fn().mockRejectedValue(new Error("Plaid API error")),
-    } as any)
+    } as unknown as PlaidApi)
 
     // syncPlaidForUser should NOT throw — it catches per-item errors internally
     const result = await syncPlaidForUser(userId)
