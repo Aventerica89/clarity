@@ -1,16 +1,17 @@
 import Link from "next/link"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
-import { and, eq } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import { ChevronRight, Info } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { account, integrations } from "@/lib/schema"
+import { account, integrations, plaidItems, plaidAccounts } from "@/lib/schema"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TodoistConnectForm } from "@/components/settings/todoist-connect-form"
 import { AIProvidersPanel } from "@/components/settings/ai-providers-panel"
 import { SyncButton } from "@/components/settings/sync-button"
+import { PlaidConnectionPanel } from "@/components/settings/plaid-connection-panel"
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -18,7 +19,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows, geminiRows, deepseekRows, groqRows] = await Promise.all([
+  const [googleRows, todoistRows, anthropicRows, geminiRows, deepseekRows, groqRows, plaidItemRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -49,6 +50,10 @@ export default async function SettingsPage() {
       .from(integrations)
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "groq")))
       .limit(1),
+    db
+      .select()
+      .from(plaidItems)
+      .where(eq(plaidItems.userId, userId)),
   ])
 
   const googleConnected = Boolean(googleRows[0]?.accessToken)
@@ -59,6 +64,37 @@ export default async function SettingsPage() {
     deepseek: deepseekRows.length > 0,
     groq: groqRows.length > 0,
   }
+
+  // Batch-fetch all accounts for connected Plaid items in one query
+  const plaidItemIds = plaidItemRows.map((i) => i.id)
+  const allPlaidAccounts = plaidItemIds.length > 0
+    ? await db.select().from(plaidAccounts).where(inArray(plaidAccounts.plaidItemId, plaidItemIds))
+    : []
+
+  // Group accounts by plaidItemId (immutable pattern)
+  const accountsByItemId = new Map<string, typeof allPlaidAccounts>()
+  for (const acct of allPlaidAccounts) {
+    const existing = accountsByItemId.get(acct.plaidItemId) ?? []
+    accountsByItemId.set(acct.plaidItemId, [...existing, acct])
+  }
+
+  // Build the prop for PlaidConnectionPanel
+  // IMPORTANT: lastSyncedAt from Drizzle with mode:"timestamp" is a Date object
+  // The component expects number | null (unix seconds), so convert:
+  const plaidItemsWithAccounts = plaidItemRows.map((item) => ({
+    id: item.id,
+    institutionName: item.institutionName,
+    syncStatus: item.syncStatus,
+    lastSyncedAt: item.lastSyncedAt ? Math.floor(item.lastSyncedAt.getTime() / 1000) : null,
+    lastError: item.lastError,
+    accounts: (accountsByItemId.get(item.id) ?? []).map((acct) => ({
+      id: acct.id,
+      name: acct.name,
+      type: acct.type,
+      subtype: acct.subtype,
+      currentBalanceCents: acct.currentBalanceCents,
+    })),
+  }))
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -93,6 +129,9 @@ export default async function SettingsPage() {
           </CardContent>
         )}
       </Card>
+
+      {/* Bank Accounts (Plaid) */}
+      <PlaidConnectionPanel initialItems={plaidItemsWithAccounts} />
 
       {/* Todoist */}
       <Card>
