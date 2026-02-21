@@ -30,7 +30,7 @@ export default async function TodayPage() {
   const { start, end } = todayRange()
   const today = todayDateString()
 
-  const [todayEvents, pendingTasks, anthropicRows, geminiRows, lifeContextRows, financialRows] =
+  const [todayEvents, pendingTasks, aiRows, lifeContextRows, financialRows] =
     await Promise.all([
       db
         .select()
@@ -53,16 +53,9 @@ export default async function TodayPage() {
         .limit(30),
 
       db
-        .select({ id: integrations.id })
+        .select({ provider: integrations.provider })
         .from(integrations)
-        .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
-        .limit(1),
-
-      db
-        .select({ id: integrations.id })
-        .from(integrations)
-        .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
-        .limit(1),
+        .where(eq(integrations.userId, userId)),
 
       db
         .select({
@@ -84,8 +77,11 @@ export default async function TodayPage() {
         .limit(1),
     ])
 
-  const hasAnthropicToken = anthropicRows.length > 0
-  const hasGeminiToken = geminiRows.length > 0
+  const AI_PROVIDERS = ["anthropic", "gemini", "deepseek", "groq"] as const
+  type ProviderId = typeof AI_PROVIDERS[number]
+  const connectedProviders = AI_PROVIDERS.filter(
+    (p) => aiRows.some((r) => r.provider === p),
+  )
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -94,7 +90,7 @@ export default async function TodayPage() {
         <p className="text-muted-foreground text-sm">Your unified view</p>
       </div>
 
-      <CoachPanel hasAnthropicToken={hasAnthropicToken} hasGeminiToken={hasGeminiToken} />
+      <CoachPanel connectedProviders={connectedProviders} />
 
       <LifeContextStrip
         items={lifeContextRows}

@@ -5,18 +5,31 @@ import { Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
-interface Props {
-  hasAnthropicToken: boolean
-  hasGeminiToken: boolean
+type ProviderId = "anthropic" | "gemini" | "deepseek" | "groq"
+type SelectedProvider = "auto" | ProviderId
+
+const PROVIDER_LABELS: Record<ProviderId, string> = {
+  anthropic: "Claude",
+  gemini: "Gemini",
+  deepseek: "DeepSeek",
+  groq: "Groq",
 }
 
-export function CoachPanel({ hasAnthropicToken, hasGeminiToken }: Props) {
+interface Props {
+  connectedProviders: ProviderId[]
+}
+
+export function CoachPanel({ connectedProviders }: Props) {
   const [response, setResponse] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [customQuestion, setCustomQuestion] = useState("")
+  const [selectedProvider, setSelectedProvider] = useState<SelectedProvider>("auto")
   const abortRef = useRef<AbortController | null>(null)
+
+  const hasAny = connectedProviders.length > 0
 
   async function askCoach(question?: string) {
     if (isStreaming) {
@@ -33,7 +46,10 @@ export function CoachPanel({ hasAnthropicToken, hasGeminiToken }: Props) {
       const res = await fetch("/api/ai/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question ?? "What should I do right now?" }),
+        body: JSON.stringify({
+          question: question ?? "What should I do right now?",
+          provider: selectedProvider,
+        }),
         signal: abortRef.current.signal,
       })
 
@@ -78,14 +94,31 @@ export function CoachPanel({ hasAnthropicToken, hasGeminiToken }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {!hasAnthropicToken && !hasGeminiToken ? (
+        {!hasAny ? (
           <p className="text-sm text-muted-foreground">
-            Add an Anthropic or Gemini API key in{" "}
+            Add an AI API key in{" "}
             <a href="/settings" className="underline underline-offset-2">Settings</a>{" "}
             to enable the AI coach.
           </p>
         ) : (
           <>
+            {/* Provider selector */}
+            <div className="flex items-center gap-1 flex-wrap">
+              <ProviderPill
+                label="Auto"
+                selected={selectedProvider === "auto"}
+                onClick={() => setSelectedProvider("auto")}
+              />
+              {connectedProviders.map((pid) => (
+                <ProviderPill
+                  key={pid}
+                  label={PROVIDER_LABELS[pid]}
+                  selected={selectedProvider === pid}
+                  onClick={() => setSelectedProvider(pid)}
+                />
+              ))}
+            </div>
+
             <div className="flex gap-2">
               <Input
                 placeholder="Ask something specific... or leave blank"
@@ -101,7 +134,6 @@ export function CoachPanel({ hasAnthropicToken, hasGeminiToken }: Props) {
               />
               <Button
                 onClick={() => askCoach(customQuestion || undefined)}
-                disabled={false}
                 variant={isStreaming ? "outline" : "default"}
                 size="sm"
               >
@@ -132,5 +164,30 @@ export function CoachPanel({ hasAnthropicToken, hasGeminiToken }: Props) {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+function ProviderPill({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string
+  selected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "h-6 rounded-full px-2.5 text-xs font-medium transition-colors",
+        selected
+          ? "bg-primary text-primary-foreground"
+          : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80",
+      )}
+    >
+      {label}
+    </button>
   )
 }
