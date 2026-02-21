@@ -5,6 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-clarity-amber: var(--clarity-amber);
+  --color-clarity-amber-foreground: var(--clarity-amber-foreground);
+  --color-clarity-amber-muted: var(--clarity-amber-muted);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -48,6 +51,9 @@
 }
 
 :root {
+  --clarity-amber: oklch(0.769 0.188 70.08);
+  --clarity-amber-foreground: oklch(0.145 0 0);
+  --clarity-amber-muted: oklch(0.769 0.188 70.08 / 12%);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -83,6 +89,9 @@
 }
 
 .dark {
+  --clarity-amber: oklch(0.828 0.189 84.429);
+  --clarity-amber-foreground: oklch(0.145 0 0);
+  --clarity-amber-muted: oklch(0.828 0.189 84.429 / 12%);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

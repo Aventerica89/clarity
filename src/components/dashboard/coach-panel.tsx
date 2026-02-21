@@ -163,7 +163,7 @@ export function CoachPanel({ connectedProviders }: Props) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base shrink-0">
-            <Sparkles className="h-4 w-4 text-primary" />
+            <Sparkles className="h-4 w-4 text-clarity-amber" />
             Clarity
           </CardTitle>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
@@ -222,8 +222,8 @@ export function CoachPanel({ connectedProviders }: Props) {
                         className={cn(
                           "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap",
                           msg.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted",
+                            ? "bg-clarity-amber text-clarity-amber-foreground"
+                            : "bg-clarity-amber-muted",
                         )}
                       >
                         {msg.content}
@@ -294,7 +294,7 @@ function ProviderPill({
       className={cn(
         "h-6 rounded-full px-2.5 text-xs font-medium transition-colors",
         selected
-          ? "bg-primary text-primary-foreground"
+          ? "bg-clarity-amber text-clarity-amber-foreground"
           : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80",
       )}
     >

@@ -93,7 +93,7 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
           {task.dueDate && (
             <span
               className={`flex items-center gap-0.5 text-xs ${
-                overdue ? "text-red-500" : "text-muted-foreground"
+                overdue ? "text-destructive" : "text-muted-foreground"
               }`}
             >
               <Calendar className="h-3 w-3" />
