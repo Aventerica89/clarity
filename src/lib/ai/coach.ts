@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, tasks } from "@/lib/schema"
+import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, routineCosts, tasks, userProfile } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
 
 // User timezone — America/Phoenix has no DST (UTC-7 year-round)
@@ -8,6 +8,56 @@ const TIMEZONE = process.env.CLARITY_TIMEZONE ?? "America/Phoenix"
 
 type LifeContextItem = { title: string; description: string; urgency: "active" | "critical" }
 type FinancialSnap = { bankBalanceCents: number; monthlyBurnCents: number; notes: string | null } | null
+type UserProfileData = typeof userProfile.$inferSelect
+type RoutineCostRow = typeof routineCosts.$inferSelect
+
+const FREQUENCY_MONTHLY_FACTOR: Record<string, number> = {
+  monthly: 1,
+  weekly: 52 / 12,
+  biweekly: 26 / 12,
+  annual: 1 / 12,
+}
+
+const HIGH_THRESHOLDS: Partial<Record<string, number>> = {
+  insurance: 60000,
+  housing: 200000,
+  transport: 30000,
+}
+
+function toMonthlyCents(amountCents: number, frequency: string): number {
+  return Math.round(amountCents * (FREQUENCY_MONTHLY_FACTOR[frequency] ?? 1))
+}
+
+function formatProfileBlock(profile: UserProfileData | null): string {
+  if (!profile) return ""
+  const lines: string[] = ["[About Me]"]
+  if (profile.occupation) lines.push(`Occupation: ${profile.occupation}${profile.employer ? ` at ${profile.employer}` : ""}`)
+  if (profile.city) lines.push(`Location: ${profile.city}`)
+  if (profile.householdType) lines.push(`Household: ${profile.householdType}`)
+  if (profile.workSchedule) lines.push(`Work schedule: ${profile.workSchedule}`)
+  if (profile.lifePhase) lines.push(`Life phase: ${profile.lifePhase}`)
+  if (profile.sideProjects) lines.push(`Side projects: ${profile.sideProjects}`)
+  if (profile.healthContext) lines.push(`Health: ${profile.healthContext}`)
+  if (profile.lifeValues) lines.push(`What matters most: ${profile.lifeValues}`)
+  if (profile.notes) lines.push(`Notes: ${profile.notes}`)
+  return lines.length > 1 ? lines.join("\n") : ""
+}
+
+function formatRoutineCostsBlock(costs: RoutineCostRow[]): string {
+  if (costs.length === 0) return ""
+  const totalMonthlyCents = costs.reduce((sum, c) => sum + toMonthlyCents(c.amountCents, c.frequency), 0)
+  const total = (totalMonthlyCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
+  const lines: string[] = [`[Routine Costs] — ${total}/mo total`]
+  for (const cost of costs) {
+    const monthly = toMonthlyCents(cost.amountCents, cost.frequency)
+    const amt = (cost.amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
+    const freqSuffix = cost.frequency === "monthly" ? "/mo" : cost.frequency === "annual" ? "/yr" : `/${cost.frequency}`
+    const monthlyNote = cost.frequency !== "monthly" ? ` (${(monthly / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}/mo)` : ""
+    const highFlag = HIGH_THRESHOLDS[cost.category] && monthly > (HIGH_THRESHOLDS[cost.category] ?? 0) ? " ⚠️ high" : ""
+    lines.push(`  ${cost.label}: ${amt}${freqSuffix}${monthlyNote}${highFlag}`)
+  }
+  return lines.join("\n")
+}
 
 export function formatLifeContext(items: LifeContextItem[], snap: FinancialSnap): string {
   if (items.length === 0 && !snap) return ""
@@ -88,7 +138,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
 
   const nextThreeHours = new Date(now.getTime() + 3 * 60 * 60 * 1000)
 
-  const [upcomingEvents, pendingTasks, todayRoutines, todayCompletions, lifeContextRows, financialRows] = await Promise.all([
+  const [upcomingEvents, pendingTasks, todayRoutines, todayCompletions, lifeContextRows, financialRows, profileRows, costsRows] = await Promise.all([
     // Next 3 hours of events
     db
       .select({ title: events.title, startAt: events.startAt, endAt: events.endAt, location: events.location })
@@ -142,6 +192,12 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
       .from(financialSnapshot)
       .where(eq(financialSnapshot.userId, userId))
       .limit(1),
+
+    // User profile
+    db.select().from(userProfile).where(eq(userProfile.userId, userId)).limit(1),
+
+    // Routine costs
+    db.select().from(routineCosts).where(and(eq(routineCosts.userId, userId), eq(routineCosts.isActive, true))),
   ])
 
   const completedRoutineIds = new Set(todayCompletions.map((r) => r.routineId))
@@ -162,9 +218,21 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
   const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: TIMEZONE })
   const dayStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: TIMEZONE })
 
+  const profileBlock = formatProfileBlock(profileRows[0] ?? null)
+  const costsBlock = formatRoutineCostsBlock(costsRows)
   const lifeContextBlock = formatLifeContext(lifeContextRows, financialRows[0] ?? null)
 
   const lines: string[] = []
+
+  if (profileBlock) {
+    lines.push(profileBlock)
+    lines.push("")
+  }
+
+  if (costsBlock) {
+    lines.push(costsBlock)
+    lines.push("")
+  }
 
   if (lifeContextBlock) {
     lines.push(lifeContextBlock)

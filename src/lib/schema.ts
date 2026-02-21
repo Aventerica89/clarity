@@ -148,6 +148,36 @@ export const lifeContextItems = sqliteTable("life_context_items", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
+// User profile — biographical background for AI personalization
+export const userProfile = sqliteTable("user_profile", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().unique().references(() => user.id, { onDelete: "cascade" }),
+  occupation: text("occupation"),
+  employer: text("employer"),
+  city: text("city"),
+  householdType: text("household_type"),  // solo | partner | family | roommates
+  workSchedule: text("work_schedule"),    // 9-5 | shift | flexible | remote | self-employed
+  lifePhase: text("life_phase"),          // free text: "building a SaaS while working full-time"
+  healthContext: text("health_context"),
+  sideProjects: text("side_projects"),
+  lifeValues: text("life_values"),
+  notes: text("notes"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
+
+// Routine costs — itemized recurring expenses (rent, insurance, meds, subscriptions)
+export const routineCosts = sqliteTable("routine_costs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  category: text("category").notNull().default("other"), // housing | insurance | medical | transport | subscription | utilities | other
+  amountCents: integer("amount_cents").notNull(),
+  frequency: text("frequency").notNull().default("monthly"), // monthly | weekly | biweekly | annual
+  notes: text("notes"),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
+
 // Financial snapshot — one row per user, updated manually
 export const financialSnapshot = sqliteTable("financial_snapshot", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
