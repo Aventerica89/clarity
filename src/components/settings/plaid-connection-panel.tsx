@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { usePlaidLink, PlaidLinkOnSuccessMetadata } from "react-plaid-link"
 import { Landmark, Trash2, RefreshCw, Loader2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -43,6 +43,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   async function fetchLinkToken() {
     setLoading(true)
@@ -88,7 +89,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
         setLoading(false)
       }
     },
-    [],
+    [setItems, setError],
   )
 
   const { open, ready } = usePlaidLink({
@@ -96,6 +97,13 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
     onSuccess: onPlaidSuccess,
     onExit: () => setLinkToken(null),
   })
+
+  // Auto-open Plaid Link once token is ready
+  useEffect(() => {
+    if (linkToken && ready) {
+      open()
+    }
+  }, [linkToken, ready, open])
 
   async function handleConnect() {
     if (!linkToken) {
@@ -105,12 +113,8 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
     }
   }
 
-  // Auto-open Plaid Link once token is ready
-  if (linkToken && ready) {
-    open()
-  }
-
   async function handleDisconnect(itemId: string) {
+    setDeletingId(itemId)
     setError(null)
     try {
       const res = await fetch(`/api/plaid/items/${itemId}`, { method: "DELETE" })
@@ -118,6 +122,8 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
       setItems((prev) => prev.filter((i) => i.id !== itemId))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error")
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -212,6 +218,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={() => handleDisconnect(item.id)}
+                    disabled={deletingId === item.id}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

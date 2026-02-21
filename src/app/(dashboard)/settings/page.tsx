@@ -51,7 +51,13 @@ export default async function SettingsPage() {
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "groq")))
       .limit(1),
     db
-      .select()
+      .select({
+        id: plaidItems.id,
+        institutionName: plaidItems.institutionName,
+        syncStatus: plaidItems.syncStatus,
+        lastSyncedAt: plaidItems.lastSyncedAt,
+        lastError: plaidItems.lastError,
+      })
       .from(plaidItems)
       .where(eq(plaidItems.userId, userId)),
   ])
