@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { usePlaidLink, PlaidLinkOnSuccessMetadata } from "react-plaid-link"
-import { Landmark, Trash2, RefreshCw, Loader2 } from "lucide-react"
+import { Landmark, Trash2, RefreshCw, Loader2, FileSpreadsheet } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -247,6 +247,18 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
             </div>
           ))
         )}
+
+        {/* Coming soon: CSV import */}
+        <div className="flex items-center justify-between rounded-lg border border-dashed p-3 opacity-60">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Import bank statements</p>
+              <p className="text-xs text-muted-foreground">Upload CSV or OFX files for historical data</p>
+            </div>
+          </div>
+          <Badge variant="secondary" className="text-xs">Coming soon</Badge>
+        </div>
       </CardContent>
     </Card>
   )
