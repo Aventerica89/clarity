@@ -9,7 +9,7 @@ import { account, integrations } from "@/lib/schema"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TodoistConnectForm } from "@/components/settings/todoist-connect-form"
-import { AIConnectForm } from "@/components/settings/ai-connect-form"
+import { AIProvidersPanel } from "@/components/settings/ai-providers-panel"
 import { SyncButton } from "@/components/settings/sync-button"
 
 export default async function SettingsPage() {
@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows, geminiRows] = await Promise.all([
+  const [googleRows, todoistRows, anthropicRows, geminiRows, deepseekRows, groqRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -39,12 +39,26 @@ export default async function SettingsPage() {
       .from(integrations)
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
       .limit(1),
+    db
+      .select({ id: integrations.id })
+      .from(integrations)
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "deepseek")))
+      .limit(1),
+    db
+      .select({ id: integrations.id })
+      .from(integrations)
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "groq")))
+      .limit(1),
   ])
 
   const googleConnected = Boolean(googleRows[0]?.accessToken)
   const todoist = todoistRows[0] ?? null
-  const anthropicConnected = anthropicRows.length > 0
-  const geminiConnected = geminiRows.length > 0
+  const aiConnected = {
+    anthropic: anthropicRows.length > 0,
+    gemini: geminiRows.length > 0,
+    deepseek: deepseekRows.length > 0,
+    groq: groqRows.length > 0,
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -111,79 +125,7 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Claude AI */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Claude AI</CardTitle>
-            <Badge
-              variant="outline"
-              className={anthropicConnected
-                ? "text-green-600 border-green-200 bg-green-50"
-                : "text-muted-foreground"}
-            >
-              {anthropicConnected ? "Connected" : "Not connected"}
-            </Badge>
-          </div>
-          <CardDescription>
-            {anthropicConnected
-              ? "Anthropic API key saved. AI coach is enabled."
-              : (
-                <>
-                  Enter your Anthropic API key.{" "}
-                  <span className="text-foreground/70">
-                    Get it at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" className="underline underline-offset-2">console.anthropic.com</a> — starts with <code className="font-mono text-xs">sk-ant-api01-</code>.
-                  </span>
-                </>
-              )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AIConnectForm
-            provider="anthropic"
-            connected={anthropicConnected}
-            label="Anthropic API Key"
-            placeholder="sk-ant-api01-..."
-          />
-        </CardContent>
-      </Card>
-
-      {/* Gemini AI */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Gemini AI</CardTitle>
-            <Badge
-              variant="outline"
-              className={geminiConnected
-                ? "text-green-600 border-green-200 bg-green-50"
-                : "text-muted-foreground"}
-            >
-              {geminiConnected ? "Connected" : "Not connected"}
-            </Badge>
-          </div>
-          <CardDescription>
-            {geminiConnected
-              ? "Gemini API key saved. Used as AI coach when no Anthropic key is set."
-              : (
-                <>
-                  Enter your Gemini API key as an alternative to Claude.{" "}
-                  <span className="text-foreground/70">
-                    Get it at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline underline-offset-2">aistudio.google.com</a> — free tier available.
-                  </span>
-                </>
-              )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AIConnectForm
-            provider="gemini"
-            connected={geminiConnected}
-            label="Gemini API Key"
-            placeholder="AIza..."
-          />
-        </CardContent>
-      </Card>
+      <AIProvidersPanel connected={aiConnected} />
 
       {/* About */}
       <Link href="/settings/about">
