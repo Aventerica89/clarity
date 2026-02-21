@@ -1,4 +1,13 @@
+import { type PlaidApi } from "plaid"
+import { sql } from "drizzle-orm"
+
 const TRANSFER_CATEGORIES = new Set(["TRANSFER_IN", "TRANSFER_OUT"])
+
+interface PlaidItem {
+  id: string
+  userId: string
+  accessTokenEncrypted: string
+}
 
 interface TransactionLike {
   amount: number
@@ -34,10 +43,8 @@ export function aggregateBalanceCents(accounts: AccountLike[]): number {
 // Syncs one Plaid Item: refreshes account balances and computes net cash flow.
 // Lazy-imports db/crypto/plaid so pure functions can be tested without live env vars.
 async function syncPlaidItem(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  plaidClient: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  item: any,
+  plaidClient: PlaidApi,
+  item: PlaidItem,
 ): Promise<{ bankBalanceCents: number; netFlowCents: number }> {
   const { decryptToken } = await import("@/lib/crypto")
   const { plaidAccounts } = await import("@/lib/schema")
@@ -49,40 +56,46 @@ async function syncPlaidItem(
   const balanceResponse = await plaidClient.accountsBalanceGet({ access_token: accessToken })
   const plaidAccountList = balanceResponse.data.accounts
 
-  // Upsert accounts
-  for (const acct of plaidAccountList) {
-    const currentCents = Math.round((acct.balances.current ?? 0) * 100)
-    const availableCents = acct.balances.available != null
-      ? Math.round(acct.balances.available * 100)
-      : null
+  const now = new Date()
 
-    await db
-      .insert(plaidAccounts)
-      .values({
-        userId: item.userId,
-        plaidItemId: item.id,
-        plaidAccountId: acct.account_id,
-        name: acct.name,
-        type: acct.type,
-        subtype: acct.subtype ?? null,
-        currentBalanceCents: currentCents,
-        availableBalanceCents: availableCents,
-        lastUpdatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: plaidAccounts.plaidAccountId,
-        set: {
-          currentBalanceCents: currentCents,
-          availableBalanceCents: availableCents,
-          lastUpdatedAt: new Date(),
-        },
-      })
+  // Batch upsert all accounts in a single query (avoids N+1)
+  const accountRows = plaidAccountList.map((acct: {
+    account_id: string
+    name: string
+    type: string
+    subtype?: string | null
+    balances: { current?: number | null; available?: number | null }
+  }) => ({
+    id: crypto.randomUUID(),
+    userId: item.userId,
+    plaidItemId: item.id,
+    plaidAccountId: acct.account_id,
+    name: acct.name,
+    type: acct.type,
+    subtype: acct.subtype ?? null,
+    currentBalanceCents: Math.round((acct.balances.current ?? 0) * 100),
+    availableBalanceCents: acct.balances.available != null
+      ? Math.round(acct.balances.available * 100)
+      : null,
+    lastUpdatedAt: now,
+  }))
+
+  if (accountRows.length > 0) {
+    await db.insert(plaidAccounts).values(accountRows).onConflictDoUpdate({
+      target: plaidAccounts.plaidAccountId,
+      set: {
+        name: sql`excluded.name`,
+        type: sql`excluded.type`,
+        subtype: sql`excluded.subtype`,
+        currentBalanceCents: sql`excluded.current_balance_cents`,
+        availableBalanceCents: sql`excluded.available_balance_cents`,
+        lastUpdatedAt: sql`excluded.last_updated_at`,
+      },
+    })
   }
 
-  // 2. Fetch last 30 days of transactions
-  const now = new Date()
-  const thirtyDaysAgo = new Date(now)
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  // 2. Fetch last 30 days of transactions (immutable date calculation)
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
   const txResponse = await plaidClient.transactionsGet({
     access_token: accessToken,
