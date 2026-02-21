@@ -187,6 +187,13 @@ export default async function SettingsPage() {
           </CardHeader>
         </Card>
       </Link>
+
+      <p className="text-center text-xs text-muted-foreground pb-4">
+        <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
+          Privacy Policy
+        </Link>
+        {" · "}JBMD Creations, LLC
+      </p>
     </div>
   )
 }
