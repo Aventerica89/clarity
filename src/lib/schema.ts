@@ -216,6 +216,19 @@ export const coachMessages = sqliteTable("coach_messages", {
     .notNull(),
 })
 
+// Chat sessions — named conversation threads on the /chat page
+export const chatSessions = sqliteTable("chat_sessions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull().default("New conversation"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+})
+
 // Plaid Accounts — one row per account within an Item
 export const plaidAccounts = sqliteTable("plaid_accounts", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),

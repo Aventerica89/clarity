@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { asc, desc, eq } from "drizzle-orm"
+import { asc, desc, eq, and } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { coachMessages } from "@/lib/schema"
+import { chatSessions, coachMessages } from "@/lib/schema"
 import { buildContext, getAnthropicToken, getGeminiToken, getDeepSeekToken, getGroqToken } from "@/lib/ai/coach"
 import { createAnthropicClient, createGeminiClient, callDeepSeek, callGroq, type ChatMessage } from "@/lib/ai/client"
 import { COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts"
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
       question?: string
       provider?: string
       sessionId?: string
+      namedSession?: boolean
     }
 
     const question =
@@ -101,9 +102,29 @@ export async function POST(request: NextRequest) {
 
     const incomingSessionId = typeof body.sessionId === "string" ? body.sessionId : null
     const activeSessionId = incomingSessionId ?? crypto.randomUUID()
+    // Whether this sessionId corresponds to a named chat session (vs. the dashboard coach widget)
+    const isNamedSession = body.namedSession === true
 
     const requestedProvider = body.provider as ProviderId | "auto" | undefined
     const useAuto = !requestedProvider || requestedProvider === "auto"
+
+    // History query: scoped to session if named, otherwise global (dashboard widget)
+    const historyQuery = isNamedSession && incomingSessionId
+      ? db
+        .select({ role: coachMessages.role, content: coachMessages.content })
+        .from(coachMessages)
+        .where(and(
+          eq(coachMessages.userId, session.user.id),
+          eq(coachMessages.sessionId, incomingSessionId),
+        ))
+        .orderBy(desc(coachMessages.createdAt))
+        .limit(20)
+      : db
+        .select({ role: coachMessages.role, content: coachMessages.content })
+        .from(coachMessages)
+        .where(eq(coachMessages.userId, session.user.id))
+        .orderBy(desc(coachMessages.createdAt))
+        .limit(20)
 
     // Load tokens, context, and chat history in parallel
     const [anthropicToken, geminiToken, deepseekToken, groqToken, context, historyRows] = await Promise.all([
@@ -112,13 +133,7 @@ export async function POST(request: NextRequest) {
       getDeepSeekToken(session.user.id),
       getGroqToken(session.user.id),
       buildContext(session.user.id, new Date()),
-      // Last 20 messages (10 exchanges) for context window
-      db
-        .select({ role: coachMessages.role, content: coachMessages.content })
-        .from(coachMessages)
-        .where(eq(coachMessages.userId, session.user.id))
-        .orderBy(desc(coachMessages.createdAt))
-        .limit(20),
+      historyQuery,
     ])
 
     const tokens: Record<ProviderId, string | null> = {
@@ -186,6 +201,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Persist both turns to DB
+    const isFirstMessage = historyRows.length === 0
     await db.insert(coachMessages).values([
       {
         userId: session.user.id,
@@ -200,6 +216,23 @@ export async function POST(request: NextRequest) {
         content: text,
       },
     ])
+
+    // Update named chat session: set updatedAt, auto-title on first message
+    if (isNamedSession && incomingSessionId) {
+      const autoTitle = isFirstMessage
+        ? question.slice(0, 60) + (question.length > 60 ? "..." : "")
+        : undefined
+      await db
+        .update(chatSessions)
+        .set({
+          updatedAt: new Date(),
+          ...(autoTitle ? { title: autoTitle } : {}),
+        })
+        .where(and(
+          eq(chatSessions.id, incomingSessionId),
+          eq(chatSessions.userId, session.user.id),
+        ))
+    }
 
     const readable = new ReadableStream({
       start(controller) {
