@@ -204,6 +204,18 @@ export const plaidItems = sqliteTable("plaid_items", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
+// Coach messages — persistent multi-turn chat history per user/session
+export const coachMessages = sqliteTable("coach_messages", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  sessionId: text("session_id").notNull(),
+  role: text("role", { enum: ["user", "assistant"] }).notNull(),
+  content: text("content").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+})
+
 // Plaid Accounts — one row per account within an Item
 export const plaidAccounts = sqliteTable("plaid_accounts", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),

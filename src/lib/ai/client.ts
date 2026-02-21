@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai"
 
+export type ChatMessage = { role: "user" | "assistant"; content: string }
+
 export function createAnthropicClient(token: string): Anthropic {
   return new Anthropic({ apiKey: token })
 }
@@ -15,7 +17,7 @@ async function callOpenAICompatible(
   apiKey: string,
   model: string,
   system: string,
-  userContent: string,
+  messages: ChatMessage[],
   maxTokens: number,
 ): Promise<string> {
   const res = await fetch(`${baseUrl}/chat/completions`, {
@@ -29,7 +31,7 @@ async function callOpenAICompatible(
       max_tokens: maxTokens,
       messages: [
         { role: "system", content: system },
-        { role: "user", content: userContent },
+        ...messages,
       ],
     }),
   })
@@ -48,7 +50,7 @@ async function callOpenAICompatible(
 export function callDeepSeek(
   apiKey: string,
   system: string,
-  userContent: string,
+  messages: ChatMessage[],
   maxTokens: number,
 ): Promise<string> {
   return callOpenAICompatible(
@@ -56,7 +58,7 @@ export function callDeepSeek(
     apiKey,
     "deepseek-chat",
     system,
-    userContent,
+    messages,
     maxTokens,
   )
 }
@@ -64,7 +66,7 @@ export function callDeepSeek(
 export function callGroq(
   apiKey: string,
   system: string,
-  userContent: string,
+  messages: ChatMessage[],
   maxTokens: number,
 ): Promise<string> {
   return callOpenAICompatible(
@@ -72,7 +74,7 @@ export function callGroq(
     apiKey,
     "llama-3.3-70b-versatile",
     system,
-    userContent,
+    messages,
     maxTokens,
   )
 }

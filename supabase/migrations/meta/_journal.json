@@ -15,6 +15,13 @@
       "when": 1771626536649,
       "tag": "0001_remarkable_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771673655083,
+      "tag": "0002_bored_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }
