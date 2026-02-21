@@ -52,7 +52,7 @@ export function MessageContent({ children, role, markdown = false, className }: 
       <div
         className={cn(
           "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
-          "bg-primary text-primary-foreground",
+          "bg-clarity-amber text-clarity-amber-foreground",
           className,
         )}
       >

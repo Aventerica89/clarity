@@ -225,7 +225,7 @@ export default function ChatPage() {
   return (
     <div className="flex h-full -m-4 md:-m-6 overflow-hidden">
       {/* Sessions sidebar */}
-      <aside className="hidden md:flex w-60 flex-col border-r bg-muted/20 shrink-0">
+      <aside className="hidden md:flex w-60 flex-col border-r shrink-0">
         <div className="flex items-center justify-between px-3 py-3 border-b">
           <span className="text-sm font-medium">Conversations</span>
           <Button
@@ -254,7 +254,7 @@ export default function ChatPage() {
                     className={cn(
                       "group flex items-center justify-between rounded-md px-3 py-2 text-sm cursor-pointer",
                       s.id === activeSessionId
-                        ? "bg-accent text-accent-foreground"
+                        ? "bg-clarity-amber/10 text-foreground"
                         : "hover:bg-accent/50 text-muted-foreground hover:text-foreground",
                     )}
                     onClick={() => loadSession(s.id)}
@@ -287,8 +287,8 @@ export default function ChatPage() {
         {/* No session selected / empty state */}
         {!activeSessionId && !hasMessages ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-              <Sparkles className="h-6 w-6 text-primary" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clarity-amber/10">
+              <Sparkles className="h-6 w-6 text-clarity-amber" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">Clarity Coach</h2>
@@ -339,8 +339,8 @@ export default function ChatPage() {
                   {messages.map((msg, i) => (
                     <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start gap-3")}>
                       {msg.role === "assistant" && (
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 mt-0.5">
-                          <Sparkles className="h-3.5 w-3.5 text-primary" />
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-clarity-amber/10 mt-0.5">
+                          <Sparkles className="h-3.5 w-3.5 text-clarity-amber" />
                         </div>
                       )}
                       <MessageContent role={msg.role} markdown={msg.role === "assistant"}>

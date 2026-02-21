@@ -217,7 +217,7 @@ export function AIProvidersPanel({ connected }: Props) {
                       </Button>
                     </div>
                     {errors[p.id] && (
-                      <p className="text-xs text-red-500">{errors[p.id]}</p>
+                      <p className="text-xs text-destructive">{errors[p.id]}</p>
                     )}
                     <a
                       href={p.docsUrl}
@@ -232,7 +232,7 @@ export function AIProvidersPanel({ connected }: Props) {
                 )}
 
                 {errors[p.id] && isConnected && (
-                  <p className="mt-2 pl-11 text-xs text-red-500">{errors[p.id]}</p>
+                  <p className="mt-2 pl-11 text-xs text-destructive">{errors[p.id]}</p>
                 )}
               </div>
             )
