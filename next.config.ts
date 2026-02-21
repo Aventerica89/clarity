@@ -10,7 +10,8 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://devtools.jbcloud.app https://cdn.plaid.com",
+      // devtools.jbcloud.app: owner-controlled dashboard widget — safe to allow
+      "script-src 'self' 'unsafe-inline' https://vercel.live https://devtools.jbcloud.app https://cdn.plaid.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self'",
