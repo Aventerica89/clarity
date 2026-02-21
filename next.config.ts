@@ -16,7 +16,7 @@ const securityHeaders = [
       "img-src 'self' data: https:",
       "font-src 'self'",
       "frame-src https://cdn.plaid.com",
-      "connect-src 'self' https://*.turso.io https://api.anthropic.com https://generativelanguage.googleapis.com https://api.todoist.com https://www.googleapis.com https://cdn.plaid.com https://production.plaid.com https://sandbox.plaid.com",
+      "connect-src 'self' https://*.turso.io https://api.anthropic.com https://generativelanguage.googleapis.com https://api.todoist.com https://www.googleapis.com https://cdn.plaid.com https://production.plaid.com https://sandbox.plaid.com https://devtools.jbcloud.app",
       "frame-ancestors 'none'",
     ].join("; "),
   },

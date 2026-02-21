@@ -6,9 +6,8 @@ export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const client = createPlaidClient()
-
   try {
+    const client = createPlaidClient()
     const response = await client.linkTokenCreate({
       user: { client_user_id: session.user.id },
       client_name: "Clarity",
@@ -17,7 +16,8 @@ export async function POST(request: NextRequest) {
       language: "en",
     })
     return NextResponse.json({ link_token: response.data.link_token })
-  } catch {
+  } catch (err) {
+    console.error("[plaid] create-link-token error:", err)
     return NextResponse.json({ error: "Failed to create link token" }, { status: 502 })
   }
 }
