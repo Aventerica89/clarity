@@ -38,7 +38,7 @@ function selectLimiter(
   return null
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const match = selectLimiter(request.nextUrl.pathname)
   if (match) {
     const id = match.identifier(request)
