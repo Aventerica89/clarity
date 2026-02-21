@@ -35,5 +35,5 @@ export function createPlaidClient(): PlaidApi {
   return new PlaidApi(configuration)
 }
 
-export const PLAID_PRODUCTS: Products[] = [Products.Transactions]
-export const PLAID_COUNTRY_CODES: CountryCode[] = [CountryCode.Us]
+export const PLAID_PRODUCTS = [Products.Transactions] as const
+export const PLAID_COUNTRY_CODES = [CountryCode.Us] as const
