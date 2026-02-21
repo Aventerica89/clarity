@@ -142,7 +142,7 @@ export default function AboutPage() {
       {/* Getting started */}
       <section className="space-y-3">
         <h2 className="text-base font-semibold">Getting started</h2>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {GETTING_STARTED.map(({ step, title, description, href, required }) => (
             <Link key={step} href={href}>
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
