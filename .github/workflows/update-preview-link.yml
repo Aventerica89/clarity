@@ -1,0 +1,19 @@
+name: Update URLsToGo Preview Link
+
+on:
+  deployment_status:
+
+jobs:
+  update-preview-link:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update preview link
+        env:
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+        run: |
+          curl -s -X PUT \
+            -H "Authorization: Bearer ${{ secrets.URLSTOGO_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"destination\": \"${DEPLOYMENT_URL}\"}" \
+            "https://go.urlstogo.cloud/api/preview-links/clarity--preview"
