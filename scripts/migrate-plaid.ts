@@ -13,9 +13,14 @@ const sql = readFileSync(
 )
 
 const statements = sql.split(";").map((s) => s.trim()).filter(Boolean)
-for (const statement of statements) {
-  await client.execute(statement)
-  console.log("Executed:", statement.slice(0, 60) + "...")
-}
 
-console.log("Migration complete.")
+try {
+  for (const statement of statements) {
+    await client.execute(statement)
+    process.stdout.write(`Executed: ${statement.slice(0, 60)}...\n`)
+  }
+  process.stdout.write("Migration complete.\n")
+} catch (error) {
+  process.stderr.write(`Migration failed: ${error instanceof Error ? error.message : String(error)}\n`)
+  process.exitCode = 1
+}
