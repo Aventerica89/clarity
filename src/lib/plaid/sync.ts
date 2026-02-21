@@ -148,25 +148,27 @@ export async function syncPlaidForUser(userId: string): Promise<{ synced: number
     }
   }
 
-  // Upsert financial snapshot with aggregated totals.
-  // monthlyBurnCents stores the net cash flow for the last 30 days.
-  // Positive = net outflow (spending > income), negative = net inflow.
-  await db
-    .insert(financialSnapshot)
-    .values({
-      userId,
-      bankBalanceCents: totalBankCents,
-      monthlyBurnCents: totalNetFlowCents,
-      updatedAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: financialSnapshot.userId,
-      set: {
+  // Only update snapshot if at least one item synced successfully.
+  // Skipping when synced === 0 prevents overwriting a previously valid
+  // snapshot with zeros when all Plaid items fail in the current run.
+  if (synced > 0) {
+    await db
+      .insert(financialSnapshot)
+      .values({
+        userId,
         bankBalanceCents: totalBankCents,
         monthlyBurnCents: totalNetFlowCents,
         updatedAt: new Date(),
-      },
-    })
+      })
+      .onConflictDoUpdate({
+        target: financialSnapshot.userId,
+        set: {
+          bankBalanceCents: totalBankCents,
+          monthlyBurnCents: totalNetFlowCents,
+          updatedAt: new Date(),
+        },
+      })
+  }
 
   return { synced }
 }
