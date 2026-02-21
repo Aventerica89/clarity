@@ -220,10 +220,10 @@ export function CoachPanel({ connectedProviders }: Props) {
                     >
                       <div
                         className={cn(
-                          "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap",
+                          "max-w-[85%] px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap",
                           msg.role === "user"
-                            ? "bg-clarity-amber text-clarity-amber-foreground"
-                            : "bg-clarity-amber-muted",
+                            ? "rounded-xl rounded-tr-sm bg-clarity-amber text-clarity-amber-foreground"
+                            : "rounded-xl bg-clarity-amber-muted",
                         )}
                       >
                         {msg.content}
@@ -264,6 +264,7 @@ export function CoachPanel({ connectedProviders }: Props) {
                 disabled={isStreaming || !input.trim()}
                 size="sm"
                 className="shrink-0 h-9 w-9 p-0"
+                aria-label={isStreaming ? "Sending..." : "Send message"}
               >
                 {isStreaming
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin" />

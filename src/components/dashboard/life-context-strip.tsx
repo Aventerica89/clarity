@@ -65,8 +65,8 @@ export function LifeContextStrip({ items, snapshot }: Props) {
                 className={cn(
                   "mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
                   item.urgency === "critical"
-                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-clarity-amber/15 text-clarity-amber",
                 )}
               >
                 {item.urgency}

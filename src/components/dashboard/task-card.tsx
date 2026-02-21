@@ -21,10 +21,9 @@ interface TaskCardProps {
 }
 
 const PRIORITY_COLORS: Record<number, string> = {
-  5: "bg-red-100 text-red-700 border-red-200",
-  4: "bg-orange-100 text-orange-700 border-orange-200",
-  3: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  1: "bg-slate-100 text-slate-600 border-slate-200",
+  5: "bg-destructive/10 text-destructive border-destructive/20",
+  4: "bg-warning/10 text-warning border-warning/20",
+  3: "bg-muted text-muted-foreground border-border",
 }
 
 const PRIORITY_LABELS: Record<number, string> = {
@@ -67,11 +66,11 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
   if (done) return null
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b last:border-b-0">
+    <div className="flex items-start gap-3 py-1 border-b last:border-b-0">
       <Button
         variant="outline"
         size="icon"
-        className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5"
+        className="h-8 w-8 rounded-full flex-shrink-0 mt-0.5"
         onClick={handleComplete}
         disabled={isPending || !onComplete}
         aria-label="Complete task"

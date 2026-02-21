@@ -24,13 +24,13 @@ function formatTime(date: Date): string {
 
 export function EventCard({ event }: EventCardProps) {
   return (
-    <div className="flex gap-3 py-3 border-b last:border-b-0">
-      <div className="flex-shrink-0 w-1 bg-muted-foreground/25 rounded-full" />
+    <div className="flex gap-3 py-1 border-b last:border-b-0 items-start">
+      <div className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-muted-foreground/40 mt-1.5" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{event.title}</p>
         <div className="flex items-center gap-3 mt-1">
           {!event.isAllDay && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono">
               <Clock className="h-3 w-3" />
               {formatTime(event.startAt)} – {formatTime(event.endAt)}
             </span>

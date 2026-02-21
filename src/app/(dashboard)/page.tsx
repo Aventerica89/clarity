@@ -100,34 +100,7 @@ export default async function TodayPage() {
         snapshot={financialRows[0] ?? null}
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Events
-            {todayEvents.length > 0 && <span className="ml-1.5 normal-case">({todayEvents.length})</span>}
-          </h2>
-          {todayEvents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No events today. Connect Google Calendar in Settings to sync.
-            </p>
-          ) : (
-            todayEvents.map((ev) => (
-              <EventCard
-                key={ev.id}
-                event={{
-                  id: ev.id,
-                  title: ev.title,
-                  startAt: ev.startAt,
-                  endAt: ev.endAt,
-                  isAllDay: ev.isAllDay,
-                  location: ev.location,
-                  calendarName: ev.calendarName,
-                }}
-              />
-            ))
-          )}
-        </div>
-
+      <div className="grid gap-6 md:grid-cols-[3fr_2fr]">
         <div className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             Tasks
@@ -149,6 +122,33 @@ export default async function TodayPage() {
                   dueDate: t.dueDate,
                   priorityManual: t.priorityManual,
                   labels: t.labels,
+                }}
+              />
+            ))
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Events
+            {todayEvents.length > 0 && <span className="ml-1.5 normal-case">({todayEvents.length})</span>}
+          </h2>
+          {todayEvents.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No events today. Connect Google Calendar in Settings to sync.
+            </p>
+          ) : (
+            todayEvents.map((ev) => (
+              <EventCard
+                key={ev.id}
+                event={{
+                  id: ev.id,
+                  title: ev.title,
+                  startAt: ev.startAt,
+                  endAt: ev.endAt,
+                  isAllDay: ev.isAllDay,
+                  location: ev.location,
+                  calendarName: ev.calendarName,
                 }}
               />
             ))

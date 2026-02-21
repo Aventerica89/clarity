@@ -33,8 +33,8 @@ export function Sidebar() {
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
               pathname === href
-                ? "bg-clarity-amber text-clarity-amber-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                ? "bg-clarity-amber/15 text-clarity-amber"
+                : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             )}
           >
             <Icon className="h-4 w-4" />
