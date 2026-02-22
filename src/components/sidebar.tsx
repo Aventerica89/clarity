@@ -1,8 +1,9 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, MapPin, MessageSquare, RotateCcw, Settings, Sparkles, User } from "lucide-react"
+import { LayoutDashboard, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const APP_VERSION = "0.1.0"
@@ -22,7 +23,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-56 flex-col border-r px-3 py-4">
       <div className="mb-6 flex items-center gap-2 px-2">
-        <Sparkles className="h-5 w-5 text-clarity-amber" />
+        <Image src="/pwa/manifest-icon-192.maskable.png" alt="Clarity" width={28} height={28} className="rounded-md" />
         <span className="font-semibold text-lg">Clarity</span>
       </div>
       <nav className="flex flex-col gap-1 flex-1">
