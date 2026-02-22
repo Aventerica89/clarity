@@ -13,6 +13,7 @@ import { AIProvidersPanel } from "@/components/settings/ai-providers-panel"
 import { SyncButton } from "@/components/settings/sync-button"
 import { PlaidConnectionPanel } from "@/components/settings/plaid-connection-panel"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
+import { OnboardingReset } from "@/components/settings/onboarding-reset"
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -208,6 +209,8 @@ export default async function SettingsPage() {
                     </CardHeader>
                   </Card>
                 </Link>
+
+                <OnboardingReset />
 
                 <p className="text-center text-xs text-muted-foreground pt-2">
                   <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">

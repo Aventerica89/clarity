@@ -8,6 +8,12 @@ import {
   sunStateToGradient,
 } from "@/lib/sun-position"
 
+export const ONBOARDING_STORAGE_KEY_PREFIX = "clarity-onboarding-seen-"
+
+export function getOnboardingStorageKey(userId: string) {
+  return `${ONBOARDING_STORAGE_KEY_PREFIX}${userId}`
+}
+
 const STEPS_IOS = [
   {
     title: "Tap the Share button",
@@ -72,15 +78,12 @@ const STEPS_IOS = [
   },
 ]
 
-function getStorageKey(userId: string) {
-  return `clarity-onboarding-seen-${userId}`
-}
-
 export function InstallGuide() {
   const { data: session } = useSession()
   const [visible, setVisible] = useState(false)
   const [step, setStep] = useState(0)
   const [isIOS, setIsIOS] = useState(false)
+  const [doNotShow, setDoNotShow] = useState(false)
   const [gradient, setGradient] = useState("none")
 
   const userId = session?.user?.id
@@ -97,7 +100,7 @@ export function InstallGuide() {
     return () => clearInterval(interval)
   }, [updateGradient])
 
-  // Visibility logic
+  // Visibility logic — show every login unless permanently dismissed
   useEffect(() => {
     if (!userId) return
 
@@ -106,17 +109,18 @@ export function InstallGuide() {
       window.matchMedia("(display-mode: standalone)").matches
     if (isStandalone) return
 
-    const key = getStorageKey(userId)
-    const seen = localStorage.getItem(key)
-    if (seen) return
+    const key = getOnboardingStorageKey(userId)
+    const dismissed = localStorage.getItem(key)
+    if (dismissed) return
 
     setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent))
     setVisible(true)
   }, [userId])
 
   function dismiss() {
-    if (!userId) return
-    localStorage.setItem(getStorageKey(userId), "1")
+    if (doNotShow && userId) {
+      localStorage.setItem(getOnboardingStorageKey(userId), "1")
+    }
     setVisible(false)
   }
 
@@ -179,6 +183,17 @@ export function InstallGuide() {
                 Skip for now
               </button>
             )}
+
+            {/* Do not show again checkbox */}
+            <label className="mt-6 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={doNotShow}
+                onChange={(e) => setDoNotShow(e.target.checked)}
+                className="size-3.5 rounded border-border accent-clarity-amber"
+              />
+              Do not show again
+            </label>
           </div>
         )}
 
@@ -224,6 +239,19 @@ export function InstallGuide() {
             >
               Skip
             </button>
+
+            {/* Do not show again checkbox — on last step */}
+            {isLastStep && (
+              <label className="mt-6 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={doNotShow}
+                  onChange={(e) => setDoNotShow(e.target.checked)}
+                  className="size-3.5 rounded border-border accent-clarity-amber"
+                />
+                Do not show again
+              </label>
+            )}
           </div>
         )}
       </div>
