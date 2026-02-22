@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   CalendarDays,
   CheckSquare,
@@ -9,7 +10,7 @@ import {
   Zap,
   BookOpen,
 } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
 
@@ -128,7 +129,13 @@ export default function AboutPage() {
           <span>About</span>
         </div>
         <div className="flex items-center gap-3 mb-2">
-          <Sparkles className="size-6 text-clarity-amber" />
+          <Image
+            src="/pwa/manifest-icon-192.maskable.png"
+            alt="Clarity"
+            width={28}
+            height={28}
+            className="rounded-md"
+          />
           <h1 className="text-2xl font-bold">Clarity</h1>
         </div>
         <p className="text-muted-foreground text-sm">
@@ -143,52 +150,52 @@ export default function AboutPage() {
             value: "getting-started",
             label: "Getting Started",
             content: (
-              <div className="space-y-3">
+              <Card className="py-0 divide-y">
                 {GETTING_STARTED.map(({ step, title, description, href, required }) => (
-                  <Link key={step} href={href}>
-                    <Card className="py-0 hover:bg-accent/50 transition-colors cursor-pointer">
-                      <CardContent className="flex items-center gap-3 py-3 px-4">
-                        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
-                          {step}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">{title}</span>
-                            {required && (
-                              <Badge variant="outline" className="text-xs py-0 h-4">
-                                Recommended
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">{description}</p>
-                        </div>
-                        <ChevronRight className="size-4 text-muted-foreground shrink-0" />
-                      </CardContent>
-                    </Card>
+                  <Link
+                    key={step}
+                    href={href}
+                    className="flex items-center gap-3 py-3 px-4 hover:bg-accent/50 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                      {step}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{title}</span>
+                        {required && (
+                          <Badge variant="outline" className="text-xs py-0 h-4">
+                            Recommended
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{description}</p>
+                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                   </Link>
                 ))}
-              </div>
+              </Card>
             ),
           },
           {
             value: "features",
             label: "Features",
             content: (
-              <div className="grid grid-cols-2 gap-3">
+              <Card className="py-0 divide-y">
                 {FEATURES.map(({ icon: Icon, title, description, href }) => (
-                  <Link key={title} href={href}>
-                    <Card className="h-full py-0 hover:bg-accent/50 transition-colors cursor-pointer">
-                      <CardContent className="flex items-start gap-3 py-3 px-3">
-                        <Icon className="size-4 mt-0.5 text-muted-foreground shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium leading-tight">{title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <Link
+                    key={title}
+                    href={href}
+                    className="flex items-start gap-3 py-3 px-4 hover:bg-accent/50 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                  >
+                    <Icon className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium leading-tight">{title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
+                    </div>
                   </Link>
                 ))}
-              </div>
+              </Card>
             ),
           },
           {
@@ -196,14 +203,14 @@ export default function AboutPage() {
             label: "Data Sources",
             content: (
               <div className="space-y-4">
-                <div className="space-y-2">
+                <Card className="py-0 divide-y">
                   {DATA_SOURCES.map(({ name, detail }) => (
-                    <div key={name} className="flex items-start gap-3 text-sm">
+                    <div key={name} className="flex items-start gap-3 py-3 px-4 text-sm">
                       <span className="font-medium w-44 shrink-0">{name}</span>
                       <span className="text-muted-foreground">{detail}</span>
                     </div>
                   ))}
-                </div>
+                </Card>
                 <p className="text-xs text-muted-foreground pt-2">
                   Built with Next.js, Turso, and Claude.{" "}
                   <Link href="/changelog" className="underline underline-offset-2 hover:text-foreground transition-colors">
