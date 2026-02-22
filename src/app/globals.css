@@ -132,7 +132,29 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     @apply bg-background text-foreground;
   }
+  /* Momentum scrolling for scrollable containers */
+  [data-scroll] {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* PWA standalone mode overrides */
+@media (display-mode: standalone) {
+  /* Installed PWA: ensure status bar area is covered by app background */
+  html {
+    background-color: hsl(var(--background));
+  }
+}
+
+/* Safe area utility — used by mobile nav and body clearance */
+.pb-safe-nav {
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 20px));
 }
