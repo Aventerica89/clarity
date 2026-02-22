@@ -33,7 +33,7 @@ export function Header() {
     .slice(0, 2)
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-4">
+    <header className="flex min-h-14 items-center justify-between border-b px-4 pt-[env(safe-area-inset-top)]">
       <span className="text-sm text-muted-foreground">{formatDate()}</span>
       <div className="flex items-center gap-2">
         <Button
