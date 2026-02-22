@@ -286,24 +286,26 @@ export default function ChatPage() {
       <div className="flex flex-1 flex-col min-w-0">
         {/* No session selected / empty state */}
         {!activeSessionId && !hasMessages ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clarity-amber/10">
-              <Sparkles className="h-6 w-6 text-clarity-amber" />
+          <div className="flex flex-1 flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center gap-6 p-6 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clarity-amber/10">
+                <Sparkles className="h-6 w-6 text-clarity-amber" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Clarity Coach</h2>
+                <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+                  Ask anything about your day, priorities, routines, or goals.
+                </p>
+              </div>
+              <PromptSuggestionGroup>
+                {SUGGESTIONS.map((s) => (
+                  <PromptSuggestion key={s} onClick={() => { setInput(s) }}>
+                    {s}
+                  </PromptSuggestion>
+                ))}
+              </PromptSuggestionGroup>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold">Clarity Coach</h2>
-              <p className="mt-1 text-sm text-muted-foreground max-w-sm">
-                Ask anything about your day, priorities, routines, or goals.
-              </p>
-            </div>
-            <PromptSuggestionGroup>
-              {SUGGESTIONS.map((s) => (
-                <PromptSuggestion key={s} onClick={() => { setInput(s) }}>
-                  {s}
-                </PromptSuggestion>
-              ))}
-            </PromptSuggestionGroup>
-            <div className="w-full max-w-2xl">
+            <div className="shrink-0 px-4 pb-4 w-full max-w-2xl mx-auto">
               <PromptInput
                 value={input}
                 onValueChange={setInput}

@@ -35,7 +35,42 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Clarity",
-    startupImage: [],
+    startupImage: [
+      // Portrait splash screens
+      {
+        url: "/apple-splash-1260-2736.jpg",
+        media: "(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+      },
+      {
+        url: "/apple-splash-1488-2266.jpg",
+        media: "(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+      },
+      {
+        url: "/apple-splash-1536-2048.jpg",
+        media: "(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+      },
+      {
+        url: "/apple-splash-1640-2360.jpg",
+        media: "(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+      },
+      {
+        url: "/apple-splash-2048-2732.jpg",
+        media: "(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+      },
+      // Landscape splash screens
+      {
+        url: "/apple-splash-1334-750.jpg",
+        media: "(device-width: 667px) and (device-height: 375px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)",
+      },
+      {
+        url: "/apple-splash-2160-1620.jpg",
+        media: "(device-width: 1080px) and (device-height: 810px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)",
+      },
+      {
+        url: "/apple-splash-2224-1668.jpg",
+        media: "(device-width: 1112px) and (device-height: 834px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)",
+      },
+    ],
   },
   formatDetection: {
     telephone: false,
