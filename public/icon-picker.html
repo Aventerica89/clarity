@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clarity Icon Picker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    border-bottom: 1px solid #21262d;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 { font-size: 15px; font-weight: 600; color: #f0f6fc; }
+  header p { font-size: 12px; color: #7d8590; }
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: 0;
+  }
+  .panel {
+    border-right: 1px solid #21262d;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .panel-section { margin-bottom: 24px; }
+  .panel-section label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7d8590;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .icon-option {
+    position: relative;
+    cursor: pointer;
+    border-radius: 12px;
+    border: 2px solid #21262d;
+    padding: 12px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.15s;
+    background: #161b22;
+  }
+  .icon-option:hover { border-color: #30363d; }
+  .icon-option.selected {
+    border-color: #f59e0b;
+    background: #f59e0b10;
+  }
+  .icon-option canvas {
+    border-radius: 20%;
+    display: block;
+  }
+  .icon-option .name {
+    font-size: 11px;
+    color: #7d8590;
+    font-weight: 500;
+  }
+  .icon-option.selected .name { color: #f59e0b; }
+  .bg-toggle {
+    display: flex;
+    gap: 6px;
+  }
+  .bg-btn {
+    flex: 1;
+    padding: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #21262d;
+    background: #161b22;
+    color: #7d8590;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bg-btn.active {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    background: #f59e0b10;
+  }
+  .preview-area {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .preview-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #7d8590;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+  .size-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .size-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .size-item canvas {
+    border-radius: 20%;
+    display: block;
+  }
+  .size-label {
+    font-size: 10px;
+    color: #7d8590;
+    font-family: "SF Mono", "Fira Code", monospace;
+  }
+  .preview-bg-dark  .size-item canvas { background: #0d1117; }
+  .preview-bg-light .size-item canvas { background: #f6f8fa; }
+  .context-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .context-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .context-item canvas { border-radius: 20%; }
+  .context-item .ctx-label { font-size: 10px; color: #7d8590; }
+  /* Springboard mockup */
+  .springboard-mock {
+    background: #1c2128;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+  }
+  .springboard-icon { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .springboard-icon .app-label { font-size: 10px; color: #e6edf3; }
+  .other-icon {
+    width: 60px; height: 60px;
+    border-radius: 20%;
+    background: #30363d;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  footer {
+    border-top: 1px solid #21262d;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #output {
+    flex: 1;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 12px;
+    color: #7d8590;
+    background: none;
+    border: none;
+    outline: none;
+    resize: none;
+    height: 20px;
+  }
+  #copy-btn {
+    padding: 6px 14px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  #copy-btn:hover { background: #30363d; }
+  #copy-btn.copied { color: #3fb950; border-color: #3fb950; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Clarity — Icon Picker</h1>
+    <p>Click an icon to select · Preview at all PWA sizes · Copy selection to use</p>
+  </div>
+</header>
+
+<div class="workspace">
+  <div class="panel">
+    <div class="panel-section">
+      <label>Choose an Icon</label>
+      <div class="icon-grid" id="icon-grid"></div>
+    </div>
+    <div class="panel-section">
+      <label>Preview Background</label>
+      <div class="bg-toggle">
+        <button class="bg-btn active" data-bg="dark" onclick="setBg('dark',this)">Dark</button>
+        <button class="bg-btn" data-bg="light" onclick="setBg('light',this)">Light</button>
+        <button class="bg-btn" data-bg="color" onclick="setBg('color',this)">Wallpaper</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-area" id="preview-area">
+    <div>
+      <div class="preview-section-title">Sizes</div>
+      <div class="size-row" id="size-row"></div>
+    </div>
+    <div>
+      <div class="preview-section-title">Home Screen Context</div>
+      <div class="springboard-mock" id="springboard"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <textarea id="output" readonly></textarea>
+  <button id="copy-btn" onclick="copyOutput()">Copy</button>
+</footer>
+
+<script>
+// ── Amber palette ──────────────────────────────────────────────
+const AMBER      = '#f59e0b';
+const AMBER_DARK = '#d97706';
+const AMBER_LITE = '#fcd34d';
+const BG_DARK    = '#0f172a';
+const BG_MID     = '#1e293b';
+const WHITE      = '#ffffff';
+
+// ── Icon draw functions (512px canvas each) ───────────────────
+const ICONS = [
+  { id: 'sparkle',  name: 'Sparkle',  draw: drawSparkle  },
+  { id: 'prism',    name: 'Prism',    draw: drawPrism    },
+  { id: 'aperture', name: 'Aperture', draw: drawAperture },
+  { id: 'sunrise',  name: 'Sunrise',  draw: drawSunrise  },
+  { id: 'monogram', name: 'Monogram', draw: drawMonogram },
+];
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function bgFill(ctx, s) {
+  // Squircle background
+  const r = s * 0.2256;
+  roundRect(ctx, 0, 0, s, s, r);
+  ctx.fillStyle = BG_DARK;
+  ctx.fill();
+}
+
+// ── 1. Sparkle ─────────────────────────────────────────────────
+function drawSparkle(ctx, s) {
+  bgFill(ctx, s);
+  const cx = s / 2, cy = s / 2;
+
+  // Outer glow
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.42);
+  glow.addColorStop(0, AMBER + '30');
+  glow.addColorStop(1, 'transparent');
+  roundRect(ctx, 0, 0, s, s, s * 0.2256);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // 4-pointed star
+  function star4(cx, cy, R, r, rot) {
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = (Math.PI / 4) * i + rot;
+      const radius = i % 2 === 0 ? R : r;
+      const x = cx + Math.cos(a) * radius;
+      const y = cy + Math.sin(a) * radius;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  // Main star
+  star4(cx, cy, s * 0.34, s * 0.06, -Math.PI / 4);
+  const sg = ctx.createRadialGradient(cx, cy - s * 0.06, 0, cx, cy, s * 0.38);
+  sg.addColorStop(0, AMBER_LITE);
+  sg.addColorStop(0.5, AMBER);
+  sg.addColorStop(1, AMBER_DARK);
+  ctx.fillStyle = sg;
+  ctx.fill();
+
+  // Small accent star
+  star4(cx + s * 0.22, cy - s * 0.22, s * 0.08, s * 0.015, -Math.PI / 4);
+  ctx.fillStyle = AMBER_LITE;
+  ctx.fill();
+
+  // Tiny dot
+  ctx.beginPath();
+  ctx.arc(cx - s * 0.2, cy + s * 0.2, s * 0.025, 0, Math.PI * 2);
+  ctx.fillStyle = AMBER + 'aa';
+  ctx.fill();
+}
+
+// ── 2. Prism ───────────────────────────────────────────────────
+function drawPrism(ctx, s) {
+  bgFill(ctx, s);
+  const cx = s / 2, cy = s / 2;
+
+  // Triangle
+  const h = s * 0.5;
+  const tx = cx, ty = cy - h * 0.5;
+  const bl = { x: cx - h * 0.6, y: cy + h * 0.45 };
+  const br = { x: cx + h * 0.6, y: cy + h * 0.45 };
+
+  // Prism body gradient
+  const pg = ctx.createLinearGradient(bl.x, bl.y, br.x, ty);
+  pg.addColorStop(0, BG_MID);
+  pg.addColorStop(0.5, '#2d3748');
+  pg.addColorStop(1, '#4a5568');
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(bl.x, bl.y);
+  ctx.lineTo(br.x, br.y);
+  ctx.closePath();
+  ctx.fillStyle = pg;
+  ctx.fill();
+
+  // Prism edge highlight
+  ctx.strokeStyle = AMBER + '80';
+  ctx.lineWidth = s * 0.018;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Light ray in (left side)
+  const rayY = cy - s * 0.05;
+  ctx.beginPath();
+  ctx.moveTo(bl.x - s * 0.15, rayY);
+  ctx.lineTo(cx - s * 0.02, rayY + s * 0.06);
+  ctx.strokeStyle = WHITE + '30';
+  ctx.lineWidth = s * 0.025;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Refracted rays (amber tones spreading right)
+  const rayOrigin = { x: cx + s * 0.04, y: rayY + s * 0.07 };
+  const spread = [
+    { angle: -0.30, color: AMBER_LITE + 'dd', w: 0.02 },
+    { angle: -0.08, color: AMBER + 'ee', w: 0.025 },
+    { angle:  0.12, color: AMBER_DARK + 'cc', w: 0.02 },
+    { angle:  0.32, color: AMBER_DARK + '88', w: 0.015 },
+  ];
+  spread.forEach(({ angle, color, w }) => {
+    const len = s * 0.38;
+    ctx.beginPath();
+    ctx.moveTo(rayOrigin.x, rayOrigin.y);
+    ctx.lineTo(
+      rayOrigin.x + Math.cos(angle) * len,
+      rayOrigin.y + Math.sin(angle) * len
+    );
+    ctx.strokeStyle = color;
+    ctx.lineWidth = s * w;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  });
+
+  // Apex dot
+  ctx.beginPath();
+  ctx.arc(tx, ty, s * 0.02, 0, Math.PI * 2);
+  ctx.fillStyle = AMBER_LITE;
+  ctx.fill();
+}
+
+// ── 3. Aperture ────────────────────────────────────────────────
+function drawAperture(ctx, s) {
+  bgFill(ctx, s);
+  const cx = s / 2, cy = s / 2;
+
+  // Outer ring glow
+  const og = ctx.createRadialGradient(cx, cy, s * 0.3, cx, cy, s * 0.45);
+  og.addColorStop(0, AMBER + '40');
+  og.addColorStop(1, 'transparent');
+  roundRect(ctx, 0, 0, s, s, s * 0.2256);
+  ctx.fillStyle = og;
+  ctx.fill();
+
+  // Draw aperture blades (6 blades)
+  const blades = 6;
+  ctx.save();
+  ctx.translate(cx, cy);
+  for (let i = 0; i < blades; i++) {
+    ctx.rotate((Math.PI * 2) / blades);
+    const R = s * 0.34, inner = s * 0.14;
+    ctx.beginPath();
+    ctx.ellipse(0, -R * 0.55, inner * 0.38, R * 0.55, 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = AMBER + '25';
+    ctx.fill();
+    ctx.strokeStyle = AMBER + '60';
+    ctx.lineWidth = s * 0.012;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.36, 0, Math.PI * 2);
+  ctx.strokeStyle = AMBER + '50';
+  ctx.lineWidth = s * 0.018;
+  ctx.stroke();
+
+  // Middle ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.22, 0, Math.PI * 2);
+  ctx.strokeStyle = AMBER + '70';
+  ctx.lineWidth = s * 0.014;
+  ctx.stroke();
+
+  // Inner glow
+  const ig = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.16);
+  ig.addColorStop(0, AMBER_LITE + 'ff');
+  ig.addColorStop(0.5, AMBER + 'dd');
+  ig.addColorStop(1, AMBER_DARK + '00');
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.14, 0, Math.PI * 2);
+  ctx.fillStyle = ig;
+  ctx.fill();
+}
+
+// ── 4. Sunrise ────────────────────────────────────────────────
+function drawSunrise(ctx, s) {
+  bgFill(ctx, s);
+  const cx = s / 2, cy = s * 0.60;
+
+  // Sky gradient overlay
+  const sky = ctx.createLinearGradient(0, 0, 0, s);
+  sky.addColorStop(0, BG_DARK);
+  sky.addColorStop(0.7, '#1a0f00');
+  roundRect(ctx, 0, 0, s, s, s * 0.2256);
+  ctx.fillStyle = sky;
+  ctx.fill();
+
+  // Horizon glow
+  const hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.55);
+  hg.addColorStop(0, AMBER + '60');
+  hg.addColorStop(0.5, AMBER_DARK + '20');
+  hg.addColorStop(1, 'transparent');
+  roundRect(ctx, 0, 0, s, s, s * 0.2256);
+  ctx.fillStyle = hg;
+  ctx.fill();
+
+  // Rays (behind sun)
+  const rayCount = 8;
+  for (let i = 0; i < rayCount; i++) {
+    const a = (Math.PI / rayCount) * i - Math.PI / 2 - Math.PI / (rayCount * 2);
+    const rayLen = s * (0.35 + (i % 2 === 0 ? 0.06 : 0));
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.025, 0);
+    ctx.lineTo(0, -rayLen);
+    ctx.lineTo(s * 0.025, 0);
+    ctx.closePath();
+    ctx.fillStyle = AMBER + (i % 2 === 0 ? '30' : '18');
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Sun semicircle
+  const sunR = s * 0.21;
+  const sunG = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+  sunG.addColorStop(0, '#fff9c4');
+  sunG.addColorStop(0.4, AMBER_LITE);
+  sunG.addColorStop(0.75, AMBER);
+  sunG.addColorStop(1, AMBER_DARK);
+  ctx.beginPath();
+  ctx.arc(cx, cy, sunR, Math.PI, 0);
+  ctx.closePath();
+  ctx.fillStyle = sunG;
+  ctx.fill();
+
+  // Horizon line
+  const hl = ctx.createLinearGradient(cx - s * 0.38, cy, cx + s * 0.38, cy);
+  hl.addColorStop(0, 'transparent');
+  hl.addColorStop(0.2, AMBER + 'aa');
+  hl.addColorStop(0.5, AMBER_LITE);
+  hl.addColorStop(0.8, AMBER + 'aa');
+  hl.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.moveTo(cx - s * 0.38, cy);
+  ctx.lineTo(cx + s * 0.38, cy);
+  ctx.strokeStyle = hl;
+  ctx.lineWidth = s * 0.014;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+// ── 5. Monogram ───────────────────────────────────────────────
+function drawMonogram(ctx, s) {
+  bgFill(ctx, s);
+  const cx = s / 2, cy = s / 2;
+
+  // Subtle background gradient
+  const bg = ctx.createRadialGradient(cx, cy - s * 0.1, 0, cx, cy, s * 0.55);
+  bg.addColorStop(0, '#1e293b');
+  bg.addColorStop(1, BG_DARK);
+  roundRect(ctx, 0, 0, s, s, s * 0.2256);
+  ctx.fillStyle = bg;
+  ctx.fill();
+
+  // Letter C
+  const R = s * 0.28;
+  const lineW = s * 0.095;
+  const gap = 0.78; // radians gap on right side
+
+  const tg = ctx.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
+  tg.addColorStop(0, AMBER_LITE);
+  tg.addColorStop(0.45, AMBER);
+  tg.addColorStop(1, AMBER_DARK);
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, gap, Math.PI * 2 - gap);
+  ctx.strokeStyle = tg;
+  ctx.lineWidth = lineW;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Amber dot — top-right terminal
+  const dotA = gap;
+  ctx.beginPath();
+  ctx.arc(
+    cx + Math.cos(dotA) * R,
+    cy + Math.sin(dotA) * R,
+    lineW * 0.55,
+    0, Math.PI * 2
+  );
+  ctx.fillStyle = AMBER_LITE;
+  ctx.fill();
+
+  // Small inner glow ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.35, 0, Math.PI * 2);
+  ctx.strokeStyle = AMBER + '18';
+  ctx.lineWidth = s * 0.01;
+  ctx.stroke();
+}
+
+// ── Render helpers ─────────────────────────────────────────────
+let selectedId = 'sparkle';
+let bgMode = 'dark';
+
+const BG_COLORS = {
+  dark: '#0d1117',
+  light: '#f6f8fa',
+  color: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+};
+
+function makeCanvas(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  return c;
+}
+
+function renderIconToCanvas(iconId, size) {
+  const icon = ICONS.find(i => i.id === iconId);
+  const c = makeCanvas(size);
+  const ctx = c.getContext('2d');
+  icon.draw(ctx, size);
+  return c;
+}
+
+function buildGrid() {
+  const grid = document.getElementById('icon-grid');
+  grid.innerHTML = '';
+  ICONS.forEach(icon => {
+    const wrap = document.createElement('div');
+    wrap.className = 'icon-option' + (icon.id === selectedId ? ' selected' : '');
+    wrap.onclick = () => selectIcon(icon.id);
+    const c = renderIconToCanvas(icon.id, 90);
+    c.style.width = '74px';
+    c.style.height = '74px';
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = icon.name;
+    wrap.appendChild(c);
+    wrap.appendChild(name);
+    grid.appendChild(wrap);
+  });
+}
+
+function buildSizeRow() {
+  const row = document.getElementById('size-row');
+  row.innerHTML = '';
+  const sizes = [512, 192, 120, 76, 60, 29];
+  const labels = ['512×512', '192×192', '120×120\niPhone', '76×76\niPad', '60×60\niPhone', '29×29\nSettings'];
+  sizes.forEach((sz, i) => {
+    const item = document.createElement('div');
+    item.className = 'size-item';
+    const c = renderIconToCanvas(selectedId, sz);
+    const disp = Math.min(sz, 100);
+    c.style.width = disp + 'px';
+    c.style.height = disp + 'px';
+    const lbl = document.createElement('span');
+    lbl.className = 'size-label';
+    lbl.style.textAlign = 'center';
+    lbl.style.whiteSpace = 'pre';
+    lbl.textContent = labels[i];
+    item.appendChild(c);
+    item.appendChild(lbl);
+    row.appendChild(item);
+  });
+}
+
+function buildSpringboard() {
+  const sb = document.getElementById('springboard');
+  sb.innerHTML = '';
+
+  // Other app icons (placeholders)
+  const others = [
+    { emoji: '📱', label: 'Messages' },
+    { emoji: '🗓', label: 'Calendar' },
+    { emoji: '✉️', label: 'Mail' },
+  ];
+  others.forEach(o => {
+    const item = document.createElement('div');
+    item.className = 'springboard-icon';
+    const icon = document.createElement('div');
+    icon.className = 'other-icon';
+    icon.textContent = o.emoji;
+    const lbl = document.createElement('span');
+    lbl.className = 'app-label';
+    lbl.textContent = o.label;
+    item.appendChild(icon);
+    item.appendChild(lbl);
+    sb.appendChild(item);
+  });
+
+  // Clarity icon
+  const clarityItem = document.createElement('div');
+  clarityItem.className = 'springboard-icon';
+  const c = renderIconToCanvas(selectedId, 512);
+  c.style.width = '60px';
+  c.style.height = '60px';
+  c.style.border = '2px solid #f59e0b44';
+  const lbl = document.createElement('span');
+  lbl.className = 'app-label';
+  lbl.style.color = '#f59e0b';
+  lbl.style.fontWeight = '600';
+  lbl.textContent = 'Clarity';
+  clarityItem.appendChild(c);
+  clarityItem.appendChild(lbl);
+  sb.appendChild(clarityItem);
+
+  // More placeholders
+  const others2 = [{ emoji: '🔊', label: 'Music' }, { emoji: '🗺', label: 'Maps' }];
+  others2.forEach(o => {
+    const item = document.createElement('div');
+    item.className = 'springboard-icon';
+    const icon = document.createElement('div');
+    icon.className = 'other-icon';
+    icon.textContent = o.emoji;
+    const lbl = document.createElement('span');
+    lbl.className = 'app-label';
+    lbl.textContent = o.label;
+    item.appendChild(icon);
+    item.appendChild(lbl);
+    sb.appendChild(item);
+  });
+}
+
+function updateOutput() {
+  const icon = ICONS.find(i => i.id === selectedId);
+  document.getElementById('output').value =
+    `Selected: "${icon.name}" icon for Clarity PWA — generate icon-192.png, icon-512.png, icon-192-maskable.png, icon-512-maskable.png using the ${icon.id} design.`;
+}
+
+function renderAll() {
+  buildGrid();
+  buildSizeRow();
+  buildSpringboard();
+  updateOutput();
+}
+
+function selectIcon(id) {
+  selectedId = id;
+  renderAll();
+}
+
+function setBg(mode, btn) {
+  bgMode = mode;
+  document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const area = document.getElementById('preview-area');
+  area.className = 'preview-area preview-bg-' + mode;
+  if (mode === 'color') {
+    area.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+  } else if (mode === 'light') {
+    area.style.background = '#f6f8fa';
+  } else {
+    area.style.background = '';
+  }
+}
+
+function copyOutput() {
+  const out = document.getElementById('output');
+  navigator.clipboard.writeText(out.value).catch(() => {
+    out.select(); document.execCommand('copy');
+  });
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+}
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
