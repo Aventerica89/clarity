@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { Plus, Trash2, Send, Loader2, Sparkles, MessageSquare } from "lucide-react"
+import { useState, useRef, useEffect, useCallback, Suspense } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import Image from "next/image"
+import { Plus, Trash2, Send, Loader2, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ChatContainer } from "@/components/prompt-kit/chat-container"
 import { Message, MessageAvatar, MessageContent } from "@/components/prompt-kit/message"
@@ -55,6 +57,16 @@ function groupSessionsByDate(sessions: ChatSession[]) {
 }
 
 export default function ChatPage() {
+  return (
+    <Suspense>
+      <ChatPageInner />
+    </Suspense>
+  )
+}
+
+function ChatPageInner() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -65,6 +77,7 @@ export default function ChatPage() {
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const didAutoSend = useRef(false)
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -78,6 +91,17 @@ export default function ChatPage() {
       .then((data: { sessions: ChatSession[] }) => setSessions(data.sessions))
       .catch(() => {})
   }, [])
+
+  // Auto-send from ?q= query param (e.g. from Today page CTA)
+  useEffect(() => {
+    const q = searchParams.get("q")
+    if (q && !didAutoSend.current) {
+      didAutoSend.current = true
+      router.replace("/chat", { scroll: false })
+      sendMessage(q)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   async function createNewSession() {
     abortRef.current?.abort()
@@ -121,8 +145,9 @@ export default function ChatPage() {
     }
   }
 
-  async function sendMessage() {
-    if (!input.trim() || isStreaming) return
+  async function sendMessage(overrideQuestion?: string) {
+    const question = (overrideQuestion ?? input).trim()
+    if (!question || isStreaming) return
 
     // If no session, create one first
     let sessionId = activeSessionId
@@ -139,7 +164,6 @@ export default function ChatPage() {
       setActiveSessionId(sessionId)
     }
 
-    const question = input.trim()
     setInput("")
     setError(null)
 
@@ -288,9 +312,13 @@ export default function ChatPage() {
         {!activeSessionId && !hasMessages ? (
           <div className="flex flex-1 flex-col min-h-0">
             <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center gap-6 p-6 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clarity-amber/10">
-                <Sparkles className="h-6 w-6 text-clarity-amber" />
-              </div>
+              <Image
+                src="/pwa/manifest-icon-192.maskable.png"
+                alt="Clarity"
+                width={48}
+                height={48}
+                className="rounded-2xl"
+              />
               <div>
                 <h2 className="text-lg font-semibold">Clarity Coach</h2>
                 <p className="mt-1 text-sm text-muted-foreground max-w-sm">
@@ -341,9 +369,13 @@ export default function ChatPage() {
                   {messages.map((msg, i) => (
                     <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start gap-3")}>
                       {msg.role === "assistant" && (
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-clarity-amber/10 mt-0.5">
-                          <Sparkles className="h-3.5 w-3.5 text-clarity-amber" />
-                        </div>
+                        <Image
+                          src="/pwa/manifest-icon-192.maskable.png"
+                          alt="Clarity"
+                          width={28}
+                          height={28}
+                          className="shrink-0 rounded-full mt-0.5"
+                        />
                       )}
                       <MessageContent role={msg.role} markdown={msg.role === "assistant"}>
                         {msg.content || (

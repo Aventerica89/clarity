@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { events, financialSnapshot, integrations, lifeContextItems, tasks } from "@/lib/schema"
+import { events, financialSnapshot, lifeContextItems, tasks } from "@/lib/schema"
 import { EventCard } from "@/components/dashboard/event-card"
 import { TaskCard } from "@/components/dashboard/task-card"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
@@ -33,7 +33,7 @@ export default async function TodayPage() {
   const { start, end } = todayRange()
   const today = todayDateString()
 
-  const [todayEvents, pendingTasks, aiRows, lifeContextRows, financialRows] =
+  const [todayEvents, pendingTasks, lifeContextRows, financialRows] =
     await Promise.all([
       db
         .select()
@@ -56,11 +56,6 @@ export default async function TodayPage() {
         .limit(30),
 
       db
-        .select({ provider: integrations.provider })
-        .from(integrations)
-        .where(eq(integrations.userId, userId)),
-
-      db
         .select({
           id: lifeContextItems.id,
           title: lifeContextItems.title,
@@ -80,12 +75,6 @@ export default async function TodayPage() {
         .limit(1),
     ])
 
-  const AI_PROVIDERS = ["anthropic", "gemini", "deepseek", "groq"] as const
-  type ProviderId = typeof AI_PROVIDERS[number]
-  const connectedProviders = AI_PROVIDERS.filter(
-    (p) => aiRows.some((r) => r.provider === p),
-  )
-
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -93,7 +82,7 @@ export default async function TodayPage() {
         <p className="text-muted-foreground text-sm">Your unified view</p>
       </div>
 
-      <CoachPanel connectedProviders={connectedProviders} />
+      <CoachPanel />
 
       <LifeContextStrip
         items={lifeContextRows}
