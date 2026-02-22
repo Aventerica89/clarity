@@ -12,6 +12,7 @@ import { TodoistConnectForm } from "@/components/settings/todoist-connect-form"
 import { AIProvidersPanel } from "@/components/settings/ai-providers-panel"
 import { SyncButton } from "@/components/settings/sync-button"
 import { PlaidConnectionPanel } from "@/components/settings/plaid-connection-panel"
+import { SettingsTabs } from "@/components/settings/settings-tabs"
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -106,94 +107,119 @@ export default async function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground text-sm">Manage your connected integrations.</p>
+        <p className="text-muted-foreground text-sm">Manage your connected integrations and preferences.</p>
       </div>
 
-      {/* Google Calendar */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Google Calendar</CardTitle>
-            <Badge
-              variant="outline"
-              className={googleConnected
-                ? "text-green-600 border-green-200 bg-green-50"
-                : "text-muted-foreground"}
-            >
-              {googleConnected ? "Connected" : "Not connected"}
-            </Badge>
-          </div>
-          <CardDescription>
-            {googleConnected
-              ? "Your Google Calendar is connected. Events sync daily."
-              : "Sign in with Google to connect your calendar."}
-          </CardDescription>
-        </CardHeader>
-        {googleConnected && (
-          <CardContent>
-            <SyncButton provider="google-calendar" label="Sync now" />
-          </CardContent>
-        )}
-      </Card>
+      <SettingsTabs
+        tabs={[
+          {
+            value: "integrations",
+            label: "Integrations",
+            content: (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Google Calendar</CardTitle>
+                      <Badge
+                        variant="outline"
+                        className={googleConnected
+                          ? "text-green-600 border-green-200 bg-green-50"
+                          : "text-muted-foreground"}
+                      >
+                        {googleConnected ? "Connected" : "Not connected"}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      {googleConnected
+                        ? "Your Google Calendar is connected. Events sync daily."
+                        : "Sign in with Google to connect your calendar."}
+                    </CardDescription>
+                  </CardHeader>
+                  {googleConnected && (
+                    <CardContent>
+                      <SyncButton provider="google-calendar" label="Sync now" />
+                    </CardContent>
+                  )}
+                </Card>
 
-      {/* Bank Accounts (Plaid) */}
-      <PlaidConnectionPanel initialItems={plaidItemsWithAccounts} />
-
-      {/* Todoist */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Todoist</CardTitle>
-            <Badge
-              variant="outline"
-              className={
-                !todoist
-                  ? "text-muted-foreground"
-                  : todoist.syncStatus === "error"
-                    ? "text-red-600 border-red-200 bg-red-50"
-                    : "text-green-600 border-green-200 bg-green-50"
-              }
-            >
-              {!todoist ? "Not connected" : todoist.syncStatus === "error" ? "Error" : "Connected"}
-            </Badge>
-          </div>
-          <CardDescription>
-            {todoist
-              ? "API token saved. Tasks sync daily."
-              : "Enter your Todoist API token to sync tasks. Find it in Todoist Settings → Integrations → API token."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {todoist?.lastError && <p className="text-xs text-red-500">{todoist.lastError}</p>}
-          <TodoistConnectForm connected={Boolean(todoist)} />
-          {todoist && <SyncButton provider="todoist" label="Sync now" />}
-        </CardContent>
-      </Card>
-
-      <AIProvidersPanel connected={aiConnected} />
-
-      {/* About */}
-      <Link href="/settings/about">
-        <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-          <CardHeader className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-base">About Clarity</CardTitle>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Todoist</CardTitle>
+                      <Badge
+                        variant="outline"
+                        className={
+                          !todoist
+                            ? "text-muted-foreground"
+                            : todoist.syncStatus === "error"
+                              ? "text-red-600 border-red-200 bg-red-50"
+                              : "text-green-600 border-green-200 bg-green-50"
+                        }
+                      >
+                        {!todoist ? "Not connected" : todoist.syncStatus === "error" ? "Error" : "Connected"}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      {todoist
+                        ? "API token saved. Tasks sync daily."
+                        : "Enter your Todoist API token to sync tasks. Find it in Todoist Settings → Integrations → API token."}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {todoist?.lastError && <p className="text-xs text-red-500">{todoist.lastError}</p>}
+                    <TodoistConnectForm connected={Boolean(todoist)} />
+                    {todoist && <SyncButton provider="todoist" label="Sync now" />}
+                  </CardContent>
+                </Card>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <CardDescription>Getting started guide, features, and changelog.</CardDescription>
-          </CardHeader>
-        </Card>
-      </Link>
+            ),
+          },
+          {
+            value: "banking",
+            label: "Banking",
+            content: (
+              <PlaidConnectionPanel initialItems={plaidItemsWithAccounts} />
+            ),
+          },
+          {
+            value: "ai",
+            label: "AI",
+            content: (
+              <AIProvidersPanel connected={aiConnected} />
+            ),
+          },
+          {
+            value: "account",
+            label: "Account",
+            content: (
+              <div className="space-y-4">
+                <Link href="/settings/about">
+                  <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+                    <CardHeader className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                          <CardTitle className="text-base">About Clarity</CardTitle>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <CardDescription>Getting started guide, features, and changelog.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
 
-      <p className="text-center text-xs text-muted-foreground pb-4">
-        <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
-          Privacy Policy
-        </Link>
-        {" · "}JBMD Creations, LLC
-      </p>
+                <p className="text-center text-xs text-muted-foreground pt-2">
+                  <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </Link>
+                  {" · "}JBMD Creations, LLC
+                </p>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   )
 }

@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { SettingsTabs } from "@/components/settings/settings-tabs"
 
 const GETTING_STARTED = [
   {
@@ -119,7 +119,7 @@ const DATA_SOURCES = [
 
 export default function AboutPage() {
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
@@ -131,90 +131,90 @@ export default function AboutPage() {
           <Sparkles className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">Clarity</h1>
         </div>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           A personal AI productivity hub. Unifies your tasks, calendar, and habits into one
           daily view — with Claude as your focus coach.
         </p>
       </div>
 
-      <Separator />
-
-      {/* Getting started */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Getting started</h2>
-        <div className="space-y-3">
-          {GETTING_STARTED.map(({ step, title, description, href, required }) => (
-            <Link key={step} href={href}>
-              <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-                <CardContent className="flex items-center gap-4 py-3 px-4">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
-                    {step}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{title}</span>
-                      {required && (
-                        <Badge variant="outline" className="text-xs py-0 h-4">
-                          Recommended
-                        </Badge>
-                      )}
+      <SettingsTabs
+        tabs={[
+          {
+            value: "getting-started",
+            label: "Getting Started",
+            content: (
+              <div className="space-y-3">
+                {GETTING_STARTED.map(({ step, title, description, href, required }) => (
+                  <Link key={step} href={href}>
+                    <Card className="py-0 hover:bg-accent/50 transition-colors cursor-pointer">
+                      <CardContent className="flex items-center gap-3 py-3 px-4">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                          {step}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{title}</span>
+                            {required && (
+                              <Badge variant="outline" className="text-xs py-0 h-4">
+                                Recommended
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{description}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ),
+          },
+          {
+            value: "features",
+            label: "Features",
+            content: (
+              <div className="grid grid-cols-2 gap-3">
+                {FEATURES.map(({ icon: Icon, title, description, href }) => (
+                  <Link key={title} href={href}>
+                    <Card className="h-full py-0 hover:bg-accent/50 transition-colors cursor-pointer">
+                      <CardContent className="flex items-start gap-3 py-3 px-3">
+                        <Icon className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium leading-tight">{title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ),
+          },
+          {
+            value: "data-sources",
+            label: "Data Sources",
+            content: (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  {DATA_SOURCES.map(({ name, detail }) => (
+                    <div key={name} className="flex items-start gap-3 text-sm">
+                      <span className="font-medium w-44 shrink-0">{name}</span>
+                      <span className="text-muted-foreground">{detail}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{description}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Features */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Features</h2>
-        <div className="grid grid-cols-2 gap-2">
-          {FEATURES.map(({ icon: Icon, title, description, href }) => (
-            <Link key={title} href={href}>
-              <Card className="h-full hover:bg-accent/50 transition-colors cursor-pointer">
-                <CardContent className="flex items-start gap-3 py-3 px-4">
-                  <Icon className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-tight">{title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Data sources */}
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Data sources</h2>
-        <div className="space-y-2">
-          {DATA_SOURCES.map(({ name, detail }) => (
-            <div key={name} className="flex items-start gap-3 text-sm">
-              <span className="font-medium w-44 shrink-0">{name}</span>
-              <span className="text-muted-foreground">{detail}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Footer */}
-      <p className="text-xs text-muted-foreground pb-4">
-        Built with Next.js, Turso, and Claude.{" "}
-        <Link href="/changelog" className="underline underline-offset-2 hover:text-foreground transition-colors">
-          Changelog
-        </Link>
-      </p>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground pt-2">
+                  Built with Next.js, Turso, and Claude.{" "}
+                  <Link href="/changelog" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                    Changelog
+                  </Link>
+                </p>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   )
 }
