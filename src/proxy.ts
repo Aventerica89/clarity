@@ -66,6 +66,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Auth routes must be accessible without a session (OAuth flow, sign-in, sign-up)
+  if (request.nextUrl.pathname.startsWith("/api/auth/")) {
+    return NextResponse.next()
+  }
+
   const sessionCookie = getSessionCookie(request)
 
   if (!sessionCookie) {
