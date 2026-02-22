@@ -11,6 +11,7 @@ import { PromptInput, PromptInputTextarea, PromptInputActions, PromptInputAction
 import { PromptSuggestion, PromptSuggestionGroup } from "@/components/prompt-kit/prompt-suggestion"
 import { Loader } from "@/components/prompt-kit/loader"
 import { cn } from "@/lib/utils"
+import { ChatAtmosphere } from "@/components/chat/chat-atmosphere"
 
 interface ChatSession {
   id: string
@@ -307,10 +308,12 @@ function ChatPageInner() {
       </aside>
 
       {/* Main chat area */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="relative flex flex-1 flex-col min-w-0">
+        <ChatAtmosphere />
+
         {/* No session selected / empty state */}
         {!activeSessionId && !hasMessages ? (
-          <div className="flex flex-1 flex-col min-h-0">
+          <div className="relative z-[1] flex flex-1 flex-col min-h-0">
             <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center gap-6 p-6 text-center">
               <Image
                 src="/pwa/manifest-icon-192.maskable.png"
@@ -358,7 +361,7 @@ function ChatPageInner() {
         ) : (
           <>
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
+            <div ref={scrollRef} className="relative z-[1] flex-1 overflow-y-auto px-4 md:px-6 py-4">
               {isLoadingMessages ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="size-3.5 animate-spin" />

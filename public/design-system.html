@@ -23,6 +23,12 @@
     --radius-md: 6px;
     --radius-lg: 8px;
     --radius-xl: 10px;
+    /* Gradient Library — Sunrise Amber */
+    --gradient-sunrise-corner: radial-gradient(ellipse at 0% 100%, oklch(0.769 0.188 70.08 / 18%) 0%, oklch(0.769 0.188 70.08 / 6%) 40%, transparent 70%);
+    --gradient-dawn-wash: linear-gradient(to top, oklch(0.769 0.188 70.08 / 12%) 0%, oklch(0.769 0.188 70.08 / 4%) 35%, transparent 65%);
+    --gradient-horizon-line: linear-gradient(to top, oklch(0.769 0.188 70.08 / 20%) 0%, oklch(0.769 0.188 70.08 / 10%) 8%, transparent 20%);
+    --gradient-golden-hour: radial-gradient(ellipse 120% 60% at 50% 100%, oklch(0.769 0.188 70.08 / 16%) 0%, oklch(0.769 0.188 70.08 / 5%) 50%, transparent 80%);
+    --gradient-first-light: radial-gradient(ellipse at 100% 0%, oklch(0.769 0.188 70.08 / 14%) 0%, oklch(0.769 0.188 70.08 / 4%) 35%, transparent 65%);
     --ann: #ec4899;
     --ann-bg: #ec489920;
     --page-bg: #f8fafc;
@@ -31,6 +37,12 @@
   .dark {
     --clarity-amber: oklch(0.828 0.189 84.429);
     --clarity-amber-muted: oklch(0.828 0.189 84.429 / 12%);
+    /* Gradient Library — Sunrise Amber (dark mode: slightly brighter, higher opacity) */
+    --gradient-sunrise-corner: radial-gradient(ellipse at 0% 100%, oklch(0.828 0.189 84.429 / 22%) 0%, oklch(0.828 0.189 84.429 / 8%) 40%, transparent 70%);
+    --gradient-dawn-wash: linear-gradient(to top, oklch(0.828 0.189 84.429 / 15%) 0%, oklch(0.828 0.189 84.429 / 5%) 35%, transparent 65%);
+    --gradient-horizon-line: linear-gradient(to top, oklch(0.828 0.189 84.429 / 25%) 0%, oklch(0.828 0.189 84.429 / 12%) 8%, transparent 20%);
+    --gradient-golden-hour: radial-gradient(ellipse 120% 60% at 50% 100%, oklch(0.828 0.189 84.429 / 20%) 0%, oklch(0.828 0.189 84.429 / 6%) 50%, transparent 80%);
+    --gradient-first-light: radial-gradient(ellipse at 100% 0%, oklch(0.828 0.189 84.429 / 18%) 0%, oklch(0.828 0.189 84.429 / 5%) 35%, transparent 65%);
     --bg: oklch(0.145 0 0);
     --fg: oklch(0.985 0 0);
     --muted-fg: oklch(0.708 0 0);
@@ -1639,6 +1651,75 @@
   </div>
 </div>
 
+<!-- Section: Gradient Library -->
+<div class="section" data-cat="brand foundations" id="sec-gradients">
+  <h2>Gradient Library <span class="badge">sunrise amber</span></h2>
+  <p style="font-size:13px;color:var(--muted-fg);margin-bottom:20px;">
+    Warm amber gradients for atmospheric depth. Use sparingly &mdash; these bring the sunrise feeling
+    to empty states, chat backgrounds, and hero moments. Each gradient fades to transparent so it layers
+    cleanly on top of <code style="font-size:11px;font-family:'SF Mono',ui-monospace,monospace;background:var(--muted);padding:2px 5px;border-radius:3px;">var(--bg)</code> or <code style="font-size:11px;font-family:'SF Mono',ui-monospace,monospace;background:var(--muted);padding:2px 5px;border-radius:3px;">var(--card)</code>.
+  </p>
+
+  <style>
+    .grad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .grad-grid { grid-template-columns: 1fr; } }
+    .grad-card { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .grad-preview { position: relative; height: 200px; background: var(--bg); overflow: hidden; }
+    .grad-preview-dark { background: oklch(0.145 0 0); }
+    .grad-layer { position: absolute; inset: 0; }
+    .grad-meta { padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border); }
+    .grad-name { font-size: 13px; font-weight: 600; color: var(--fg); }
+    .grad-var { font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--clarity-amber); margin-top: 2px; cursor: pointer; }
+    .grad-var:hover { text-decoration: underline; }
+    .grad-desc { font-size: 11px; color: var(--muted-fg); margin-top: 4px; }
+    .grad-mode-tabs { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; width: fit-content; }
+    .grad-mode-tab { font-size: 11px; font-weight: 500; padding: 6px 16px; cursor: pointer; border: none; background: var(--card); color: var(--muted-fg); transition: all 0.15s; }
+    .grad-mode-tab.active { background: var(--clarity-amber-muted); color: var(--clarity-amber); font-weight: 600; }
+    .grad-chat-mockup { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); width: 70%; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); display: flex; align-items: center; padding: 0 14px; }
+    .grad-chat-mockup span { font-size: 12px; color: var(--muted-fg); opacity: 0.5; }
+    .grad-coach-mockup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .grad-coach-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--clarity-amber-muted); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .grad-coach-text { font-size: 13px; font-weight: 600; color: var(--fg); }
+    .grad-coach-sub { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+    .grad-full-row { grid-column: 1 / -1; }
+    .grad-full-preview { height: 240px; }
+    .grad-css-block { margin-top: 20px; background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; position: relative; }
+    .grad-css-code { font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--fg); line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+    .grad-css-code .prop { color: var(--clarity-amber); }
+    .grad-copy-btn { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 500; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card); color: var(--muted-fg); cursor: pointer; transition: all 0.15s; }
+    .grad-copy-btn:hover { color: var(--fg); border-color: var(--clarity-amber); }
+  </style>
+
+  <!-- Mode toggle -->
+  <div class="grad-mode-tabs">
+    <button class="grad-mode-tab active" onclick="setGradMode('light')">Light</button>
+    <button class="grad-mode-tab" onclick="setGradMode('dark')">Dark</button>
+    <button class="grad-mode-tab" onclick="setGradMode('side')">Side by Side</button>
+  </div>
+
+  <!-- Gradient previews -->
+  <div class="grad-grid" id="gradGrid"></div>
+
+  <!-- CSS reference block -->
+  <div class="grad-css-block">
+    <button class="grad-copy-btn" onclick="copyGradCSS(this)">Copy CSS</button>
+    <div class="grad-css-code"><span class="prop">--gradient-sunrise-corner</span>: radial-gradient(ellipse at 0% 100%, amber/18% 0%, amber/6% 40%, transparent 70%);
+<span class="prop">--gradient-dawn-wash</span>: linear-gradient(to top, amber/12% 0%, amber/4% 35%, transparent 65%);
+<span class="prop">--gradient-horizon-line</span>: linear-gradient(to top, amber/20% 0%, amber/10% 8%, transparent 20%);
+<span class="prop">--gradient-golden-hour</span>: radial-gradient(ellipse 120% 60% at 50% 100%, amber/16% 0%, amber/5% 50%, transparent 80%);
+<span class="prop">--gradient-first-light</span>: radial-gradient(ellipse at 100% 0%, amber/14% 0%, amber/4% 35%, transparent 65%);</div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <div class="hig-rule">
+      <strong>Usage Guidance</strong>
+      <p>These gradients follow the amber scarcity principle. Use them ONLY for: chat empty states, onboarding hero,
+      coach panel background, login/splash screens. Never layer multiple gradients on the same surface.
+      The gradient should feel like warmth entering the room &mdash; not a color wash.</p>
+    </div>
+  </div>
+</div>
+
 <!-- Sidebar TOC -->
 <div class="toc" id="toc">
   <div class="toc-inner">
@@ -1838,6 +1919,198 @@
       }
     });
   }, { passive: true });
+
+  // ── Gradient Library ─────────────────────────────
+  var GRADIENTS = [
+    {
+      name: "Sunrise Corner",
+      varName: "--gradient-sunrise-corner",
+      desc: "Radial glow from bottom-left corner. The sun peeking up over the horizon.",
+      usage: "Chat empty state, onboarding hero"
+    },
+    {
+      name: "First Light",
+      varName: "--gradient-first-light",
+      desc: "Radial glow from top-right corner. First rays of morning light entering.",
+      usage: "Welcome screens, top-corner accent"
+    },
+    {
+      name: "Dawn Wash",
+      varName: "--gradient-dawn-wash",
+      desc: "Gentle linear gradient rising from the bottom. A soft morning glow lifting up.",
+      usage: "Page backgrounds, section separators"
+    },
+    {
+      name: "Horizon Line",
+      varName: "--gradient-horizon-line",
+      desc: "Concentrated amber band near the bottom edge. The horizon at golden hour.",
+      usage: "Chat input area, bottom-anchored panels"
+    },
+    {
+      name: "Golden Hour",
+      varName: "--gradient-golden-hour",
+      desc: "Wide radial spread from center-bottom. Warm light flooding in from below.",
+      usage: "Full-page hero, coach panel background",
+      full: true
+    }
+  ];
+
+  var gradMode = "light";
+  function setGradMode(mode) {
+    gradMode = mode;
+    var tabs = document.querySelectorAll(".grad-mode-tab");
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.remove("active");
+      if ((mode === "light" && i === 0) || (mode === "dark" && i === 1) || (mode === "side" && i === 2)) {
+        tabs[i].classList.add("active");
+      }
+    }
+    renderGradients();
+  }
+
+  function buildGradPreview(bg, gradVar, withMockup) {
+    var container = document.createElement("div");
+    container.className = "grad-preview";
+    container.style.background = bg;
+
+    var layer = document.createElement("div");
+    layer.className = "grad-layer";
+    layer.style.background = "var(" + gradVar + ")";
+    container.appendChild(layer);
+
+    if (withMockup) {
+      var coach = document.createElement("div");
+      coach.className = "grad-coach-mockup";
+
+      var icon = document.createElement("div");
+      icon.className = "grad-coach-icon";
+      icon.textContent = "\uD83C\uDF05";
+      coach.appendChild(icon);
+
+      var title = document.createElement("div");
+      title.className = "grad-coach-text";
+      title.style.color = bg === "oklch(0.145 0 0)" ? "#f5f5f5" : "var(--fg)";
+      title.textContent = "Clarity Coach";
+      coach.appendChild(title);
+
+      var sub = document.createElement("div");
+      sub.className = "grad-coach-sub";
+      sub.style.color = bg === "oklch(0.145 0 0)" ? "#999" : "var(--muted-fg)";
+      sub.textContent = "Ask anything...";
+      coach.appendChild(sub);
+
+      container.appendChild(coach);
+
+      var input = document.createElement("div");
+      input.className = "grad-chat-mockup";
+      if (bg === "oklch(0.145 0 0)") {
+        input.style.background = "oklch(0.178 0 0)";
+        input.style.borderColor = "oklch(1 0 0 / 10%)";
+      }
+      var inputText = document.createElement("span");
+      inputText.textContent = "Ask anything...";
+      input.appendChild(inputText);
+      container.appendChild(input);
+    }
+
+    return container;
+  }
+
+  function renderGradients() {
+    var grid = document.getElementById("gradGrid");
+    grid.textContent = "";
+
+    for (var i = 0; i < GRADIENTS.length; i++) {
+      var g = GRADIENTS[i];
+      var card = document.createElement("div");
+      card.className = "grad-card" + (g.full ? " grad-full-row" : "");
+
+      if (gradMode === "side") {
+        var sideWrap = document.createElement("div");
+        sideWrap.style.cssText = "display:grid;grid-template-columns:1fr 1fr;";
+
+        var lightP = buildGradPreview("#ffffff", g.varName, g.full);
+        lightP.style.height = g.full ? "240px" : "200px";
+
+        var darkP = buildGradPreview("oklch(0.145 0 0)", g.varName, g.full);
+        darkP.style.height = g.full ? "240px" : "200px";
+
+        var ll = document.createElement("div");
+        ll.style.cssText = "position:absolute;top:8px;left:10px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;";
+        ll.textContent = "LIGHT";
+        lightP.appendChild(ll);
+
+        var dl = document.createElement("div");
+        dl.style.cssText = "position:absolute;top:8px;left:10px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#64748b;";
+        dl.textContent = "DARK";
+        darkP.appendChild(dl);
+
+        sideWrap.appendChild(lightP);
+        sideWrap.appendChild(darkP);
+        card.appendChild(sideWrap);
+      } else {
+        var bg = gradMode === "dark" ? "oklch(0.145 0 0)" : "#ffffff";
+        var preview = buildGradPreview(bg, g.varName, g.full);
+        if (g.full) preview.classList.add("grad-full-preview");
+        card.appendChild(preview);
+      }
+
+      var meta = document.createElement("div");
+      meta.className = "grad-meta";
+
+      var nameEl = document.createElement("div");
+      nameEl.className = "grad-name";
+      nameEl.textContent = g.name;
+      meta.appendChild(nameEl);
+
+      var varEl = document.createElement("div");
+      varEl.className = "grad-var";
+      varEl.textContent = g.varName;
+      varEl.title = "Click to copy";
+      varEl.onclick = function() { copyVar(this); };
+      meta.appendChild(varEl);
+
+      var descEl = document.createElement("div");
+      descEl.className = "grad-desc";
+      descEl.textContent = g.desc;
+      meta.appendChild(descEl);
+
+      var usageEl = document.createElement("div");
+      usageEl.style.cssText = "margin-top:6px;font-size:10px;font-weight:500;color:var(--clarity-amber);text-transform:uppercase;letter-spacing:0.04em;";
+      usageEl.textContent = g.usage;
+      meta.appendChild(usageEl);
+
+      card.appendChild(meta);
+      grid.appendChild(card);
+    }
+  }
+
+  function copyVar(el) {
+    var text = "background: var(" + el.textContent + ");";
+    navigator.clipboard.writeText(text).then(function() {
+      var orig = el.textContent;
+      el.textContent = "Copied!";
+      el.style.color = "var(--fg)";
+      setTimeout(function() {
+        el.textContent = orig;
+        el.style.color = "";
+      }, 1200);
+    });
+  }
+
+  function copyGradCSS(btn) {
+    var lines = [];
+    for (var i = 0; i < GRADIENTS.length; i++) {
+      var val = getComputedStyle(document.documentElement).getPropertyValue(GRADIENTS[i].varName).trim();
+      lines.push(GRADIENTS[i].varName + ": " + val + ";");
+    }
+    navigator.clipboard.writeText(lines.join("\n")).then(function() {
+      btn.textContent = "Copied!";
+      setTimeout(function() { btn.textContent = "Copy CSS"; }, 1200);
+    });
+  }
+
+  renderGradients();
 
   // Build TOC on load
   buildTOC();
