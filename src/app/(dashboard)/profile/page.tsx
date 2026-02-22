@@ -7,6 +7,7 @@ import { userProfile, routineCosts } from "@/lib/schema"
 import type { ComponentProps } from "react"
 import { ProfileForm } from "@/components/profile/profile-form"
 import { RoutineCostsSection } from "@/components/profile/routine-costs-section"
+import { SettingsTabs } from "@/components/settings/settings-tabs"
 
 type RoutineCostProp = ComponentProps<typeof RoutineCostsSection>["initial"][number]
 
@@ -30,8 +31,20 @@ export default async function ProfilePage() {
         </p>
       </div>
 
-      <ProfileForm initial={profileRows[0] ?? null} />
-      <RoutineCostsSection initial={costsRows as RoutineCostProp[]} />
+      <SettingsTabs
+        tabs={[
+          {
+            value: "about",
+            label: "About You",
+            content: <ProfileForm initial={profileRows[0] ?? null} />,
+          },
+          {
+            value: "costs",
+            label: "Routine Costs",
+            content: <RoutineCostsSection initial={costsRows as RoutineCostProp[]} />,
+          },
+        ]}
+      />
     </div>
   )
 }
