@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { MobileNav } from "@/components/mobile-nav"
+import { InstallGuide } from "@/components/onboarding/install-guide"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
       </div>
       <MobileNav />
+      <InstallGuide />
     </div>
   )
 }
