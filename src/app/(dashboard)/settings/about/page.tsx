@@ -209,6 +209,10 @@ export default function AboutPage() {
                   <Link href="/changelog" className="underline underline-offset-2 hover:text-foreground transition-colors">
                     Changelog
                   </Link>
+                  {" · "}
+                  <a href="/design-system.html" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                    Design System
+                  </a>
                 </p>
               </div>
             ),

@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clarity Design System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --clarity-amber: oklch(0.769 0.188 70.08);
+    --clarity-amber-fg: oklch(0.145 0 0);
+    --clarity-amber-muted: oklch(0.769 0.188 70.08 / 12%);
+    --destructive: oklch(0.577 0.245 27.325);
+    --warning: oklch(0.75 0.15 85);
+    --bg: oklch(1 0 0);
+    --fg: oklch(0.145 0 0);
+    --muted-fg: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0);
+    --card: oklch(1 0 0);
+    --muted: oklch(0.965 0 0);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
+    --ann: #ec4899;
+    --ann-bg: #ec489920;
+    --page-bg: #f8fafc;
+    --section-bg: #ffffff;
+  }
+  .dark {
+    --clarity-amber: oklch(0.828 0.189 84.429);
+    --clarity-amber-muted: oklch(0.828 0.189 84.429 / 12%);
+    --bg: oklch(0.145 0 0);
+    --fg: oklch(0.985 0 0);
+    --muted-fg: oklch(0.708 0 0);
+    --border: oklch(1 0 0 / 10%);
+    --card: oklch(0.178 0 0);
+    --muted: oklch(0.21 0 0);
+    --page-bg: #0c0c0c;
+    --section-bg: #161616;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--page-bg);
+    color: #1e293b;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .dark body { color: #e2e8f0; }
+  .wrapper { max-width: 960px; margin: 0 auto; padding: 48px 24px 96px; }
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 48px; }
+  .header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--fg); }
+  .header p { font-size: 14px; color: var(--muted-fg); margin-top: 4px; }
+  .section { background: var(--section-bg); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px; margin-bottom: 24px; }
+  .section h2 { font-size: 16px; font-weight: 600; color: var(--fg); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .section h2 .badge { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 9999px; background: var(--clarity-amber-muted); color: var(--clarity-amber); }
+  .subsection { margin-top: 24px; }
+  .subsection h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); margin-bottom: 12px; }
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+  .toggle-label { font-size: 12px; color: var(--muted-fg); font-weight: 500; }
+  .toggle { width: 40px; height: 22px; background: var(--border); border-radius: 11px; border: none; cursor: pointer; position: relative; transition: background 0.2s; }
+  .toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--fg); transition: transform 0.2s; }
+  .toggle.on { background: var(--clarity-amber); }
+  .toggle.on::after { transform: translateX(18px); background: var(--clarity-amber-fg); }
+  .ann-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--ann); background: var(--ann-bg); border: 1px dashed var(--ann); border-radius: 9999px; padding: 4px 12px; cursor: pointer; user-select: none; }
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .swatch { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .swatch-color { height: 56px; }
+  .swatch-info { padding: 10px 12px; background: var(--card); }
+  .swatch-name { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .swatch-var { font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--muted-fg); margin-top: 2px; }
+  .swatch-usage { font-size: 11px; color: var(--muted-fg); margin-top: 4px; font-style: italic; }
+  .mode-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+  .mode-half { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .mode-half.light { background: #ffffff; }
+  .mode-half.dark-preview { background: oklch(0.145 0 0); }
+  .mode-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.5; }
+  .mode-half.light .mode-label { color: #1e293b; }
+  .mode-half.dark-preview .mode-label { color: #e2e8f0; }
+  .mode-dot { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(128,128,128,0.2); flex-shrink: 0; }
+  .mode-row { display: flex; align-items: center; gap: 10px; }
+  .mode-row span { font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; }
+  .mode-half.light .mode-row span { color: #64748b; }
+  .mode-half.dark-preview .mode-row span { color: #94a3b8; }
+  .type-row { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: none; }
+  .type-size { width: 48px; flex-shrink: 0; font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--muted-fg); text-align: right; }
+  .type-sample { flex: 1; color: var(--fg); }
+  .type-use { font-size: 11px; color: var(--muted-fg); flex-shrink: 0; text-align: right; max-width: 180px; }
+  .spacing-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+  .spacing-block { background: var(--clarity-amber); border-radius: 2px; height: 20px; flex-shrink: 0; }
+  .spacing-label { font-size: 12px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--fg); width: 40px; text-align: right; flex-shrink: 0; }
+  .spacing-tw { font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--muted-fg); width: 50px; flex-shrink: 0; }
+  .spacing-note { font-size: 11px; color: var(--muted-fg); }
+  .radius-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+  .radius-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .radius-box { width: 64px; height: 64px; border: 2px solid var(--clarity-amber); background: var(--clarity-amber-muted); }
+  .radius-meta { text-align: center; }
+  .radius-meta .name { font-size: 12px; font-weight: 600; color: var(--fg); }
+  .radius-meta .val { font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--muted-fg); }
+  .anatomy-wrap { position: relative; padding: 48px 56px; }
+  .demo-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl); display: flex; flex-direction: column; gap: 24px; padding: 24px; position: relative; }
+  .demo-card-header { display: flex; flex-direction: column; gap: 4px; }
+  .demo-card-title { font-size: 16px; font-weight: 600; color: var(--fg); }
+  .demo-card-desc { font-size: 13px; color: var(--muted-fg); }
+  .demo-card-body { font-size: 13px; color: var(--fg); line-height: 1.6; }
+  .annotations { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.2s; }
+  .annotations.hidden { opacity: 0; }
+  .measure { position: absolute; display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--ann); white-space: nowrap; }
+  .measure .pill { background: var(--ann); color: #fff; padding: 1px 6px; border-radius: 9999px; font-size: 9px; font-weight: 700; }
+  .dim-h { position: absolute; display: flex; align-items: center; height: 0; border-top: 1.5px dashed var(--ann); }
+  .dim-h::before, .dim-h::after { content: ""; position: absolute; top: -5px; width: 1.5px; height: 10px; background: var(--ann); }
+  .dim-h::before { left: 0; }
+  .dim-h::after { right: 0; }
+  .dim-v { position: absolute; display: flex; justify-content: center; width: 0; border-left: 1.5px dashed var(--ann); }
+  .dim-v::before, .dim-v::after { content: ""; position: absolute; left: -5px; height: 1.5px; width: 10px; background: var(--ann); }
+  .dim-v::before { top: 0; }
+  .dim-v::after { bottom: 0; }
+  .radius-ann { position: absolute; width: 20px; height: 20px; border: 1.5px dashed var(--ann); border-radius: 0; }
+  .radius-ann.tl { border-right: none; border-bottom: none; border-top-left-radius: 10px; }
+  .demo-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); position: relative; min-height: 44px; }
+  .demo-row:last-child { border-bottom: none; }
+  .demo-checkbox { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted-fg); background: var(--card); position: relative; }
+  .demo-checkbox::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; }
+  .demo-checkbox svg { width: 14px; height: 14px; }
+  .demo-row-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .demo-row-title { font-size: 13px; font-weight: 500; color: var(--fg); }
+  .demo-row-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .demo-badge { font-size: 11px; padding: 1px 8px; border-radius: 9999px; border: 1px solid; font-weight: 500; }
+  .demo-badge.urgent { background: oklch(0.577 0.245 27.325 / 10%); color: var(--destructive); border-color: oklch(0.577 0.245 27.325 / 20%); }
+  .demo-badge.high { background: oklch(0.75 0.15 85 / 10%); color: var(--warning); border-color: oklch(0.75 0.15 85 / 20%); }
+  .demo-badge.label { background: var(--muted); color: var(--muted-fg); border-color: var(--border); }
+  .demo-date { font-size: 11px; color: var(--muted-fg); display: flex; align-items: center; gap: 3px; }
+  .row-anatomy-wrap { position: relative; padding: 40px 48px; }
+  .signal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .signal-card { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .signal-preview { padding: 20px; background: var(--card); display: flex; align-items: center; justify-content: center; min-height: 80px; }
+  .signal-info { padding: 12px; background: var(--muted); border-top: 1px solid var(--border); }
+  .signal-info .name { font-size: 12px; font-weight: 600; color: var(--fg); }
+  .signal-info .classes { font-size: 10px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--muted-fg); margin-top: 2px; }
+  .fake-nav { display: flex; flex-direction: column; gap: 4px; width: 180px; }
+  .fake-nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; }
+  .fake-nav-item.active { background: var(--clarity-amber-muted); color: var(--clarity-amber); }
+  .fake-nav-item.inactive { color: var(--muted-fg); }
+  .fake-nav-item svg { width: 16px; height: 16px; }
+  .fake-priority { background: var(--clarity-amber-muted); border-left: 4px solid var(--clarity-amber); border-radius: var(--radius-lg); padding: 12px 16px; width: 220px; }
+  .fake-priority .title { font-size: 13px; font-weight: 500; color: var(--fg); }
+  .fake-priority .sub { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+  .fake-amber-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--clarity-amber-muted); color: var(--clarity-amber); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; border: 1px solid var(--clarity-amber); }
+  .hierarchy-demo { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .hier-primary { font-size: 14px; font-weight: 600; color: var(--fg); }
+  .hier-secondary { font-size: 13px; color: var(--muted-fg); margin-top: 4px; }
+  .hier-tertiary { font-size: 11px; color: var(--muted-fg); opacity: 0.7; margin-top: 8px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; }
+  .hier-label { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--ann); margin-left: 12px; }
+  .principle { background: var(--clarity-amber-muted); border-left: 4px solid var(--clarity-amber); border-radius: 0 var(--radius-lg) var(--radius-lg) 0; padding: 16px 20px; margin-bottom: 24px; }
+  .principle strong { color: var(--clarity-amber); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .principle p { font-size: 13px; color: var(--fg); margin-top: 4px; line-height: 1.5; }
+  .hig-rule { background: #05966910; border-left: 4px solid #059669; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; padding: 12px 16px; margin-top: 12px; margin-bottom: 16px; }
+  .hig-rule strong { color: #059669; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .hig-rule p { font-size: 12px; color: var(--fg); margin-top: 2px; }
+  /* Component example styles */
+  .ex-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; padding: 10px 16px;
+    border-radius: 9999px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); color: var(--muted-fg);
+    background: transparent; cursor: pointer; transition: all 0.15s;
+  }
+  .ex-chip:hover { color: var(--fg); border-color: var(--fg); }
+  .ex-chip.selected {
+    background: var(--clarity-amber-muted); color: var(--clarity-amber);
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px oklch(0.769 0.188 70.08 / 20%);
+  }
+  .dark .ex-chip.selected {
+    box-shadow: inset 0 0 0 1px oklch(0.828 0.189 84.429 / 20%);
+  }
+  .ex-urgency {
+    display: inline-flex; align-items: center;
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .ex-urgency.active {
+    background: var(--clarity-amber-muted); color: var(--clarity-amber);
+    box-shadow: inset 0 0 0 1px oklch(0.769 0.188 70.08 / 20%);
+  }
+  .ex-urgency.critical {
+    background: oklch(0.577 0.245 27.325 / 10%); color: var(--destructive);
+    box-shadow: inset 0 0 0 1px oklch(0.577 0.245 27.325 / 20%);
+  }
+  .ex-urgency.high {
+    background: oklch(0.75 0.15 85 / 10%); color: var(--warning);
+    box-shadow: inset 0 0 0 1px oklch(0.75 0.15 85 / 20%);
+  }
+  .ex-urgency.label {
+    background: var(--muted); color: var(--muted-fg);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .ex-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 36px; padding: 0 16px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: none; transition: all 0.15s;
+  }
+  .ex-btn.primary {
+    background: var(--clarity-amber); color: var(--clarity-amber-fg);
+  }
+  .ex-btn.primary:hover { opacity: 0.9; }
+  .ex-btn.ghost {
+    background: var(--clarity-amber-muted); color: var(--clarity-amber);
+    border: none;
+  }
+  .ex-btn.ghost:hover { background: oklch(0.769 0.188 70.08 / 20%); }
+  .ex-btn.outline {
+    background: transparent; color: var(--muted-fg);
+    border: 1px solid var(--border);
+  }
+  .ex-btn.outline:hover { color: var(--fg); border-color: var(--fg); }
+  .ex-input {
+    width: 100%; height: 40px; padding: 0 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: transparent; color: var(--fg);
+    font-size: 13px; outline: none; transition: border-color 0.15s;
+  }
+  .ex-input::placeholder { color: var(--muted-fg); }
+  .ex-input:focus {
+    border-color: oklch(0.769 0.188 70.08 / 40%);
+    box-shadow: 0 0 0 3px oklch(0.769 0.188 70.08 / 10%);
+  }
+  .ex-section-label {
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--muted-fg);
+  }
+  .ex-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none; background: transparent; color: var(--muted-fg);
+    cursor: pointer; position: relative; transition: color 0.15s;
+  }
+  .ex-icon-btn::before {
+    content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  }
+  .ex-icon-btn.sm::before { inset: -4px; }
+  .ex-icon-btn:hover { color: var(--destructive); }
+  .ex-tap-overlay {
+    position: absolute; inset: -6px;
+    border: 1.5px dashed var(--ann); border-radius: 50%;
+    pointer-events: none;
+  }
+  .ex-cost-row {
+    display: flex; align-items: center; gap: 12px;
+    min-height: 44px; padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ex-cost-row:last-child { border-bottom: none; }
+  .ex-cat-badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 500; padding: 2px 8px;
+    border-radius: 9999px;
+  }
+  .ex-cat-badge.housing {
+    background: oklch(0.55 0.15 250 / 12%); color: oklch(0.55 0.15 250);
+  }
+  .ex-cat-badge.insurance {
+    background: oklch(0.55 0.15 300 / 12%); color: oklch(0.55 0.15 300);
+  }
+  .ex-code {
+    background: oklch(0.145 0 0); border-radius: var(--radius-md);
+    padding: 12px 16px; margin-top: 8px;
+  }
+  .ex-code code {
+    font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace;
+    color: #94a3b8; line-height: 1.8; display: inline;
+  }
+  .ex-code code.hl { color: #f59e0b; }
+  .css-source { background: oklch(0.145 0 0); border-radius: var(--radius-lg); padding: 20px 24px; overflow-x: auto; margin-top: 12px; }
+  .dark .css-source { background: oklch(0.1 0 0); }
+  .css-source pre { font-size: 12px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; line-height: 1.7; color: #e2e8f0; margin: 0; white-space: pre; tab-size: 2; }
+  .css-source .cm { color: #64748b; }
+  .css-source .pr { color: #94a3b8; }
+  .css-source .vl { color: #f59e0b; }
+  .css-source .sel { color: #38bdf8; }
+  .css-source .at { color: #c084fc; }
+  .css-source .fn { color: #34d399; }
+  .source-file { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-family: "SF Mono", "Fira Code", ui-monospace, monospace; color: var(--muted-fg); background: var(--muted); padding: 3px 10px; border-radius: 9999px; margin-bottom: 8px; }
+  .source-file .dot { width: 6px; height: 6px; border-radius: 50%; }
+  /* Device mockup frames */
+  .device-row { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+  .device { position: relative; background: var(--fg); border-radius: 40px; padding: 12px; box-shadow: 0 0 0 2px var(--muted-fg); }
+  .device.iphone { width: 280px; }
+  .device.ipad { width: 520px; border-radius: 24px; padding: 16px; }
+  .device .screen { background: var(--bg); border-radius: 28px; overflow: hidden; position: relative; }
+  .device.ipad .screen { border-radius: 12px; }
+  .device .notch { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 80px; height: 22px; background: var(--fg); border-radius: 0 0 14px 14px; z-index: 10; }
+  .device.ipad .notch { display: none; }
+  .device .home-bar { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); width: 100px; height: 4px; background: var(--muted-fg); border-radius: 4px; z-index: 10; }
+  .device.ipad .home-bar { bottom: 22px; width: 80px; }
+  .device-label { text-align: center; margin-top: 16px; font-size: 12px; font-weight: 600; color: var(--fg); }
+  .device-sublabel { text-align: center; font-size: 11px; color: var(--muted-fg); font-family: "SF Mono", "Fira Code", monospace; }
+  /* Mockup internals */
+  .mock-status-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px; font-size: 10px; font-weight: 600; color: var(--fg); }
+  .mock-sidebar { display: flex; flex-direction: column; gap: 2px; padding: 12px 8px; width: 180px; border-right: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+  .mock-sidebar .logo { display: flex; align-items: center; gap: 8px; padding: 8px; margin-bottom: 4px; }
+  .mock-sidebar .logo-icon { width: 20px; height: 20px; border-radius: 4px; background: var(--clarity-amber); }
+  .mock-sidebar .logo-text { font-size: 12px; font-weight: 600; color: var(--fg); }
+  .mock-nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; color: var(--muted-fg); }
+  .mock-nav-item.active { background: var(--clarity-amber-muted); color: var(--clarity-amber); }
+  .mock-nav-item .dot { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.3; flex-shrink: 0; }
+  .mock-nav-item.active .dot { opacity: 0.6; }
+  .mock-content { flex: 1; padding: 12px; overflow: hidden; }
+  .mock-content-title { font-size: 14px; font-weight: 600; color: var(--fg); margin-bottom: 8px; }
+  .mock-content-line { height: 8px; border-radius: 4px; background: var(--muted); margin-bottom: 6px; }
+  .mock-content-line.short { width: 60%; }
+  .mock-content-line.med { width: 80%; }
+  .mock-card-mini { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .mock-card-mini .row { display: flex; align-items: center; gap: 8px; }
+  .mock-card-mini .cb { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; }
+  .mock-card-mini .text-block { flex: 1; }
+  .mock-card-mini .text-block .t { height: 7px; border-radius: 3px; background: var(--fg); opacity: 0.15; width: 70%; margin-bottom: 4px; }
+  .mock-card-mini .text-block .s { height: 5px; border-radius: 3px; background: var(--muted-fg); opacity: 0.2; width: 40%; }
+  .mock-card-mini .badge-mini { display: inline-block; width: 32px; height: 10px; border-radius: 9999px; }
+  .mock-card-mini .badge-mini.amber { background: var(--clarity-amber-muted); }
+  .mock-card-mini .badge-mini.red { background: oklch(0.577 0.245 27.325 / 15%); }
+  /* Tab bar mockup */
+  .mock-tab-bar { display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border); padding: 6px 0 0; background: var(--bg); }
+  .mock-tab-bar .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 8px; min-width: 52px; }
+  .mock-tab-bar .tab .icon { width: 20px; height: 20px; border-radius: 4px; background: currentColor; opacity: 0.25; }
+  .mock-tab-bar .tab .label { font-size: 9px; font-weight: 500; color: var(--muted-fg); }
+  .mock-tab-bar .tab.active .icon { opacity: 0.5; }
+  .mock-tab-bar .tab.active .label { color: var(--clarity-amber); font-weight: 600; }
+  /* Safe area indicator */
+  .mock-safe-area { height: 20px; background: repeating-linear-gradient(45deg, transparent, transparent 3px, var(--ann-bg) 3px, var(--ann-bg) 6px); position: relative; }
+  .mock-safe-area-label { position: absolute; right: 4px; top: 2px; font-size: 8px; font-weight: 600; color: var(--ann); font-family: "SF Mono", "Fira Code", monospace; }
+  /* Asset table */
+  .asset-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .asset-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg); border-bottom: 2px solid var(--border); }
+  .asset-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--fg); vertical-align: top; }
+  .asset-table td:first-child { font-weight: 500; }
+  .asset-table .mono { font-family: "SF Mono", "Fira Code", monospace; font-size: 11px; color: var(--muted-fg); }
+  .asset-table .size-block { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 4px; font-size: 9px; font-weight: 600; color: var(--muted-fg); font-family: monospace; }
+  .asset-table .check { color: #059669; }
+  .asset-table .missing { color: var(--destructive); font-style: italic; }
+  /* Breakpoint diagram */
+  .bp-diagram { display: flex; align-items: flex-end; gap: 0; height: 60px; margin-bottom: 8px; border-bottom: 2px solid var(--border); position: relative; }
+  .bp-bar { display: flex; align-items: flex-end; justify-content: center; font-size: 10px; font-weight: 600; color: white; border-radius: 4px 4px 0 0; }
+  .bp-label { position: absolute; bottom: -20px; font-size: 10px; font-weight: 600; font-family: "SF Mono", "Fira Code", monospace; color: var(--muted-fg); }
+  /* More Drawer mockup */
+  .drawer-demo-wrap { position: relative; width: 280px; height: 480px; background: var(--bg); border: 1px solid var(--border); border-radius: 28px; overflow: hidden; }
+  .drawer-overlay { position: absolute; inset: 0; background: oklch(0 0 0 / 50%); z-index: 1; }
+  .drawer-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 12px 12px 0 0; z-index: 2; padding: 16px; }
+  .drawer-handle { width: 36px; height: 4px; border-radius: 4px; background: var(--muted-fg); opacity: 0.3; margin: 0 auto 12px; }
+  .drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .drawer-title { font-size: 16px; font-weight: 600; color: var(--fg); }
+  .drawer-close { width: 28px; height: 28px; border-radius: 50%; background: var(--muted); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: var(--muted-fg); }
+  .drawer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: var(--radius-lg); cursor: pointer; transition: background 0.15s; }
+  .drawer-item:hover { background: var(--muted); }
+  .drawer-item.active { background: var(--clarity-amber-muted); }
+  .drawer-item .di-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--muted-fg); }
+  .drawer-item.active .di-icon { color: var(--clarity-amber); }
+  .drawer-item .di-label { font-size: 11px; font-weight: 500; color: var(--muted-fg); }
+  .drawer-item.active .di-label { color: var(--clarity-amber); font-weight: 600; }
+  .drawer-item .di-icon svg { width: 24px; height: 24px; }
+  .drawer-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px; }
+  .drawer-footer span { font-size: 13px; color: var(--muted-fg); }
+  .drawer-safe { height: 20px; background: repeating-linear-gradient(45deg, transparent, transparent 3px, var(--ann-bg) 3px, var(--ann-bg) 6px); }
+  .drawer-safe-label { font-size: 8px; font-weight: 600; color: var(--ann); text-align: right; padding-right: 4px; font-family: "SF Mono", "Fira Code", monospace; }
+  .pattern-ref { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-family: "SF Mono", "Fira Code", monospace; color: var(--muted-fg); background: var(--muted); padding: 3px 10px; border-radius: 9999px; margin-bottom: 4px; }
+  .pattern-ref .dot { width: 6px; height: 6px; border-radius: 50%; background: #059669; }
+  .spec-grid { display: grid; grid-template-columns: 120px 1fr; gap: 4px 16px; font-size: 12px; }
+  .spec-grid dt { font-weight: 600; color: var(--fg); padding: 4px 0; }
+  .spec-grid dd { color: var(--muted-fg); font-family: "SF Mono", "Fira Code", monospace; font-size: 11px; padding: 4px 0; }
+  /* Category filter nav */
+  .filter-bar { position: sticky; top: 0; z-index: 50; background: var(--page-bg); padding: 12px 0 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .filter-bar::after { content: ""; position: absolute; bottom: -8px; left: 0; right: 0; height: 8px; background: linear-gradient(var(--page-bg), transparent); pointer-events: none; }
+  .filter-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 500; border: 1px solid var(--border); color: var(--muted-fg); background: transparent; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .filter-chip:hover { color: var(--fg); border-color: var(--fg); }
+  .filter-chip.active { background: var(--clarity-amber-muted); color: var(--clarity-amber); border-color: transparent; box-shadow: inset 0 0 0 1px oklch(0.769 0.188 70.08 / 20%); }
+  .dark .filter-chip.active { box-shadow: inset 0 0 0 1px oklch(0.828 0.189 84.429 / 20%); }
+  .filter-chip .count { font-size: 10px; font-weight: 600; opacity: 0.6; font-family: "SF Mono", "Fira Code", monospace; }
+  .section[data-cat] { transition: none; }
+  .section.cat-hidden { display: none; }
+  .filter-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-fg); margin-right: 4px; }
+  /* Sidebar TOC */
+  .toc { position: fixed; top: 120px; right: max(16px, calc((100vw - 960px) / 2 - 200px)); width: 172px; z-index: 40; }
+  .toc-inner { background: var(--section-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 0; max-height: calc(100dvh - 160px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .toc-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); padding: 0 14px 8px; }
+  .toc-link { display: block; padding: 5px 14px; font-size: 11px; font-weight: 500; color: var(--muted-fg); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .toc-link:hover { color: var(--fg); background: var(--muted); }
+  .toc-link.active { color: var(--clarity-amber); border-left-color: var(--clarity-amber); background: var(--clarity-amber-muted); font-weight: 600; }
+  .toc-divider { height: 1px; background: var(--border); margin: 6px 14px; }
+  /* Back to top */
+  .btt { position: fixed; bottom: 24px; right: 24px; z-index: 60; width: 40px; height: 40px; border-radius: 50%; background: var(--section-bg); border: 1px solid var(--border); color: var(--muted-fg); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; opacity: 0; pointer-events: none; box-shadow: 0 2px 8px oklch(0 0 0 / 8%); }
+  .btt.visible { opacity: 1; pointer-events: auto; }
+  .btt:hover { color: var(--clarity-amber); border-color: var(--clarity-amber); transform: translateY(-2px); box-shadow: 0 4px 12px oklch(0 0 0 / 12%); }
+  /* Hide sidebar on narrow screens */
+  @media (max-width: 1280px) { .toc { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div>
+      <h1>Clarity Design System</h1>
+      <p>Single source of truth &mdash; tokens, spacing, anatomy</p>
+    </div>
+    <div class="toggle-wrap">
+      <span class="toggle-label">Dark</span>
+      <button class="toggle" id="darkToggle" onclick="toggleDark()"></button>
+    </div>
+  </div>
+
+  <div class="principle">
+    <strong>Core Principle</strong>
+    <p>Amber is scarce. Reserved for active nav, user chat bubbles, coach accents, and priority signals. Everything else is quiet slate. Scarcity preserves meaning.</p>
+  </div>
+
+  <!-- CATEGORY FILTER NAV -->
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-label">Show</span>
+    <button class="filter-chip active" data-filter="all" onclick="filterSections('all')">All <span class="count">13</span></button>
+    <button class="filter-chip" data-filter="foundations" onclick="filterSections('foundations')">Foundations <span class="count">7</span></button>
+    <button class="filter-chip" data-filter="components" onclick="filterSections('components')">Components <span class="count">5</span></button>
+    <button class="filter-chip" data-filter="mobile" onclick="filterSections('mobile')">Mobile &amp; PWA <span class="count">3</span></button>
+    <button class="filter-chip" data-filter="brand" onclick="filterSections('brand')">Brand &amp; Signal <span class="count">3</span></button>
+    <button class="filter-chip" data-filter="hig" onclick="filterSections('hig')">HIG Rules <span class="count">13</span></button>
+  </div>
+
+  <!-- CSS SOURCE OF TRUTH -->
+  <div class="section" data-cat="foundations" id="sec-css-source">
+    <h2>CSS Source <span class="badge">globals.css</span></h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>All sizing must trace to a CSS token. No magic numbers in components. The 10 primitives below are the only hardcoded values in the entire app — everything else derives from them. This follows HIG's "design for adaptability" principle.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:16px">Every token originates from <strong style="color:var(--fg)">src/app/globals.css</strong>. Tailwind v4 maps them via <code style="font-size:12px;font-family:monospace;background:var(--muted);padding:1px 6px;border-radius:4px">@theme inline</code> &mdash; no tailwind.config.ts needed.</p>
+
+    <div class="subsection">
+      <h3>Theme Bridge (Tailwind v4)</h3>
+      <div class="source-file"><span class="dot" style="background:#c084fc"></span>@theme inline block</div>
+      <div class="css-source"><pre><span class="at">@theme inline</span> {
+  <span class="cm">/* Brand tokens */</span>
+  <span class="pr">--color-clarity-amber</span>: <span class="fn">var</span>(<span class="vl">--clarity-amber</span>);
+  <span class="pr">--color-clarity-amber-foreground</span>: <span class="fn">var</span>(<span class="vl">--clarity-amber-foreground</span>);
+  <span class="pr">--color-clarity-amber-muted</span>: <span class="fn">var</span>(<span class="vl">--clarity-amber-muted</span>);
+  <span class="pr">--color-warning</span>: <span class="fn">var</span>(<span class="vl">--warning</span>);
+
+  <span class="cm">/* Fonts */</span>
+  <span class="pr">--font-sans</span>: <span class="fn">var</span>(<span class="vl">--font-geist-sans</span>);
+  <span class="pr">--font-mono</span>: <span class="fn">var</span>(<span class="vl">--font-geist-mono</span>);
+
+  <span class="cm">/* Radius scale (base: 0.625rem = 10px) */</span>
+  <span class="pr">--radius-sm</span>: <span class="fn">calc</span>(<span class="fn">var</span>(<span class="vl">--radius</span>) - 4px);  <span class="cm">/* 6px */</span>
+  <span class="pr">--radius-md</span>: <span class="fn">calc</span>(<span class="fn">var</span>(<span class="vl">--radius</span>) - 2px);  <span class="cm">/* 8px */</span>
+  <span class="pr">--radius-lg</span>: <span class="fn">var</span>(<span class="vl">--radius</span>);             <span class="cm">/* 10px */</span>
+  <span class="pr">--radius-xl</span>: <span class="fn">calc</span>(<span class="fn">var</span>(<span class="vl">--radius</span>) + 4px);  <span class="cm">/* 14px */</span>
+
+  <span class="cm">/* shadcn neutrals (mapped 1:1) */</span>
+  <span class="pr">--color-background</span>: <span class="fn">var</span>(<span class="vl">--background</span>);
+  <span class="pr">--color-foreground</span>: <span class="fn">var</span>(<span class="vl">--foreground</span>);
+  <span class="pr">--color-muted</span>: <span class="fn">var</span>(<span class="vl">--muted</span>);
+  <span class="pr">--color-muted-foreground</span>: <span class="fn">var</span>(<span class="vl">--muted-foreground</span>);
+  <span class="pr">--color-border</span>: <span class="fn">var</span>(<span class="vl">--border</span>);
+  <span class="pr">--color-card</span>: <span class="fn">var</span>(<span class="vl">--card</span>);
+  <span class="pr">--color-destructive</span>: <span class="fn">var</span>(<span class="vl">--destructive</span>);
+  <span class="cm">/* ... + popover, accent, ring, sidebar, chart */</span>
+}</pre></div>
+    </div>
+
+    <div class="subsection">
+      <h3>Light Mode (:root)</h3>
+      <div class="source-file"><span class="dot" style="background:#f59e0b"></span>:root custom properties</div>
+      <div class="css-source"><pre><span class="sel">:root</span> {
+  <span class="cm">/* ── Brand ────────────────────── */</span>
+  <span class="pr">--clarity-amber</span>: <span class="vl">oklch(0.769 0.188 70.08)</span>;
+  <span class="pr">--clarity-amber-foreground</span>: <span class="vl">oklch(0.145 0 0)</span>;
+  <span class="pr">--clarity-amber-muted</span>: <span class="vl">oklch(0.769 0.188 70.08 / 12%)</span>;
+  <span class="pr">--warning</span>: <span class="vl">oklch(0.75 0.15 85)</span>;
+
+  <span class="cm">/* ── Radius base ──────────────── */</span>
+  <span class="pr">--radius</span>: <span class="vl">0.625rem</span>;  <span class="cm">/* 10px */</span>
+
+  <span class="cm">/* ── Surfaces ─────────────────── */</span>
+  <span class="pr">--background</span>: <span class="vl">oklch(1 0 0)</span>;            <span class="cm">/* white */</span>
+  <span class="pr">--foreground</span>: <span class="vl">oklch(0.145 0 0)</span>;        <span class="cm">/* near-black */</span>
+  <span class="pr">--card</span>: <span class="vl">oklch(1 0 0)</span>;                 <span class="cm">/* white */</span>
+  <span class="pr">--card-foreground</span>: <span class="vl">oklch(0.145 0 0)</span>;
+
+  <span class="cm">/* ── Text levels ──────────────── */</span>
+  <span class="pr">--muted-foreground</span>: <span class="vl">oklch(0.556 0 0)</span>;  <span class="cm">/* slate-500 */</span>
+
+  <span class="cm">/* ── Edges ────────────────────── */</span>
+  <span class="pr">--border</span>: <span class="vl">oklch(0.922 0 0)</span>;            <span class="cm">/* slate-100 */</span>
+  <span class="pr">--input</span>: <span class="vl">oklch(0.922 0 0)</span>;
+  <span class="pr">--ring</span>: <span class="vl">oklch(0.708 0 0)</span>;
+
+  <span class="cm">/* ── Semantic ─────────────────── */</span>
+  <span class="pr">--destructive</span>: <span class="vl">oklch(0.577 0.245 27.325)</span>;
+  <span class="pr">--muted</span>: <span class="vl">oklch(0.97 0 0)</span>;
+  <span class="pr">--primary</span>: <span class="vl">oklch(0.205 0 0)</span>;
+  <span class="pr">--primary-foreground</span>: <span class="vl">oklch(0.985 0 0)</span>;
+  <span class="pr">--secondary</span>: <span class="vl">oklch(0.97 0 0)</span>;
+  <span class="pr">--accent</span>: <span class="vl">oklch(0.97 0 0)</span>;
+}</pre></div>
+    </div>
+
+    <div class="subsection">
+      <h3>Dark Mode (.dark)</h3>
+      <div class="source-file"><span class="dot" style="background:#38bdf8"></span>.dark overrides</div>
+      <div class="css-source"><pre><span class="sel">.dark</span> {
+  <span class="pr">--clarity-amber</span>: <span class="vl">oklch(0.828 0.189 84.429)</span>;  <span class="cm">/* brighter, warmer */</span>
+  <span class="pr">--clarity-amber-muted</span>: <span class="vl">oklch(0.828 0.189 84.429 / 12%)</span>;
+  <span class="pr">--warning</span>: <span class="vl">oklch(0.82 0.15 85)</span>;
+
+  <span class="pr">--background</span>: <span class="vl">oklch(0.145 0 0)</span>;          <span class="cm">/* near-black */</span>
+  <span class="pr">--foreground</span>: <span class="vl">oklch(0.985 0 0)</span>;          <span class="cm">/* near-white */</span>
+  <span class="pr">--card</span>: <span class="vl">oklch(0.205 0 0)</span>;
+  <span class="pr">--muted</span>: <span class="vl">oklch(0.269 0 0)</span>;
+  <span class="pr">--muted-foreground</span>: <span class="vl">oklch(0.708 0 0)</span>;    <span class="cm">/* slate-600 */</span>
+
+  <span class="pr">--border</span>: <span class="vl">oklch(1 0 0 / 10%)</span>;            <span class="cm">/* white at 10% */</span>
+  <span class="pr">--input</span>: <span class="vl">oklch(1 0 0 / 15%)</span>;
+  <span class="pr">--destructive</span>: <span class="vl">oklch(0.704 0.191 22.216)</span>;
+}</pre></div>
+    </div>
+
+    <div class="subsection">
+      <h3>Base Layer</h3>
+      <div class="source-file"><span class="dot" style="background:#34d399"></span>@layer base + utilities</div>
+      <div class="css-source"><pre><span class="at">@layer base</span> {
+  * {
+    <span class="at">@apply</span> <span class="vl">border-border outline-ring/50</span>;
+  }
+  <span class="sel">html, body</span> {
+    <span class="pr">overscroll-behavior</span>: <span class="vl">none</span>;
+    <span class="pr">-webkit-tap-highlight-color</span>: <span class="vl">transparent</span>;
+  }
+  <span class="sel">body</span> {
+    <span class="at">@apply</span> <span class="vl">bg-background text-foreground</span>;
+  }
+}
+
+<span class="cm">/* Safe area for mobile nav (HIG) */</span>
+<span class="sel">.pb-safe-nav</span> {
+  <span class="pr">padding-bottom</span>: <span class="fn">calc</span>(<span class="vl">3.5rem</span> + <span class="fn">env</span>(<span class="vl">safe-area-inset-bottom, 20px</span>));
+}</pre></div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <div class="section" data-cat="foundations brand" id="sec-colors">
+    <h2>Color Tokens <span class="badge">oklch</span></h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>Use APCA contrast (stricter than WCAG AA). oklch color space ensures perceptual uniformity across light/dark — same visual weight at different hues. Never hardcode hex values in components; always reference CSS custom properties.</p>
+    </div>
+    <div class="subsection">
+      <h3>Brand</h3>
+      <div class="color-grid">
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.769 0.188 70.08)"></div><div class="swatch-info"><div class="swatch-name">Clarity Amber</div><div class="swatch-var">--clarity-amber</div><div class="swatch-usage">Active nav, chat bubbles, coach accent</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.769 0.188 70.08 / 12%)"></div><div class="swatch-info"><div class="swatch-name">Amber Muted</div><div class="swatch-var">--clarity-amber-muted</div><div class="swatch-usage">Priority card bg, coach surface</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.145 0 0)"></div><div class="swatch-info"><div class="swatch-name">Amber Foreground</div><div class="swatch-var">--clarity-amber-foreground</div><div class="swatch-usage">Text on amber backgrounds</div></div></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <h3>Semantic</h3>
+      <div class="color-grid">
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.577 0.245 27.325)"></div><div class="swatch-info"><div class="swatch-name">Destructive</div><div class="swatch-var">--destructive</div><div class="swatch-usage">Errors, delete, overdue items</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.75 0.15 85)"></div><div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-var">--warning</div><div class="swatch-usage">High priority, caution states</div></div></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <h3>Neutral</h3>
+      <div class="color-grid">
+        <div class="swatch"><div class="swatch-color" style="background:oklch(1 0 0);border-bottom:1px solid oklch(0.922 0 0)"></div><div class="swatch-info"><div class="swatch-name">Background</div><div class="swatch-var">--background</div><div class="swatch-usage">Page canvas</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.145 0 0)"></div><div class="swatch-info"><div class="swatch-name">Foreground</div><div class="swatch-var">--foreground</div><div class="swatch-usage">Primary text, headings</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.556 0 0)"></div><div class="swatch-info"><div class="swatch-name">Muted Foreground</div><div class="swatch-var">--muted-foreground</div><div class="swatch-usage">Secondary text, timestamps</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.922 0 0)"></div><div class="swatch-info"><div class="swatch-name">Border</div><div class="swatch-var">--border</div><div class="swatch-usage">Card edges, dividers</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:oklch(0.965 0 0)"></div><div class="swatch-info"><div class="swatch-name">Muted</div><div class="swatch-var">--muted</div><div class="swatch-usage">Subtle backgrounds, hover states</div></div></div>
+      </div>
+    </div>
+    <div class="subsection">
+      <h3>Light vs Dark</h3>
+      <div class="mode-compare">
+        <div class="mode-half light">
+          <div class="mode-label">Light</div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.769 0.188 70.08)"></div><span>amber 0.769</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(1 0 0);border-color:oklch(0.922 0 0)"></div><span>bg 1.0</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.145 0 0)"></div><span>fg 0.145</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.556 0 0)"></div><span>muted-fg 0.556</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.922 0 0)"></div><span>border 0.922</span></div>
+        </div>
+        <div class="mode-half dark-preview">
+          <div class="mode-label">Dark</div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.828 0.189 84.429)"></div><span>amber 0.828</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.145 0 0)"></div><span>bg 0.145</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.985 0 0)"></div><span>fg 0.985</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(0.708 0 0)"></div><span>muted-fg 0.708</span></div>
+          <div class="mode-row"><div class="mode-dot" style="background:oklch(1 0 0 / 10%)"></div><span>border 10% white</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section" data-cat="foundations" id="sec-typography">
+    <h2>Typography</h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>Minimum label size is 11px (0.6875rem) per HIG. Tab bar labels, badge text, and fine metadata must never go below this. Use Dynamic Type-friendly relative units where possible. Labels at 10px are a compliance violation.</p>
+    </div>
+    <div class="subsection">
+      <h3>Geist Sans &mdash; UI Text</h3>
+      <div class="type-row"><div class="type-size">24px</div><div class="type-sample" style="font-size:24px;font-weight:600">Daily Dashboard</div><div class="type-use">Page titles &mdash; weight 600</div></div>
+      <div class="type-row"><div class="type-size">18px</div><div class="type-sample" style="font-size:18px;font-weight:600">Section Header</div><div class="type-use">Section headings &mdash; weight 600</div></div>
+      <div class="type-row"><div class="type-size">16px</div><div class="type-sample" style="font-size:16px;font-weight:600">Card Title</div><div class="type-use">Card headers &mdash; weight 600</div></div>
+      <div class="type-row"><div class="type-size">14px</div><div class="type-sample" style="font-size:14px;font-weight:500">Navigation Label</div><div class="type-use">Nav items, labels &mdash; weight 500</div></div>
+      <div class="type-row"><div class="type-size">13px</div><div class="type-sample" style="font-size:13px;font-weight:400">Body text for descriptions, card content, and general reading.</div><div class="type-use">Base body &mdash; weight 400</div></div>
+      <div class="type-row"><div class="type-size">12px</div><div class="type-sample" style="font-size:12px;font-weight:400;color:var(--muted-fg)">Supporting detail, secondary labels</div><div class="type-use">Small text &mdash; weight 400</div></div>
+      <div class="type-row"><div class="type-size">11px</div><div class="type-sample" style="font-size:11px;font-weight:400;color:var(--muted-fg)">Badge text, fine metadata, timestamps</div><div class="type-use">Badges, meta &mdash; weight 400-500</div></div>
+    </div>
+    <div class="subsection">
+      <h3>Geist Mono &mdash; Data Values</h3>
+      <div class="type-row"><div class="type-size">12px</div><div class="type-sample" style="font-size:12px;font-family:'SF Mono','Fira Code',ui-monospace,monospace;color:var(--muted-fg)">9:30 AM &ndash; 10:15 AM</div><div class="type-use">Time ranges, durations</div></div>
+      <div class="type-row"><div class="type-size">11px</div><div class="type-sample" style="font-size:11px;font-family:'SF Mono','Fira Code',ui-monospace,monospace;color:var(--muted-fg)">3 tasks &middot; 2 events &middot; 1 routine</div><div class="type-use">Counts, IDs, code values</div></div>
+    </div>
+  </div>
+
+  <!-- SPACING -->
+  <div class="section" data-cat="foundations" id="sec-spacing">
+    <h2>Spacing Scale <span class="badge">base 4px</span></h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>Base-4 spacing aligns to the HIG 44px tap-target grid (44 = 11 base units). All interactive rows need min-height 44px. Use the spacing scale consistently — no arbitrary pixel values in components.</p>
+    </div>
+    <div id="spacingList"></div>
+  </div>
+
+  <!-- RADIUS -->
+  <div class="section" data-cat="foundations" id="sec-radius">
+    <h2>Border Radius</h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>Use consistent radius scale. Nested elements follow the inner-radius rule: inner = outer - gap. Cards (rounded-xl/10px) containing rows with 24px padding means inner content needs no extra rounding — the container handles it.</p>
+    </div>
+    <div class="radius-grid">
+      <div class="radius-item"><div class="radius-box" style="border-radius:4px"></div><div class="radius-meta"><div class="name">sm</div><div class="val">4px</div></div></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:6px"></div><div class="radius-meta"><div class="name">md</div><div class="val">6px</div></div></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:8px"></div><div class="radius-meta"><div class="name">lg</div><div class="val">8px</div></div></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:10px"></div><div class="radius-meta"><div class="name">xl</div><div class="val">10px</div></div></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:9999px"></div><div class="radius-meta"><div class="name">full</div><div class="val">9999px</div></div></div>
+    </div>
+  </div>
+
+  <!-- CARD ANATOMY -->
+  <div class="section" data-cat="components" id="sec-card-anatomy">
+    <h2>Card Anatomy <span class="badge">key section</span></h2>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <div class="ann-toggle" onclick="toggleAnnotations()"><span style="width:6px;height:6px;border-radius:50%;background:var(--ann)"></span><span id="annLabel">Hide Annotations</span></div>
+    </div>
+
+    <div class="subsection"><h3>Standard Card</h3>
+      <div class="anatomy-wrap" id="cardAnatomy">
+        <div class="demo-card" id="demoCard">
+          <div class="demo-card-header"><div class="demo-card-title">Today's Tasks</div><div class="demo-card-desc">3 tasks remaining, 1 overdue</div></div>
+          <div class="demo-card-body">Your morning routine is complete. Focus on the design review at 2 PM and the API integration before end of day.</div>
+        </div>
+        <div class="annotations" id="cardAnnotations">
+          <div class="dim-h" style="top:50%;left:56px;width:24px"></div>
+          <div class="measure" style="top:calc(50% + 8px);left:44px"><span class="pill">24px / p-6</span></div>
+          <div class="dim-h" style="top:50%;right:56px;width:24px"></div>
+          <div class="measure" style="top:calc(50% + 8px);right:44px"><span class="pill">24px / p-6</span></div>
+          <div class="dim-v" style="left:50%;top:48px;height:24px"></div>
+          <div class="measure" style="left:calc(50% + 8px);top:48px"><span class="pill">24px / p-6</span></div>
+          <div class="dim-v" style="left:50%;bottom:48px;height:24px"></div>
+          <div class="measure" style="left:calc(50% + 8px);bottom:48px"><span class="pill">24px / p-6</span></div>
+          <div class="dim-v" style="right:80px;top:calc(48px + 24px + 44px);height:24px"></div>
+          <div class="measure" style="right:24px;top:calc(48px + 24px + 44px + 4px)"><span class="pill">24px / gap-6</span></div>
+          <div class="radius-ann tl" style="top:48px;left:56px"></div>
+          <div class="measure" style="top:36px;left:78px"><span class="pill">10px / rounded-xl</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection"><h3>Row Card (List Item)</h3>
+      <div class="hig-rule">
+        <strong>Apple HIG</strong>
+        <p>All interactive rows must have min-height 44px. Touch targets (checkboxes, buttons) need 44px tap area even if visually smaller. Row padding py-3 (12px) ensures comfortable density without cramming.</p>
+      </div>
+      <div class="row-anatomy-wrap" id="rowAnatomy">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden" id="demoRows">
+          <div class="demo-row">
+            <div class="demo-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="demo-row-content">
+              <div class="demo-row-title">Review design system tokens</div>
+              <div class="demo-row-meta"><span class="demo-badge urgent">Urgent</span><span class="demo-badge label">Design</span><span class="demo-date"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Today</span></div>
+            </div>
+          </div>
+          <div class="demo-row">
+            <div class="demo-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="demo-row-content">
+              <div class="demo-row-title">Implement API integration</div>
+              <div class="demo-row-meta"><span class="demo-badge high">High</span><span class="demo-badge label">Backend</span><span class="demo-date"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Tomorrow</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="annotations" id="rowAnnotations">
+          <!-- py-3: 12px vertical padding -->
+          <div class="dim-v" style="left:30px;top:40px;height:12px"></div>
+          <div class="measure" style="left:0px;top:32px"><span class="pill">12px / py-3</span></div>
+
+          <!-- px-4: 16px horizontal padding -->
+          <div class="dim-h" style="top:56px;left:48px;width:16px"></div>
+          <div class="measure" style="top:63px;left:40px"><span class="pill">16px / px-4</span></div>
+
+          <!-- checkbox 32px visual, 44px tap target -->
+          <div class="dim-h" style="top:68px;left:66px;width:32px"></div>
+          <div class="measure" style="top:60px;left:64px"><span class="pill">32px visual / 44px tap target</span></div>
+
+          <!-- gap-3: 12px between checkbox and text -->
+          <div class="dim-h" style="top:68px;left:calc(66px + 32px);width:12px"></div>
+          <div class="measure" style="top:76px;left:calc(66px + 30px)"><span class="pill">12px / gap-3</span></div>
+
+          <!-- badge gap-1.5: 6px between badges -->
+          <div class="dim-h" style="top:100px;left:calc(66px + 32px + 12px + 62px);width:6px"></div>
+          <div class="measure" style="top:107px;left:calc(66px + 32px + 12px + 50px)"><span class="pill">6px / gap-1.5</span></div>
+
+          <!-- min-height 44px HIG callout -->
+          <div class="measure" style="top:40px;right:24px"><span class="pill" style="background:#059669">min-height: 44px (HIG)</span></div>
+
+          <!-- border-b -->
+          <div class="measure" style="bottom:72px;right:24px"><span class="pill">border-b / 1px solid --border</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AMBER SIGNAL -->
+  <div class="section" data-cat="brand components" id="sec-amber-signal">
+    <h2>Amber Signal Usage <span class="badge">scarce</span></h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>HIG emphasizes accent color restraint. The system tint (amber) should only appear on actionable or navigational states — never decorative. This preserves visual weight so users instantly recognize interactive elements.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:16px">These are the <strong style="color:var(--fg)">only</strong> places amber appears in the entire app.</p>
+    <div class="signal-grid">
+      <div class="signal-card">
+        <div class="signal-preview">
+          <div class="fake-nav">
+            <div class="fake-nav-item inactive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Today</div>
+            <div class="fake-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</div>
+            <div class="fake-nav-item inactive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Routines</div>
+          </div>
+        </div>
+        <div class="signal-info"><div class="name">Active Nav Item</div><div class="classes">bg-clarity-amber/15 text-clarity-amber</div></div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-preview">
+          <div class="fake-priority"><div class="title">Complete morning routine</div><div class="sub">Coach recommendation</div></div>
+        </div>
+        <div class="signal-info"><div class="name">Priority Card Variant</div><div class="classes">bg-clarity-amber-muted border-l-4 border-l-clarity-amber</div></div>
+      </div>
+      <div class="signal-card">
+        <div class="signal-preview">
+          <div class="fake-amber-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Coach Pick</div>
+        </div>
+        <div class="signal-info"><div class="name">Accent Badge</div><div class="classes">bg-clarity-amber-muted text-clarity-amber border-clarity-amber</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEXT HIERARCHY -->
+  <div class="section" data-cat="brand foundations" id="sec-text-hierarchy">
+    <h2>Text Hierarchy</h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>HIG requires clear visual hierarchy through weight, size, and color — not decoration. Three levels (primary, secondary, tertiary) with distinct visual weight. Never use more than 3 text levels in a single card or row.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:16px">Three levels of text importance in a card context.</p>
+    <div class="hierarchy-demo">
+      <div style="display:flex;align-items:baseline"><div class="hier-primary">Morning Routine</div><span class="hier-label">text-foreground / 14px / 600</span></div>
+      <div style="display:flex;align-items:baseline"><div class="hier-secondary">Complete 3 tasks to stay on track today</div><span class="hier-label">text-muted-foreground / 13px / 400</span></div>
+      <div style="display:flex;align-items:baseline"><div class="hier-tertiary">Last completed 2h ago &middot; 67% streak</div><span class="hier-label">muted-fg/70 + font-mono / 11px</span></div>
+    </div>
+  </div>
+
+  <!-- DEPTH MODEL -->
+  <div class="section" data-cat="foundations components" id="sec-depth-model">
+    <h2>Depth Model <span class="badge">borders only</span></h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>HIG favors flat design with vibrancy and translucency for depth — not drop shadows. Clarity uses border-weight and background-contrast instead. Box-shadow only for functional overlays (dropdown menus, popovers). GPU-animate only transform and opacity.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:16px">No box-shadow. Elevation = border weight + background contrast.</p>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <div style="width:120px;height:80px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted-fg)">Default</div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted-fg)">1px border</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <div style="width:120px;height:80px;background:var(--muted);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted-fg)">Hover</div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted-fg)">bg-muted/40</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <div style="width:120px;height:80px;background:var(--clarity-amber-muted);border-left:4px solid var(--clarity-amber);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--clarity-amber)">Priority</div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted-fg)">amber-muted + 4px left</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENT PATTERNS -->
+  <div class="section" data-cat="components" id="sec-component-patterns">
+    <h2>Component Patterns <span class="badge">examples</span></h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>All interactive elements need 44px minimum tap area. Use the before::pseudo tap-expansion trick for small visual targets (icon buttons). Chips and toggles must feel tappable on mobile — min-h-[44px] is mandatory, not optional.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:20px">Live examples of the Clarity component vocabulary. These patterns are used across the entire app.</p>
+
+    <!-- Chips / Toggles -->
+    <div class="subsection"><h3>Chips &amp; Toggles (Amber Signal)</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Selected state uses amber signal. Unselected is quiet border.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <button type="button" class="ex-chip selected">9-5</button>
+        <button type="button" class="ex-chip">Shift work</button>
+        <button type="button" class="ex-chip">Flexible</button>
+        <button type="button" class="ex-chip">Remote</button>
+        <button type="button" class="ex-chip">Self-employed</button>
+      </div>
+      <div class="ex-code">
+        <code>// Selected</code><br>
+        <code class="hl">bg-clarity-amber/10 text-clarity-amber ring-1 ring-inset ring-clarity-amber/20</code><br>
+        <code>// Unselected</code><br>
+        <code class="hl">border text-muted-foreground hover:text-foreground</code><br>
+        <code>// Touch target</code><br>
+        <code class="hl">min-h-[44px] py-2.5 px-4 rounded-full</code>
+      </div>
+    </div>
+
+    <!-- Urgency Badges -->
+    <div class="subsection"><h3>Urgency Badges</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Active uses amber, Critical uses destructive. Both use ring-inset pattern.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <span class="ex-urgency active">Active</span>
+        <span class="ex-urgency critical">Critical</span>
+        <span class="ex-urgency high">High</span>
+        <span class="ex-urgency label">Design</span>
+      </div>
+      <div class="ex-code">
+        <code>// Active (amber)</code><br>
+        <code class="hl">bg-clarity-amber/10 text-clarity-amber ring-1 ring-inset ring-clarity-amber/20</code><br>
+        <code>// Critical (destructive)</code><br>
+        <code class="hl">bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/20</code><br>
+        <code>// High (warning)</code><br>
+        <code class="hl">bg-warning/10 text-warning border-warning/20</code>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="subsection"><h3>Buttons</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Three button variants. Primary (solid amber), ghost (amber wash), and outline (quiet border).</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">
+        <button type="button" class="ex-btn primary">Save profile</button>
+        <button type="button" class="ex-btn ghost">Add</button>
+        <button type="button" class="ex-btn outline">Cancel</button>
+      </div>
+      <div class="ex-code">
+        <code>// Primary (solid amber)</code><br>
+        <code class="hl">bg-clarity-amber text-clarity-amber-foreground hover:bg-clarity-amber/90</code><br>
+        <code>// Ghost (amber wash)</code><br>
+        <code class="hl">bg-clarity-amber/10 text-clarity-amber hover:bg-clarity-amber/20</code><br>
+        <code>// Outline</code><br>
+        <code class="hl">border text-muted-foreground hover:text-foreground</code>
+      </div>
+    </div>
+
+    <!-- Input Focus -->
+    <div class="subsection"><h3>Input Focus</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Subtle amber border on focus. No heavy glow.</p>
+      <div style="max-width:320px;margin-bottom:8px">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted-fg);display:block;margin-bottom:6px">Occupation</label>
+        <input type="text" placeholder="e.g. Software Engineer" class="ex-input" />
+      </div>
+      <div class="ex-code">
+        <code>// Default</code><br>
+        <code class="hl">border bg-transparent rounded-lg px-3 py-2 text-sm</code><br>
+        <code>// Focus</code><br>
+        <code class="hl">focus-visible:border-clarity-amber/40 focus-visible:ring-clarity-amber/20</code><br>
+        <code>// Label</code><br>
+        <code class="hl">text-xs font-medium uppercase tracking-wide text-muted-foreground</code>
+      </div>
+    </div>
+
+    <!-- Section Labels -->
+    <div class="subsection"><h3>Section Labels</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Uppercase tracking for section headers. Count in normal-case tabular-nums.</p>
+      <div style="margin-bottom:8px">
+        <div class="ex-section-label">Context Items <span style="font-weight:400;text-transform:none;font-variant-numeric:tabular-nums">(3)</span></div>
+        <div class="ex-section-label" style="margin-top:8px">Routine Costs</div>
+      </div>
+      <div class="ex-code">
+        <code class="hl">text-xs font-medium uppercase tracking-wide text-muted-foreground</code>
+      </div>
+    </div>
+
+    <!-- Tap Target Expansion -->
+    <div class="subsection"><h3>Tap Target Expansion</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Small icon buttons use a before::pseudo to expand the tap area to 44px without affecting visual layout.</p>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+        <div style="position:relative;display:inline-flex;align-items:center;justify-content:center">
+          <button type="button" class="ex-icon-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+          <div class="ex-tap-overlay"></div>
+        </div>
+        <span style="font-size:12px;color:var(--muted-fg)">32px visual &rarr; 44px tap area via pseudo</span>
+      </div>
+      <div class="ex-code">
+        <code>// Visual: 32px circle</code><br>
+        <code class="hl">size-8 rounded-full</code><br>
+        <code>// Tap expansion: extends to 44px</code><br>
+        <code class="hl">relative before:absolute before:inset-[-6px] before:rounded-full</code><br>
+        <code>// Alt pattern (36px visual + 4px expansion)</code><br>
+        <code class="hl">size-9 before:absolute before:inset-[-4px]</code>
+      </div>
+    </div>
+
+    <!-- Cost Row Example -->
+    <div class="subsection"><h3>Cost Row (Full Example)</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Complete row pattern: category badge, label, amount (mono), delete button with tap expansion.</p>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:8px">
+        <div class="ex-cost-row">
+          <span class="ex-cat-badge housing">Housing</span>
+          <span style="flex:1;font-size:13px;font-weight:500;color:var(--fg)">Mortgage</span>
+          <span style="font-size:13px;font-family:'SF Mono','Fira Code',monospace;color:var(--fg);font-variant-numeric:tabular-nums">$2,100/mo</span>
+          <button type="button" class="ex-icon-btn sm"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+        </div>
+        <div class="ex-cost-row">
+          <span class="ex-cat-badge insurance">Insurance</span>
+          <span style="flex:1;font-size:13px;font-weight:500;color:var(--fg)">Health Insurance</span>
+          <span style="font-size:13px;font-family:'SF Mono','Fira Code',monospace;color:var(--fg);font-variant-numeric:tabular-nums">$450/mo</span>
+          <span style="font-size:11px;font-weight:500;color:var(--warning)">high</span>
+          <button type="button" class="ex-icon-btn sm"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+        </div>
+      </div>
+      <div class="ex-code">
+        <code>// Row container</code><br>
+        <code class="hl">flex min-h-[44px] items-center gap-3 rounded-lg border px-4 py-3</code><br>
+        <code>// Category badge (oklch-based per category)</code><br>
+        <code class="hl">bg-[oklch(0.55_0.15_250/0.12)] text-[oklch(0.55_0.15_250)]</code><br>
+        <code>// Amount (mono, tabular)</code><br>
+        <code class="hl">font-mono text-sm tabular-nums</code>
+      </div>
+    </div>
+
+    <!-- Add Form Pattern -->
+    <div class="subsection"><h3>Add Form (Dashed Border)</h3>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">New item forms use dashed amber border to signal "incomplete / being built".</p>
+      <div style="border:1px dashed var(--clarity-amber);border-radius:var(--radius-lg);padding:16px;opacity:0.5;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div style="height:36px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card)"></div>
+          <div style="height:36px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card)"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div style="height:32px;width:60px;border-radius:var(--radius-md);background:var(--clarity-amber);opacity:0.6"></div>
+          <div style="height:32px;width:60px;border-radius:var(--radius-md);border:1px solid var(--border)"></div>
+        </div>
+      </div>
+      <div class="ex-code">
+        <code class="hl">border border-dashed border-clarity-amber/20 rounded-lg p-4</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPONSIVE LAYOUT MOCKUPS -->
+  <div class="section" data-cat="mobile" id="sec-responsive">
+    <h2>Responsive Layout</h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>Tab bars are for compact-width (iPhone). Regular-width (iPad/Desktop) uses a sidebar (sidebarAdaptable). The breakpoint at 768px maps to the HIG compact/regular size class boundary. Always use h-dvh (dynamic viewport height), never h-screen.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:24px">Clarity uses a single <strong style="color:var(--fg)">md: (768px)</strong> breakpoint. Below it: bottom tab bar with 4 essential items. Above it: persistent sidebar with all 6 navigation items.</p>
+
+    <!-- Breakpoint Diagram -->
+    <div class="subsection"><h3>Breakpoint Map</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 5 &mdash; iPad</strong>
+        <p>The lg breakpoint (1024px) triggers sidebar &mdash; HIG sidebarAdaptable pattern. Portrait &lt; 1024px gets mobile layout. Stage Manager guard: no fixed full-screen assumptions, use max-w-* containers. Single breakpoint handles the split &mdash; no custom iPad-specific media queries.</p>
+      </div>
+      <div style="display:flex;gap:0;height:48px;margin-bottom:20px;position:relative;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border)">
+        <div style="flex:0 0 40%;background:oklch(0.577 0.245 27.325 / 8%);display:flex;align-items:center;justify-content:center;border-right:2px dashed var(--ann)">
+          <div style="text-align:center">
+            <div style="font-size:11px;font-weight:600;color:var(--fg)">Mobile</div>
+            <div style="font-size:10px;color:var(--muted-fg);font-family:monospace">&lt; 768px</div>
+          </div>
+        </div>
+        <div style="flex:0 0 30%;background:oklch(0.769 0.188 70.08 / 6%);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border)">
+          <div style="text-align:center">
+            <div style="font-size:11px;font-weight:600;color:var(--fg)">iPad</div>
+            <div style="font-size:10px;color:var(--muted-fg);font-family:monospace">768 &ndash; 1024px</div>
+          </div>
+        </div>
+        <div style="flex:1;background:var(--muted);display:flex;align-items:center;justify-content:center">
+          <div style="text-align:center">
+            <div style="font-size:11px;font-weight:600;color:var(--fg)">Desktop</div>
+            <div style="font-size:10px;color:var(--muted-fg);font-family:monospace">&gt; 1024px</div>
+          </div>
+        </div>
+      </div>
+      <div class="ex-code">
+        <code>// Tailwind breakpoint (single threshold)</code><br>
+        <code class="hl">md:hidden</code> <code>/* hide on &ge;768px (tab bar) */</code><br>
+        <code class="hl">hidden md:flex</code> <code>/* show on &ge;768px (sidebar) */</code><br>
+        <code>// Layout root</code><br>
+        <code class="hl">h-dvh</code> <code>/* NOT h-screen &mdash; iOS dynamic viewport */</code>
+      </div>
+    </div>
+
+    <!-- Device Mockups -->
+    <div class="subsection"><h3>Device Mockups</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 4 &mdash; Touch &amp; Scroll</strong>
+        <p>All interactive targets must be 44px minimum. Apply -webkit-tap-highlight-color: transparent and overscroll-behavior: none on html/body. Swipe gestures use touch-action: pan-y. Scrollable containers need -webkit-overflow-scrolling: touch.</p>
+      </div>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:20px">Live comparison: iPhone (compact width) vs iPad (regular width). Tab bar collapses to 4 essential items; sidebar shows all 6.</p>
+      <div class="device-row">
+        <!-- iPhone mockup -->
+        <div>
+          <div class="device iphone">
+            <div class="notch"></div>
+            <div class="screen" style="height:500px;display:flex;flex-direction:column">
+              <div class="mock-status-bar">
+                <span>9:41</span>
+                <span style="font-size:9px;letter-spacing:1px">&#9679;&#9679;&#9679;&#9679;</span>
+              </div>
+              <!-- Content area -->
+              <div style="flex:1;padding:12px;overflow:hidden">
+                <div class="mock-content-title">Today</div>
+                <div class="mock-card-mini">
+                  <div class="row">
+                    <div class="cb"></div>
+                    <div class="text-block"><div class="t"></div><div class="s"></div></div>
+                    <div class="badge-mini amber"></div>
+                  </div>
+                </div>
+                <div class="mock-card-mini">
+                  <div class="row">
+                    <div class="cb"></div>
+                    <div class="text-block"><div class="t" style="width:55%"></div><div class="s" style="width:30%"></div></div>
+                    <div class="badge-mini red"></div>
+                  </div>
+                </div>
+                <div class="mock-card-mini">
+                  <div class="row">
+                    <div class="cb"></div>
+                    <div class="text-block"><div class="t" style="width:80%"></div><div class="s" style="width:50%"></div></div>
+                  </div>
+                </div>
+                <div style="margin-top:12px">
+                  <div class="mock-content-line short"></div>
+                  <div class="mock-content-line med"></div>
+                  <div class="mock-content-line" style="width:45%"></div>
+                </div>
+              </div>
+              <!-- Tab bar with safe area -->
+              <div class="mock-tab-bar">
+                <div class="tab active"><div class="icon" style="background:var(--clarity-amber)"></div><div class="label" style="color:var(--clarity-amber)">Today</div></div>
+                <div class="tab"><div class="icon"></div><div class="label">Chat</div></div>
+                <div class="tab"><div class="icon"></div><div class="label">Routines</div></div>
+                <div class="tab"><div class="icon"></div><div class="label">Settings</div></div>
+              </div>
+              <div class="mock-safe-area"><span class="mock-safe-area-label">safe-area</span></div>
+            </div>
+            <div class="home-bar"></div>
+          </div>
+          <div class="device-label">iPhone (Compact)</div>
+          <div class="device-sublabel">375 &times; 812pt &mdash; 4 tabs</div>
+        </div>
+
+        <!-- iPad mockup -->
+        <div>
+          <div class="device ipad">
+            <div class="screen" style="height:400px;display:flex">
+              <!-- Sidebar -->
+              <div class="mock-sidebar">
+                <div class="logo"><div class="logo-icon"></div><div class="logo-text">Clarity</div></div>
+                <div class="mock-nav-item active"><div class="dot"></div>Today</div>
+                <div class="mock-nav-item"><div class="dot"></div>Chat</div>
+                <div class="mock-nav-item"><div class="dot"></div>Routines</div>
+                <div class="mock-nav-item"><div class="dot"></div>Life Context</div>
+                <div class="mock-nav-item"><div class="dot"></div>Profile</div>
+                <div class="mock-nav-item"><div class="dot"></div>Settings</div>
+                <div style="flex:1"></div>
+                <div style="font-size:9px;color:var(--muted-fg);padding:4px 8px;font-family:monospace">v0.1.0</div>
+              </div>
+              <!-- Content -->
+              <div class="mock-content">
+                <div class="mock-content-title">Today</div>
+                <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px">
+                  <div>
+                    <div class="mock-card-mini">
+                      <div class="row">
+                        <div class="cb"></div>
+                        <div class="text-block"><div class="t"></div><div class="s"></div></div>
+                        <div class="badge-mini amber"></div>
+                      </div>
+                    </div>
+                    <div class="mock-card-mini">
+                      <div class="row">
+                        <div class="cb"></div>
+                        <div class="text-block"><div class="t" style="width:60%"></div><div class="s" style="width:35%"></div></div>
+                        <div class="badge-mini red"></div>
+                      </div>
+                    </div>
+                    <div class="mock-card-mini">
+                      <div class="row">
+                        <div class="cb"></div>
+                        <div class="text-block"><div class="t" style="width:75%"></div><div class="s" style="width:45%"></div></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;font-weight:600;color:var(--fg);margin-bottom:6px">Events</div>
+                    <div class="mock-content-line short"></div>
+                    <div class="mock-content-line med"></div>
+                    <div class="mock-content-line" style="width:50%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="home-bar"></div>
+          </div>
+          <div class="device-label">iPad (Regular)</div>
+          <div class="device-sublabel">1024 &times; 768pt &mdash; Sidebar + 6 items</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Anatomy -->
+    <div class="subsection"><h3>Navigation Anatomy</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 4 &mdash; Tab Bar Rules</strong>
+        <p>Tab label minimum 11px (0.6875rem) &mdash; use --tab-bar-label-size token. Max 4 primary tabs; overflow to More sheet. Active indicator parent must have position: relative. Never combine fixed height + padding-bottom: env(...) on the same element &mdash; use min-height instead.</p>
+      </div>
+      <div class="hig-rule">
+        <strong>HIG Phase 6 &mdash; Desktop</strong>
+        <p>Sidebar always visible, width driven by --sidebar-width token. Hover states on all interactive elements (pointer device). Focus rings visible everywhere (--ring token). Keyboard navigation: logical Tab order, all actions reachable. Window resize: no layout breaks at any width above lg.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <!-- Mobile Tab Bar -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--fg);margin-bottom:8px">Mobile Tab Bar</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-around;padding:8px 0 4px;position:relative">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;padding:4px 0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--clarity-amber)"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span style="font-size:11px;font-weight:600;color:var(--clarity-amber)">Today</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;padding:4px 0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted-fg)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span style="font-size:11px;font-weight:500;color:var(--muted-fg)">Chat</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;padding:4px 0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted-fg)"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                <span style="font-size:11px;font-weight:500;color:var(--muted-fg)">Routines</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;padding:4px 0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted-fg)"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span style="font-size:11px;font-weight:500;color:var(--muted-fg)">Settings</span>
+              </div>
+            </div>
+            <div class="mock-safe-area"><span class="mock-safe-area-label">env(safe-area-inset-bottom)</span></div>
+          </div>
+          <div class="ex-code" style="margin-top:8px">
+            <code>// Container</code><br>
+            <code class="hl">fixed bottom-0 inset-x-0 z-50 h-14</code><br>
+            <code class="hl">border-t bg-background pb-safe</code><br>
+            <code>// Each tab item</code><br>
+            <code class="hl">min-w-[56px] h-5 w-5</code> <code>(icon 20px)</code><br>
+            <code class="hl">text-[11px] font-medium</code> <code>(label)</code><br>
+            <code>// Active state</code><br>
+            <code class="hl">text-clarity-amber</code>
+          </div>
+        </div>
+        <!-- Desktop Sidebar -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--fg);margin-bottom:8px">Desktop Sidebar</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;padding:12px">
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 8px;margin-bottom:8px">
+              <div style="width:28px;height:28px;border-radius:6px;background:var(--clarity-amber)"></div>
+              <span style="font-size:13px;font-weight:600;color:var(--fg)">Clarity</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;background:var(--clarity-amber-muted);color:var(--clarity-amber)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Today
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted-fg)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Chat
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted-fg)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                Routines
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted-fg)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Life Context
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted-fg)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted-fg)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                Settings
+              </div>
+            </div>
+          </div>
+          <div class="ex-code" style="margin-top:8px">
+            <code>// Container</code><br>
+            <code class="hl">hidden md:flex w-56 flex-col border-r</code><br>
+            <code class="hl">px-3 py-4</code><br>
+            <code>// Nav item</code><br>
+            <code class="hl">h-4 w-4</code> <code>(icon 16px)</code><br>
+            <code class="hl">text-[13px] font-medium gap-2.5</code><br>
+            <code>// Active state</code><br>
+            <code class="hl">bg-clarity-amber/15 text-clarity-amber</code><br>
+            <code class="hl">rounded-md</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key differences table -->
+    <div class="subsection"><h3>Mobile vs Desktop Comparison</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 7 &mdash; Web Standards</strong>
+        <p>GPU-accelerated animations only: transform and opacity (never top/left/width). Respect prefers-reduced-motion. APCA contrast checked (stricter than WCAG AA and satisfies it). Loading states for all async actions. Destructive actions require confirmation.</p>
+      </div>
+      <table class="asset-table">
+        <thead><tr><th>Property</th><th>Mobile (Tab Bar)</th><th>Desktop (Sidebar)</th></tr></thead>
+        <tbody>
+          <tr><td>Navigation items</td><td>4 (Today, Chat, Routines, Settings)</td><td>6 (+ Life Context, Profile)</td></tr>
+          <tr><td>Icon size</td><td class="mono">20 &times; 20px (h-5 w-5)</td><td class="mono">16 &times; 16px (h-4 w-4)</td></tr>
+          <tr><td>Label size</td><td class="mono">11px / font-medium</td><td class="mono">13px / font-medium</td></tr>
+          <tr><td>Bar height</td><td class="mono">56px (h-14) + safe-area</td><td class="mono">100vh (full height)</td></tr>
+          <tr><td>Width</td><td class="mono">100vw (full width)</td><td class="mono">224px (w-56)</td></tr>
+          <tr><td>Position</td><td class="mono">fixed bottom-0 z-50</td><td class="mono">flex (static in row)</td></tr>
+          <tr><td>Active state</td><td>Amber icon + label</td><td>Amber bg/15 + amber text</td></tr>
+          <tr><td>Content padding</td><td class="mono">pb-safe-nav</td><td class="mono">pb-6</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CSS Baseline -->
+    <div class="subsection"><h3>CSS Baseline (globals.css)</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 3 &mdash; Token Master Control</strong>
+        <p>No magic numbers inline &mdash; all sizing must trace to a CSS token. The 10 primitives (--space-unit, --radius-base, --tab-bar-height, --sidebar-width, etc.) are the only hardcoded values. Audit: grep for hardcoded px values in components. Zero results = passing.</p>
+      </div>
+      <div class="ex-code">
+        <code>// Required in globals.css &mdash; Phase 4 baseline</code><br>
+        <code class="hl">html, body {</code><br>
+        <code class="hl">&nbsp; overscroll-behavior: none;</code><br>
+        <code class="hl">&nbsp; -webkit-tap-highlight-color: transparent;</code><br>
+        <code class="hl">}</code><br><br>
+        <code class="hl">@media (display-mode: standalone) {</code><br>
+        <code class="hl">&nbsp; /* installed PWA specific styles */</code><br>
+        <code class="hl">}</code><br><br>
+        <code>// Content area bottom padding</code><br>
+        <code class="hl">pb-safe-nav = calc(3.5rem + env(safe-area-inset-bottom, 20px))</code><br>
+        <code>// 56px tab bar + dynamic safe area for notched devices</code>
+      </div>
+    </div>
+
+    <!-- Common Mistakes -->
+    <div class="subsection"><h3>Common HIG Mistakes</h3>
+      <table class="asset-table">
+        <thead><tr><th>Mistake</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Fixed <span class="mono">height</span> + <span class="mono">padding-bottom: env(...)</span> on same element</td><td>Remove fixed height, use <span class="mono">min-height</span></td></tr>
+          <tr><td>Tab label at 10px</td><td>HIG minimum 11px &mdash; use <span class="mono">0.6875rem</span></td></tr>
+          <tr><td>Hardcoded px values in components</td><td>All sizing must trace to a CSS token (Phase 3 audit)</td></tr>
+          <tr><td>Using <span class="mono">h-screen</span></td><td>Use <span class="mono">h-dvh</span> &mdash; iOS dynamic viewport height</td></tr>
+          <tr><td>Animating <span class="mono">top/left/width</span></td><td>GPU-only: <span class="mono">transform</span> and <span class="mono">opacity</span></td></tr>
+          <tr><td>Missing <span class="mono">viewport-fit=cover</span></td><td>Required for <span class="mono">env(safe-area-inset-*)</span> to work</td></tr>
+          <tr><td>WCAG AA only for contrast</td><td>Use APCA &mdash; stricter, perceptually accurate, satisfies WCAG AA</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PWA ASSETS & ICON SIZES -->
+  <div class="section" data-cat="mobile" id="sec-pwa-assets">
+    <h2>PWA Assets &amp; Icon Sizes</h2>
+    <div class="hig-rule">
+      <strong>Apple HIG</strong>
+      <p>App icons must use maskable safe zone (center 80%). Provide both "any" and "maskable" purpose icons. Apple requires 180px touch icon and splash screens per device. Use display: standalone with display_override for progressive enhancement.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:24px">All assets live in <strong style="color:var(--fg)">public/pwa/</strong>. Generated with <code style="font-size:12px;font-family:monospace;background:var(--muted);padding:1px 6px;border-radius:4px">pwa-asset-generator</code>. Sunrise icon centered in maskable safe zone.</p>
+
+    <!-- Manifest Icons -->
+    <div class="subsection"><h3>Manifest Icons (Required)</h3>
+      <div class="hig-rule">
+        <strong>HIG &mdash; App Icon Design</strong>
+        <p>App icons should be simple, recognizable at small sizes, and use a single focal point. Avoid text in icons &mdash; it doesn't scale. Both 192px and 512px must declare purpose "any maskable" for cross-platform compatibility. Logo/brand mark must be consistent: same asset in favicon, PWA icon, and in-app header.</p>
+      </div>
+      <table class="asset-table">
+        <thead><tr><th>File</th><th>Size</th><th>Purpose</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">manifest-icon-192.maskable.png</td>
+            <td>
+              <div class="size-block" style="width:32px;height:32px">192</div>
+            </td>
+            <td>any, maskable</td>
+            <td>Android home screen, sidebar logo</td>
+          </tr>
+          <tr>
+            <td class="mono">manifest-icon-512.maskable.png</td>
+            <td>
+              <div class="size-block" style="width:48px;height:48px">512</div>
+            </td>
+            <td>any, maskable</td>
+            <td>Android splash, PWA install prompt</td>
+          </tr>
+          <tr>
+            <td class="mono">apple-icon-180.png</td>
+            <td>
+              <div class="size-block" style="width:28px;height:28px">180</div>
+            </td>
+            <td>Apple touch icon</td>
+            <td>iOS home screen, Safari favorites</td>
+          </tr>
+          <tr>
+            <td class="mono">favicon-196.png</td>
+            <td>
+              <div class="size-block" style="width:30px;height:30px">196</div>
+            </td>
+            <td>Favicon</td>
+            <td>Browser tab, bookmark bar</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Maskable Safe Zone -->
+    <div class="subsection"><h3>Maskable Safe Zone</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 8 &mdash; Asset Generation</strong>
+        <p>Use npx pwa-asset-generator to create all icon and splash variants from a single source logo. The tool auto-updates manifest.json icon declarations and injects link tags into layout.tsx. Always verify the safe zone visually after generation &mdash; the inner 80% circle must contain the entire logo mark.</p>
+      </div>
+      <p style="font-size:12px;color:var(--muted-fg);margin-bottom:12px">Maskable icons are cropped to different shapes per OS. The inner 80% circle is guaranteed visible. Keep the sunrise icon inside.</p>
+      <div style="display:flex;gap:24px;align-items:center;justify-content:center;margin-bottom:12px">
+        <div style="position:relative;width:120px;height:120px">
+          <div style="width:120px;height:120px;background:var(--clarity-amber);border-radius:24px;display:flex;align-items:center;justify-content:center">
+            <div style="width:96px;height:96px;border:2px dashed var(--ann);border-radius:50%;display:flex;align-items:center;justify-content:center">
+              <span style="font-size:36px">&#x1F305;</span>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:6px;font-size:10px;color:var(--muted-fg);font-family:monospace">Android (rounded)</div>
+        </div>
+        <div style="position:relative;width:120px;height:120px">
+          <div style="width:120px;height:120px;background:var(--clarity-amber);border-radius:28%;display:flex;align-items:center;justify-content:center">
+            <div style="width:96px;height:96px;border:2px dashed var(--ann);border-radius:50%;display:flex;align-items:center;justify-content:center">
+              <span style="font-size:36px">&#x1F305;</span>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:6px;font-size:10px;color:var(--muted-fg);font-family:monospace">iOS (squircle)</div>
+        </div>
+        <div style="position:relative;width:120px;height:120px">
+          <div style="width:120px;height:120px;background:var(--clarity-amber);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <div style="width:96px;height:96px;border:2px dashed var(--ann);border-radius:50%;display:flex;align-items:center;justify-content:center">
+              <span style="font-size:36px">&#x1F305;</span>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:6px;font-size:10px;color:var(--muted-fg);font-family:monospace">Circle crop</div>
+        </div>
+      </div>
+      <div class="ex-code">
+        <code>// manifest.json icon entry</code><br>
+        <code class="hl">{ "src": "/pwa/manifest-icon-512.maskable.png",</code><br>
+        <code class="hl">&nbsp; "sizes": "512x512",</code><br>
+        <code class="hl">&nbsp; "type": "image/png",</code><br>
+        <code class="hl">&nbsp; "purpose": "any maskable" }</code><br>
+        <code>// Safe zone = center 80% = inner circle</code>
+      </div>
+    </div>
+
+    <!-- Apple Splash Screens -->
+    <div class="subsection"><h3>Apple Splash Screens</h3>
+      <div class="hig-rule">
+        <strong>Apple HIG</strong>
+        <p>Apple requires device-specific splash images for Add to Home Screen. Each must match exact device pixel dimensions at 2x/3x. Missing sizes show a white flash on launch.</p>
+      </div>
+      <table class="asset-table">
+        <thead><tr><th>Device</th><th>Portrait</th><th>Landscape</th><th>Scale</th></tr></thead>
+        <tbody>
+          <tr><td>iPhone 16 Pro Max</td><td class="mono">1320 &times; 2868</td><td class="mono">2868 &times; 1320</td><td class="mono">3x</td></tr>
+          <tr><td>iPhone 16 Pro</td><td class="mono">1206 &times; 2622</td><td class="mono">2622 &times; 1206</td><td class="mono">3x</td></tr>
+          <tr><td>iPhone 16 / 15 / 14</td><td class="mono">1170 &times; 2532</td><td class="mono">2532 &times; 1170</td><td class="mono">3x</td></tr>
+          <tr><td>iPhone SE (3rd gen)</td><td class="mono">750 &times; 1334</td><td class="mono">1334 &times; 750</td><td class="mono">2x</td></tr>
+          <tr><td>iPad Pro 12.9"</td><td class="mono">2048 &times; 2732</td><td class="mono">2732 &times; 2048</td><td class="mono">2x</td></tr>
+          <tr><td>iPad Pro 11"</td><td class="mono">1668 &times; 2388</td><td class="mono">2388 &times; 1668</td><td class="mono">2x</td></tr>
+          <tr><td>iPad Air / 10th gen</td><td class="mono">1640 &times; 2360</td><td class="mono">2360 &times; 1640</td><td class="mono">2x</td></tr>
+          <tr><td>iPad mini 6</td><td class="mono">1488 &times; 2266</td><td class="mono">2266 &times; 1488</td><td class="mono">2x</td></tr>
+        </tbody>
+      </table>
+      <div class="ex-code" style="margin-top:8px">
+        <code>// Splash link tag pattern (in layout.tsx &lt;head&gt;)</code><br>
+        <code class="hl">&lt;link rel="apple-touch-startup-image"</code><br>
+        <code class="hl">&nbsp; href="/pwa/apple-splash-1170-2532.png"</code><br>
+        <code class="hl">&nbsp; media="(device-width: 390px) and (device-height: 844px)</code><br>
+        <code class="hl">&nbsp;&nbsp;&nbsp;and (-webkit-device-pixel-ratio: 3)</code><br>
+        <code class="hl">&nbsp;&nbsp;&nbsp;and (orientation: portrait)" /&gt;</code>
+      </div>
+    </div>
+
+    <!-- Meta Tags -->
+    <div class="subsection"><h3>Required Meta Tags</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 4 &mdash; PWA Manifest Checklist</strong>
+        <p>Required: apple-mobile-web-app-capable + mobile-web-app-capable meta tags. Status bar style must be "black-translucent" for edge-to-edge content under the notch. Viewport must include viewport-fit=cover to enable safe-area-inset-* env() values. Missing any of these breaks the standalone PWA experience.</p>
+      </div>
+      <div class="ex-code">
+        <code>// PWA capability (layout.tsx &lt;head&gt;)</code><br>
+        <code class="hl">&lt;meta name="apple-mobile-web-app-capable" content="yes" /&gt;</code><br>
+        <code class="hl">&lt;meta name="mobile-web-app-capable" content="yes" /&gt;</code><br>
+        <code class="hl">&lt;meta name="apple-mobile-web-app-status-bar-style"</code><br>
+        <code class="hl">&nbsp; content="black-translucent" /&gt;</code><br>
+        <code>// Viewport (critical for safe areas)</code><br>
+        <code class="hl">&lt;meta name="viewport" content="width=device-width,</code><br>
+        <code class="hl">&nbsp; initial-scale=1, viewport-fit=cover" /&gt;</code><br>
+        <code>// Theme color (matches manifest)</code><br>
+        <code class="hl">&lt;meta name="theme-color" content="#f59e0b" /&gt;</code>
+      </div>
+    </div>
+
+    <!-- Manifest Config -->
+    <div class="subsection"><h3>Manifest Configuration</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 4 &mdash; Manifest Requirements</strong>
+        <p>Manifest must include id and scope fields. Use display_override: ["standalone"] for progressive enhancement (falls back to display: standalone). short_name must be 12 characters or fewer &mdash; truncated on home screens otherwise. background_color must match your app's actual background to prevent flash on launch.</p>
+      </div>
+      <table class="asset-table">
+        <thead><tr><th>Property</th><th>Value</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>name</td><td class="mono">Clarity</td><td>Full name on install prompt</td></tr>
+          <tr><td>short_name</td><td class="mono">Clarity</td><td>Home screen label (max 12 chars)</td></tr>
+          <tr><td>display</td><td class="mono">standalone</td><td>Fullscreen, no browser chrome</td></tr>
+          <tr><td>display_override</td><td class="mono">["standalone", "minimal-ui"]</td><td>Progressive enhancement</td></tr>
+          <tr><td>orientation</td><td class="mono">portrait</td><td>Phone-first</td></tr>
+          <tr><td>background_color</td><td><span class="mono">#0f172a</span> <span style="display:inline-block;width:12px;height:12px;background:#0f172a;border-radius:2px;vertical-align:middle;border:1px solid var(--border)"></span></td><td>Splash background (dark navy)</td></tr>
+          <tr><td>theme_color</td><td><span class="mono">#f59e0b</span> <span style="display:inline-block;width:12px;height:12px;background:#f59e0b;border-radius:2px;vertical-align:middle"></span></td><td>Status bar tint (amber)</td></tr>
+          <tr><td>scope</td><td class="mono">/</td><td>App boundary</td></tr>
+          <tr><td>start_url</td><td class="mono">/</td><td>Launch URL</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- File Tree -->
+    <div class="subsection"><h3>Asset File Tree</h3>
+      <div class="hig-rule">
+        <strong>HIG Phase 9 &mdash; Design Consistency</strong>
+        <p>Logo/brand mark must be the same asset across favicon, PWA icon, and in-app sidebar. Icon sizes must be consistent per context (sidebar 28px logo, tab bar 20px nav icons, sidebar 16px nav icons). All PWA assets regenerated from a single source when the logo changes.</p>
+      </div>
+      <div class="ex-code">
+        <code>public/pwa/</code><br>
+        <code class="hl">&nbsp; manifest-icon-192.maskable.png</code> <code># 192x192 maskable</code><br>
+        <code class="hl">&nbsp; manifest-icon-512.maskable.png</code> <code># 512x512 maskable</code><br>
+        <code class="hl">&nbsp; apple-icon-180.png</code> <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 180x180 touch icon</code><br>
+        <code class="hl">&nbsp; favicon-196.png</code> <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 196x196 favicon</code><br>
+        <code class="hl">&nbsp; apple-splash-*.png</code> <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 28 splash screens</code><br>
+        <code>public/</code><br>
+        <code class="hl">&nbsp; manifest.json</code> <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# PWA manifest</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- MORE DRAWER / BOTTOM SHEET PATTERN -->
+  <div class="section" data-cat="mobile components" id="sec-more-drawer">
+    <h2>More Drawer <span class="badge">cross-project pattern</span></h2>
+    <div class="pattern-ref"><span class="dot"></span>~/.claude/docs/patterns/more-drawer-sheet.md</div>
+    <div class="hig-rule">
+      <strong>HIG Phase 4 &mdash; Tab Bar Overflow</strong>
+      <p>Maximum 4 primary tabs in the bottom bar. Additional items overflow into a "More" bottom sheet. The More button inherits active state when any overflow route is active. Sheet slides from bottom with rounded top corners, backdrop overlay, and safe area padding. Each grid item must meet 44px minimum touch target.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted-fg);margin-bottom:16px">When mobile navigation exceeds 4 primary items, the extra routes move into a bottom sheet triggered by a "More" tab. This pattern is proven in <strong style="color:var(--fg)">WP Dispatch</strong> and reusable across all JB Cloud projects. For Clarity, the overflow items are <strong style="color:var(--fg)">Life Context</strong> and <strong style="color:var(--fg)">Profile</strong>.</p>
+
+    <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;justify-content:center;margin-bottom:24px">
+      <!-- Closed state -->
+      <div>
+        <div class="drawer-demo-wrap" style="height:auto">
+          <div style="padding:24px 16px 0">
+            <div class="mock-content-title">Today</div>
+            <div class="mock-card-mini"><div class="row"><div class="cb"></div><div class="text-block"><div class="t"></div><div class="s"></div></div></div></div>
+            <div class="mock-card-mini"><div class="row"><div class="cb"></div><div class="text-block"><div class="t"></div><div class="s"></div></div></div></div>
+          </div>
+          <div style="flex:1;min-height:60px"></div>
+          <div class="mock-tab-bar" style="border-radius:0">
+            <div class="tab active"><div class="icon"></div><div class="label">Today</div></div>
+            <div class="tab"><div class="icon"></div><div class="label">Chat</div></div>
+            <div class="tab"><div class="icon"></div><div class="label">Routines</div></div>
+            <div class="tab"><div class="icon"></div><div class="label">Settings</div></div>
+            <div class="tab" style="position:relative">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              <div class="label">More</div>
+            </div>
+          </div>
+        </div>
+        <div class="device-label">Closed State</div>
+        <div class="device-sublabel">5th tab = More trigger</div>
+      </div>
+
+      <!-- Open state -->
+      <div>
+        <div class="drawer-demo-wrap" style="height:480px;display:flex;flex-direction:column">
+          <div style="padding:24px 16px 0;flex:1;min-height:0">
+            <div class="mock-content-title" style="opacity:0.3">Today</div>
+          </div>
+          <div class="drawer-overlay"></div>
+          <div class="drawer-sheet">
+            <div class="drawer-handle"></div>
+            <div class="drawer-header">
+              <span class="drawer-title">More</span>
+              <button class="drawer-close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="drawer-grid">
+              <div class="drawer-item active">
+                <div class="di-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <span class="di-label">Life Context</span>
+              </div>
+              <div class="drawer-item">
+                <div class="di-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <span class="di-label">Profile</span>
+              </div>
+            </div>
+            <div class="drawer-footer">
+              <span>Theme</span>
+              <div style="display:flex;gap:4px">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--fg);border:2px solid var(--border)"></div>
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--muted);border:2px solid var(--border)"></div>
+              </div>
+            </div>
+            <div class="drawer-safe">
+              <div class="drawer-safe-label">env(safe-area-inset-bottom)</div>
+            </div>
+          </div>
+        </div>
+        <div class="device-label">Open State</div>
+        <div class="device-sublabel">Bottom sheet with 3-col grid</div>
+      </div>
+    </div>
+
+    <!-- Spec table -->
+    <div class="subsection"><h3>Implementation Spec</h3>
+      <table class="asset-table">
+        <thead><tr><th>Property</th><th>Value</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Component</td><td class="mono">shadcn Sheet (Radix Dialog)</td><td>side="bottom"</td></tr>
+          <tr><td>Border radius</td><td class="mono">rounded-t-xl</td><td>Top corners only (12px)</td></tr>
+          <tr><td>Overlay</td><td class="mono">bg-black/50</td><td>Semi-transparent backdrop</td></tr>
+          <tr><td>Grid layout</td><td class="mono">grid grid-cols-3 gap-2</td><td>3 columns, 8px gap</td></tr>
+          <tr><td>Grid item padding</td><td class="mono">p-3</td><td>12px all sides</td></tr>
+          <tr><td>Grid item icon</td><td class="mono">h-6 w-6</td><td>24px (Lucide)</td></tr>
+          <tr><td>Grid item label</td><td class="mono">text-xs</td><td>12px</td></tr>
+          <tr><td>Active state</td><td class="mono">bg-primary/10 text-primary</td><td>Adapt: bg-clarity-amber/15 text-clarity-amber</td></tr>
+          <tr><td>Hover state</td><td class="mono">hover:bg-muted hover:text-foreground</td><td>Subtle lift</td></tr>
+          <tr><td>Safe area</td><td class="mono">pb-[env(safe-area-inset-bottom)]</td><td>On nav container</td></tr>
+          <tr><td>Close behavior</td><td class="mono">onClick={() => setOpen(false)}</td><td>Each link closes sheet</td></tr>
+          <tr><td>More button highlight</td><td>Active when any overflow route matches</td><td>isMoreActive() helper</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Code snippet -->
+    <div class="subsection"><h3>Code Pattern</h3>
+      <div class="source-file"><span class="dot" style="background:#38bdf8"></span>bottom-nav.tsx (simplified)</div>
+      <div class="css-source"><pre><span class="cm">// Primary tabs = max 4 items in bottom bar</span>
+<span class="sel">const</span> <span class="pr">primaryTabs</span> = [
+  { href: <span class="vl">"/today"</span>, label: <span class="vl">"Today"</span>, icon: CalendarDays },
+  { href: <span class="vl">"/chat"</span>,  label: <span class="vl">"Chat"</span>,  icon: MessageCircle },
+  { href: <span class="vl">"/routines"</span>, label: <span class="vl">"Routines"</span>, icon: ListChecks },
+  { href: <span class="vl">"/settings"</span>, label: <span class="vl">"Settings"</span>, icon: Settings },
+];
+
+<span class="cm">// Overflow items go in More sheet</span>
+<span class="sel">const</span> <span class="pr">moreItems</span> = [
+  { href: <span class="vl">"/life-context"</span>, label: <span class="vl">"Life Context"</span>, icon: MapPin },
+  { href: <span class="vl">"/profile"</span>, label: <span class="vl">"Profile"</span>, icon: User },
+];
+
+<span class="cm">// More tab inherits active state</span>
+<span class="sel">function</span> <span class="fn">isMoreActive</span>(<span class="pr">pathname</span>: string) {
+  <span class="sel">return</span> moreItems.<span class="fn">some</span>(
+    (item) => pathname === item.href
+           || pathname.<span class="fn">startsWith</span>(item.href + <span class="vl">"/"</span>)
+  );
+}
+
+<span class="cm">// Sheet component</span>
+&lt;<span class="fn">Sheet</span> open={open} onOpenChange={setOpen}&gt;
+  &lt;<span class="fn">SheetTrigger</span> asChild&gt;
+    &lt;button className={<span class="fn">cn</span>(<span class="vl">"..."</span>,
+      moreActive ? <span class="vl">"text-clarity-amber"</span>
+                 : <span class="vl">"text-muted-foreground"</span>
+    )}&gt;
+      &lt;MoreHorizontal /&gt; More
+    &lt;/button&gt;
+  &lt;/<span class="fn">SheetTrigger</span>&gt;
+  &lt;<span class="fn">SheetContent</span> side=<span class="vl">"bottom"</span> className=<span class="vl">"rounded-t-xl"</span>&gt;
+    &lt;nav className=<span class="vl">"grid grid-cols-3 gap-2"</span>&gt;
+      {moreItems.map((item) =&gt; (
+        &lt;Link onClick={() =&gt; setOpen(false)}
+          className={<span class="fn">cn</span>(<span class="vl">"..."</span>,
+            isActive ? <span class="vl">"bg-clarity-amber/15 text-clarity-amber"</span>
+                     : <span class="vl">"hover:bg-muted"</span>
+          )}&gt;
+          &lt;item.icon className=<span class="vl">"h-6 w-6"</span> /&gt;
+          &lt;span className=<span class="vl">"text-xs"</span>&gt;{item.label}&lt;/span&gt;
+        &lt;/Link&gt;
+      ))}
+    &lt;/nav&gt;
+  &lt;/<span class="fn">SheetContent</span>&gt;
+&lt;/<span class="fn">Sheet</span>&gt;</pre></div>
+    </div>
+
+    <div class="hig-rule">
+      <strong>HIG &mdash; Adaptability</strong>
+      <p>On iPad/Desktop (768px+), the sidebar shows ALL items — no More drawer needed. The More pattern only appears at mobile breakpoints where space is constrained. Use <span style="font-family:monospace;font-size:11px">md:hidden</span> on the bottom nav and <span style="font-family:monospace;font-size:11px">hidden md:flex</span> on the sidebar to switch between patterns at the breakpoint.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar TOC -->
+<div class="toc" id="toc">
+  <div class="toc-inner">
+    <div class="toc-title">Sections</div>
+    <div id="tocLinks"></div>
+  </div>
+</div>
+
+<!-- Back to top -->
+<button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 12V4"/><path d="M4 7l4-4 4 4"/></svg>
+</button>
+
+<script>
+  var SPACING = [
+    [4, "1", "Inline icon gap, badge padding-y"],
+    [8, "2", "Between related elements, small gaps"],
+    [12, "3", "Checkbox-to-text gap, nav item padding-x"],
+    [16, "4", "Container padding (rows), section gaps"],
+    [24, "6", "Card padding (p-6), major section gaps"],
+    [32, "8", "Between card groups, large spacing"],
+    [48, "12", "Page-level section separators"],
+    [64, "16", "Page margins, major layout gaps"]
+  ];
+
+  var list = document.getElementById("spacingList");
+  SPACING.forEach(function(s) {
+    var row = document.createElement("div");
+    row.className = "spacing-row";
+
+    var label = document.createElement("div");
+    label.className = "spacing-label";
+    label.textContent = s[0] + "px";
+
+    var tw = document.createElement("div");
+    tw.className = "spacing-tw";
+    tw.textContent = s[1];
+
+    var block = document.createElement("div");
+    block.className = "spacing-block";
+    block.style.width = s[0] + "px";
+
+    var note = document.createElement("div");
+    note.className = "spacing-note";
+    note.textContent = s[2];
+
+    row.appendChild(label);
+    row.appendChild(tw);
+    row.appendChild(block);
+    row.appendChild(note);
+    list.appendChild(row);
+  });
+
+  function toggleDark() {
+    document.documentElement.classList.toggle("dark");
+    document.getElementById("darkToggle").classList.toggle("on");
+  }
+
+  var showAnn = true;
+  function toggleAnnotations() {
+    showAnn = !showAnn;
+    var els = document.querySelectorAll(".annotations");
+    for (var i = 0; i < els.length; i++) {
+      if (showAnn) { els[i].classList.remove("hidden"); }
+      else { els[i].classList.add("hidden"); }
+    }
+    document.getElementById("annLabel").textContent = showAnn ? "Hide Annotations" : "Show Annotations";
+  }
+
+  // Category filter
+  var activeFilter = "all";
+  function filterSections(cat) {
+    activeFilter = cat;
+    var sections = document.querySelectorAll(".section[data-cat]");
+    var chips = document.querySelectorAll(".filter-chip");
+
+    for (var c = 0; c < chips.length; c++) {
+      if (chips[c].getAttribute("data-filter") === cat) {
+        chips[c].classList.add("active");
+      } else {
+        chips[c].classList.remove("active");
+      }
+    }
+
+    if (cat === "all" || cat === "hig") {
+      for (var i = 0; i < sections.length; i++) {
+        sections[i].classList.remove("cat-hidden");
+      }
+      if (cat === "hig") {
+        var rules = document.querySelectorAll(".hig-rule");
+        for (var r = 0; r < rules.length; r++) {
+          rules[r].style.transition = "box-shadow 0.3s";
+          rules[r].style.boxShadow = "0 0 0 2px #059669";
+        }
+        setTimeout(function() {
+          for (var r = 0; r < rules.length; r++) {
+            rules[r].style.boxShadow = "none";
+          }
+        }, 2000);
+      }
+    } else {
+      for (var i = 0; i < sections.length; i++) {
+        var cats = sections[i].getAttribute("data-cat").split(" ");
+        if (cats.indexOf(cat) !== -1) {
+          sections[i].classList.remove("cat-hidden");
+        } else {
+          sections[i].classList.add("cat-hidden");
+        }
+      }
+    }
+
+    buildTOC();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── Sidebar TOC ──────────────────────────────────
+  function getVisibleSections() {
+    var all = document.querySelectorAll(".section[data-cat][id]");
+    var visible = [];
+    for (var i = 0; i < all.length; i++) {
+      if (!all[i].classList.contains("cat-hidden")) {
+        var h2 = all[i].querySelector("h2");
+        if (h2) {
+          // Strip badge text from the label
+          var clone = h2.cloneNode(true);
+          var badge = clone.querySelector(".badge");
+          if (badge) badge.remove();
+          visible.push({ id: all[i].id, label: clone.textContent.trim() });
+        }
+      }
+    }
+    return visible;
+  }
+
+  function buildTOC() {
+    var container = document.getElementById("tocLinks");
+    container.innerHTML = "";
+    var sections = getVisibleSections();
+    for (var i = 0; i < sections.length; i++) {
+      var a = document.createElement("a");
+      a.className = "toc-link";
+      a.textContent = sections[i].label;
+      a.setAttribute("data-target", sections[i].id);
+      a.href = "#" + sections[i].id;
+      a.onclick = function(e) {
+        e.preventDefault();
+        var target = document.getElementById(this.getAttribute("data-target"));
+        if (target) {
+          var top = target.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top: top, behavior: "smooth" });
+        }
+      };
+      container.appendChild(a);
+    }
+    updateScrollSpy();
+  }
+
+  // Scroll spy — highlight current section in TOC
+  var spyRAF = null;
+  function updateScrollSpy() {
+    var links = document.querySelectorAll("#tocLinks .toc-link");
+    if (!links.length) return;
+
+    var scrollY = window.scrollY + 140;
+    var currentId = null;
+
+    var sections = getVisibleSections();
+    for (var i = sections.length - 1; i >= 0; i--) {
+      var el = document.getElementById(sections[i].id);
+      if (el && el.offsetTop <= scrollY) {
+        currentId = sections[i].id;
+        break;
+      }
+    }
+    // Default to first if none matched
+    if (!currentId && sections.length) currentId = sections[0].id;
+
+    for (var j = 0; j < links.length; j++) {
+      if (links[j].getAttribute("data-target") === currentId) {
+        links[j].classList.add("active");
+      } else {
+        links[j].classList.remove("active");
+      }
+    }
+  }
+
+  window.addEventListener("scroll", function() {
+    if (spyRAF) cancelAnimationFrame(spyRAF);
+    spyRAF = requestAnimationFrame(function() {
+      updateScrollSpy();
+      // Back-to-top visibility
+      var btt = document.getElementById("btt");
+      if (window.scrollY > 400) {
+        btt.classList.add("visible");
+      } else {
+        btt.classList.remove("visible");
+      }
+    });
+  }, { passive: true });
+
+  // Build TOC on load
+  buildTOC();
+</script>
+</body>
+</html>
