@@ -150,7 +150,7 @@ export default function AboutPage() {
             value: "getting-started",
             label: "Getting Started",
             content: (
-              <Card className="py-0 divide-y">
+              <Card className="py-0 gap-0 divide-y">
                 {GETTING_STARTED.map(({ step, title, description, href, required }) => (
                   <Link
                     key={step}
@@ -171,7 +171,7 @@ export default function AboutPage() {
                       </div>
                       <p className="text-xs text-muted-foreground">{description}</p>
                     </div>
-                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0 ml-auto" />
                   </Link>
                 ))}
               </Card>
@@ -181,7 +181,7 @@ export default function AboutPage() {
             value: "features",
             label: "Features",
             content: (
-              <Card className="py-0 divide-y">
+              <Card className="py-0 gap-0 divide-y">
                 {FEATURES.map(({ icon: Icon, title, description, href }) => (
                   <Link
                     key={title}
@@ -203,7 +203,7 @@ export default function AboutPage() {
             label: "Data Sources",
             content: (
               <div className="space-y-4">
-                <Card className="py-0 divide-y">
+                <Card className="py-0 gap-0 divide-y">
                   {DATA_SOURCES.map(({ name, detail }) => (
                     <div key={name} className="flex items-start gap-3 py-3 px-4 text-sm">
                       <span className="font-medium w-44 shrink-0">{name}</span>

@@ -82,7 +82,7 @@ export function LifeContextList({
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Context Items
           {items.length > 0 && (
-            <span className="ml-1.5 normal-case tabular-nums">
+            <span className="ml-2 normal-case tabular-nums">
               ({items.length})
             </span>
           )}
@@ -91,7 +91,7 @@ export function LifeContextList({
           type="button"
           onClick={() => setShowCreate(true)}
           className={cn(
-            "flex min-h-[44px] items-center gap-1.5 rounded-lg border",
+            "flex min-h-[44px] items-center gap-2 rounded-lg border",
             "px-4 py-2.5 text-xs font-medium text-muted-foreground",
             "transition-colors hover:border-foreground/20 hover:text-foreground",
           )}
@@ -107,10 +107,10 @@ export function LifeContextList({
         </p>
       )}
 
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.id} className="rounded-lg border bg-card p-4">
-            <div className="flex items-start justify-between gap-3">
+      {items.length > 0 && (
+        <div className="rounded-lg border bg-card divide-y">
+          {items.map((item) => (
+            <div key={item.id} className="flex items-start justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-[13px] font-medium">{item.title}</p>
@@ -159,9 +159,9 @@ export function LifeContextList({
                 </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {archiveError && (
         <p className="mt-2 text-sm text-destructive" role="alert">

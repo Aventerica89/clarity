@@ -69,14 +69,14 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
   }
 
   return (
-    <div className="rounded-xl border bg-card p-4 space-y-4">
+    <div className="rounded-lg border bg-card p-6 space-y-4">
       <div className="flex items-center gap-2">
-        <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <DollarSign className="size-4 text-muted-foreground" />
         <h3 className="text-sm font-medium">Financial Snapshot</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <label htmlFor="bank-balance" className="text-xs text-muted-foreground">
             Bank Balance
           </label>
@@ -88,10 +88,10 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
             placeholder="0"
             value={balance}
             onChange={(e) => setBalance(e.target.value)}
-            className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
+            className="w-full rounded-md border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <label htmlFor="monthly-burn" className="text-xs text-muted-foreground">
             Monthly Burn
           </label>
@@ -103,7 +103,7 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
             placeholder="0"
             value={burn}
             onChange={(e) => setBurn(e.target.value)}
-            className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
+            className="w-full rounded-md border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
           />
         </div>
       </div>
@@ -114,7 +114,7 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
         </p>
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <label htmlFor="snapshot-notes" className="text-xs text-muted-foreground">
           Notes
         </label>
@@ -124,7 +124,7 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:border-clarity-amber/40"
+          className="w-full rounded-md border bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:border-clarity-amber/40"
         />
       </div>
 
@@ -135,9 +135,9 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-1.5 rounded-lg bg-clarity-amber/10 px-3 py-1.5 text-xs font-medium text-clarity-amber transition-colors hover:bg-clarity-amber/20 disabled:opacity-50"
+          className="flex min-h-[44px] items-center gap-2 rounded-md bg-clarity-amber text-clarity-amber-foreground px-4 py-2.5 text-xs font-medium transition-colors hover:bg-clarity-amber/90 disabled:opacity-50"
         >
-          {saving && <Loader2 className="h-3 w-3 animate-spin" />}
+          {saving && <Loader2 className="size-3 animate-spin" />}
           {saving ? "Saving..." : "Save"}
         </button>
         {updatedAt && (

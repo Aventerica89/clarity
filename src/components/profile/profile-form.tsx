@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Card } from "@/components/ui/card"
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -313,71 +314,73 @@ export function ProfileForm({
   className?: string
 }) {
   return (
-    <ProfileFormRoot initial={initial} className={className}>
-      <div className="grid gap-6 sm:grid-cols-2">
-        <ProfileFormField
-          field="occupation"
-          label="Occupation"
-          placeholder="e.g. Registered Nurse, Software Engineer"
-        />
-        <ProfileFormField
-          field="employer"
-          label="Employer / Business"
-          placeholder="e.g. Banner Health, Self-employed"
-        />
-      </div>
+    <Card className="p-6">
+      <ProfileFormRoot initial={initial} className={className}>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <ProfileFormField
+            field="occupation"
+            label="Occupation"
+            placeholder="e.g. Registered Nurse, Software Engineer"
+          />
+          <ProfileFormField
+            field="employer"
+            label="Employer / Business"
+            placeholder="e.g. Banner Health, Self-employed"
+          />
+        </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <ProfileFormField
-          field="city"
-          label="City / Location"
-          placeholder="e.g. Phoenix, AZ"
-        />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <ProfileFormField
+            field="city"
+            label="City / Location"
+            placeholder="e.g. Phoenix, AZ"
+          />
+          <ProfileFormChipGroup
+            field="householdType"
+            label="Household"
+            options={HOUSEHOLD_OPTIONS}
+          />
+        </div>
+
         <ProfileFormChipGroup
-          field="householdType"
-          label="Household"
-          options={HOUSEHOLD_OPTIONS}
+          field="workSchedule"
+          label="Work Schedule"
+          options={SCHEDULE_OPTIONS}
         />
-      </div>
 
-      <ProfileFormChipGroup
-        field="workSchedule"
-        label="Work Schedule"
-        options={SCHEDULE_OPTIONS}
-      />
+        <ProfileFormField
+          field="lifePhase"
+          label="Current life phase"
+          placeholder="e.g. Building a SaaS while working full-time"
+        />
 
-      <ProfileFormField
-        field="lifePhase"
-        label="Current life phase"
-        placeholder="e.g. Building a SaaS while working full-time"
-      />
+        <ProfileFormField
+          field="sideProjects"
+          label="Side projects / businesses"
+          placeholder="e.g. VaporForge (AI SaaS), Clarity (this app)"
+        />
 
-      <ProfileFormField
-        field="sideProjects"
-        label="Side projects / businesses"
-        placeholder="e.g. VaporForge (AI SaaS), Clarity (this app)"
-      />
+        <ProfileFormField
+          field="healthContext"
+          label="Health context"
+          placeholder="e.g. Managing Type 2 diabetes, daily medications"
+        />
 
-      <ProfileFormField
-        field="healthContext"
-        label="Health context"
-        placeholder="e.g. Managing Type 2 diabetes, daily medications"
-      />
+        <ProfileFormField
+          field="lifeValues"
+          label="What matters most right now (1-3 things)"
+          placeholder="e.g. Financial independence, family health"
+        />
 
-      <ProfileFormField
-        field="lifeValues"
-        label="What matters most right now (1-3 things)"
-        placeholder="e.g. Financial independence, family health"
-      />
+        <ProfileFormTextarea
+          field="notes"
+          label="Anything else the AI should always know"
+          placeholder="Free-form background info..."
+        />
 
-      <ProfileFormTextarea
-        field="notes"
-        label="Anything else the AI should always know"
-        placeholder="Free-form background info..."
-      />
-
-      <ProfileFormActions />
-    </ProfileFormRoot>
+        <ProfileFormActions />
+      </ProfileFormRoot>
+    </Card>
   )
 }
 

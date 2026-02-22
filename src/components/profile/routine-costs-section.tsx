@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import { Trash2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 type Category =
@@ -127,7 +128,7 @@ function CostRow({
   const high = isHigh(cost)
 
   return (
-    <div className="flex min-h-[44px] items-center gap-3 rounded-lg border px-4 py-3 text-sm">
+    <div className="flex min-h-[44px] items-center gap-3 px-4 py-3 text-sm">
       <CategoryBadge category={cost.category} />
       <span className="flex-1 font-medium">{cost.label}</span>
       {cost.notes && (
@@ -335,7 +336,7 @@ export function RoutineCostsSection({
   }, [])
 
   return (
-    <div className="space-y-4">
+    <Card className="p-6 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-base font-semibold text-foreground text-balance">
@@ -356,34 +357,36 @@ export function RoutineCostsSection({
         )}
       </div>
 
-      <div className="space-y-3">
-        {costs.length === 0 && !showAdd && (
-          <p className="text-sm text-muted-foreground">
-            No routine costs added yet.
-          </p>
-        )}
+      {costs.length === 0 && !showAdd && (
+        <p className="text-sm text-muted-foreground">
+          No routine costs added yet.
+        </p>
+      )}
 
-        {costs.map((cost) => (
-          <CostRow key={cost.id} cost={cost} onDelete={handleDelete} />
-        ))}
+      {costs.length > 0 && (
+        <div className="rounded-lg border divide-y">
+          {costs.map((cost) => (
+            <CostRow key={cost.id} cost={cost} onDelete={handleDelete} />
+          ))}
+        </div>
+      )}
 
-        {showAdd ? (
-          <AddCostForm
-            onAdd={handleAdd}
-            onCancel={() => setShowAdd(false)}
-          />
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAdd(true)}
-            className="min-h-[44px] gap-2"
-          >
-            <Plus className="size-4" />
-            Add cost
-          </Button>
-        )}
-      </div>
-    </div>
+      {showAdd ? (
+        <AddCostForm
+          onAdd={handleAdd}
+          onCancel={() => setShowAdd(false)}
+        />
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAdd(true)}
+          className="min-h-[44px] gap-2"
+        >
+          <Plus className="size-4" />
+          Add cost
+        </Button>
+      )}
+    </Card>
   )
 }

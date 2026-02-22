@@ -48,7 +48,7 @@ export default function ChangelogPage() {
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           <Link href="/settings/about" className="hover:text-foreground transition-colors">About</Link>
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="size-3.5" />
           <span>Changelog</span>
         </div>
         <h1 className="text-2xl font-bold">What&apos;s new</h1>
