@@ -33,11 +33,16 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Clarity",
+    startupImage: [],
   },
   formatDetection: {
     telephone: false,
+  },
+  icons: {
+    icon: [{ url: "/favicon-196.png", sizes: "196x196", type: "image/png" }],
+    apple: [{ url: "/apple-icon-180.png", sizes: "180x180", type: "image/png" }],
   },
 }
 
