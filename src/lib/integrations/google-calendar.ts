@@ -38,6 +38,12 @@ export async function syncGoogleCalendarEvents(userId: string): Promise<{
   if (!googleAccount.accessToken) {
     return { synced: 0, error: "No Google access token" }
   }
+  if (!googleAccount.refreshToken) {
+    return {
+      synced: 0,
+      error: "No refresh token is set. Please sign out and sign back in with Google to re-authorize.",
+    }
+  }
 
   const oauth2Client = createOAuth2Client()
   oauth2Client.setCredentials({
