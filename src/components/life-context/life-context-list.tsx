@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Pencil, Trash2, Plus } from "lucide-react"
 import {
   Dialog,
@@ -8,39 +8,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
 import { LifeContextForm } from "./life-context-form"
 
-interface ContextItem {
+type Urgency = "active" | "critical"
+
+type ContextItem = {
   id: string
   title: string
   description: string
-  urgency: "active" | "critical"
+  urgency: Urgency
   createdAt: Date
   updatedAt: Date
 }
 
-interface Props {
-  initialItems: ContextItem[]
+const URGENCY_BADGE_CLASSES: Record<Urgency, string> = {
+  active: "bg-muted text-foreground ring-border",
+  critical: "bg-destructive/10 text-destructive ring-destructive/20",
 }
 
-export function LifeContextList({ initialItems }: Props) {
+const URGENCY_LABEL: Record<Urgency, string> = {
+  active: "Active",
+  critical: "Critical",
+}
+
+export function LifeContextList({
+  initialItems,
+}: {
+  initialItems: ContextItem[]
+}) {
   const [items, setItems] = useState<ContextItem[]>(initialItems)
   const [showCreate, setShowCreate] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [archiving, setArchiving] = useState<string | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
 
-  function handleCreated(item: ContextItem) {
+  const handleCreated = useCallback((item: ContextItem) => {
     setItems((prev) => [item, ...prev])
     setShowCreate(false)
-  }
+  }, [])
 
-  function handleUpdated(updated: ContextItem) {
-    setItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)))
+  const handleUpdated = useCallback((updated: ContextItem) => {
+    setItems((prev) =>
+      prev.map((it) => (it.id === updated.id ? updated : it)),
+    )
     setEditingId(null)
-  }
+  }, [])
 
-  async function handleArchive(id: string) {
+  const handleArchive = useCallback(async (id: string) => {
     setArchiving(id)
     setArchiveError(null)
     try {
@@ -55,75 +70,92 @@ export function LifeContextList({ initialItems }: Props) {
     } finally {
       setArchiving(null)
     }
-  }
+  }, [])
 
-  const editingItem = editingId ? items.find((it) => it.id === editingId) : null
+  const editingItem = editingId
+    ? items.find((it) => it.id === editingId)
+    : null
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Context Items
           {items.length > 0 && (
-            <span className="ml-1.5 normal-case">({items.length})</span>
+            <span className="ml-1.5 normal-case tabular-nums">
+              ({items.length})
+            </span>
           )}
         </h2>
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/20"
+          className={cn(
+            "flex min-h-[44px] items-center gap-1.5 rounded-lg border",
+            "px-4 py-2.5 text-xs font-medium text-muted-foreground",
+            "transition-colors hover:border-foreground/20 hover:text-foreground",
+          )}
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="size-4" aria-hidden="true" />
           Add context
         </button>
       </div>
 
       {items.length === 0 && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground text-pretty">
           No context yet. Add items to help the coach understand your situation.
         </p>
       )}
 
       <div className="space-y-2">
         {items.map((item) => (
-          <div key={item.id} className="rounded-xl border bg-card p-4">
+          <div key={item.id} className="rounded-lg border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-medium">{item.title}</p>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[13px] font-medium">{item.title}</p>
                   <span
-                    className={
-                      item.urgency === "critical"
-                        ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20"
-                        : "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-clarity-amber/10 text-clarity-amber ring-1 ring-inset ring-clarity-amber/20"
-                    }
+                    className={cn(
+                      "inline-flex items-center rounded-full px-2 py-0.5",
+                      "text-[11px] font-medium ring-1 ring-inset",
+                      URGENCY_BADGE_CLASSES[item.urgency],
+                    )}
                   >
-                    {item.urgency === "critical" ? "Critical" : "Active"}
+                    {URGENCY_LABEL[item.urgency]}
                   </span>
                 </div>
                 {item.description && (
-                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     {item.description}
                   </p>
                 )}
               </div>
-              <div className="flex gap-0.5 flex-shrink-0">
+              <div className="flex flex-shrink-0 gap-1">
                 <button
                   type="button"
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                  className={cn(
+                    "relative flex size-9 items-center justify-center rounded-md",
+                    "text-muted-foreground transition-colors hover:text-foreground",
+                    "before:absolute before:inset-[-4px] before:content-['']",
+                  )}
                   onClick={() => setEditingId(item.id)}
-                  aria-label="Edit"
+                  aria-label={`Edit ${item.title}`}
                 >
-                  <Pencil className="h-3.5 w-3.5" />
+                  <Pencil className="size-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-destructive"
+                  className={cn(
+                    "relative flex size-9 items-center justify-center rounded-md",
+                    "text-muted-foreground transition-colors hover:text-destructive",
+                    "before:absolute before:inset-[-4px] before:content-['']",
+                    "disabled:opacity-50",
+                  )}
                   onClick={() => handleArchive(item.id)}
                   disabled={archiving === item.id}
-                  aria-label="Archive"
+                  aria-label={`Archive ${item.title}`}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="size-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -132,7 +164,9 @@ export function LifeContextList({ initialItems }: Props) {
       </div>
 
       {archiveError && (
-        <p className="text-sm text-destructive mt-2">{archiveError}</p>
+        <p className="mt-2 text-sm text-destructive" role="alert">
+          {archiveError}
+        </p>
       )}
 
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
@@ -149,7 +183,12 @@ export function LifeContextList({ initialItems }: Props) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={editingId !== null} onOpenChange={(open) => { if (!open) setEditingId(null) }}>
+      <Dialog
+        open={editingId !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingId(null)
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit context item</DialogTitle>

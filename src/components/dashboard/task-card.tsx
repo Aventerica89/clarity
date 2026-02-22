@@ -66,11 +66,11 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
   if (done) return null
 
   return (
-    <div className="flex items-start gap-3 py-1 border-b last:border-b-0">
+    <div className="flex items-start gap-3 py-3 border-b last:border-b-0">
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 rounded-full flex-shrink-0 mt-0.5"
+        className="h-8 w-8 rounded-full flex-shrink-0 relative before:absolute before:inset-[-6px] before:rounded-full before:content-['']"
         onClick={handleComplete}
         disabled={isPending || !onComplete}
         aria-label="Complete task"
@@ -79,28 +79,28 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
       </Button>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-snug">{task.title}</p>
-        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+        <p className="text-[13px] font-medium leading-snug">{task.title}</p>
+        <div className="flex flex-wrap items-center gap-2 mt-1">
           {priority > 1 && (
             <Badge
               variant="outline"
-              className={`text-xs px-1.5 py-0 ${PRIORITY_COLORS[priority] ?? ""}`}
+              className={`text-xs px-2 py-0 ${PRIORITY_COLORS[priority] ?? ""}`}
             >
               {PRIORITY_LABELS[priority]}
             </Badge>
           )}
           {task.dueDate && (
             <span
-              className={`flex items-center gap-0.5 text-xs ${
+              className={`flex items-center gap-1 font-mono text-[11px] ${
                 overdue ? "text-destructive" : "text-muted-foreground"
               }`}
             >
-              <Calendar className="h-3 w-3" />
+              <Calendar className="size-3" />
               {overdue ? "Overdue" : task.dueDate}
             </span>
           )}
           {labels.slice(0, 3).map((label) => (
-            <Badge key={label} variant="secondary" className="text-xs px-1.5 py-0">
+            <Badge key={label} variant="secondary" className="text-xs px-2 py-0">
               {label}
             </Badge>
           ))}

@@ -1,14 +1,21 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react"
+import { CheckIcon, Loader2Icon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 
-const HOUSEHOLD_OPTIONS = ["Solo", "Partner", "Family (with kids)", "Roommates"]
-const SCHEDULE_OPTIONS = ["9-5", "Shift work", "Flexible", "Remote", "Self-employed"]
+/* -------------------------------------------------------------------------- */
+/*  Types                                                                     */
+/* -------------------------------------------------------------------------- */
 
 type ProfileData = {
   occupation: string | null
@@ -23,7 +30,61 @@ type ProfileData = {
   notes: string | null
 }
 
-export function ProfileForm({ initial }: { initial: ProfileData | null }) {
+type Status = "idle" | "saving" | "saved"
+
+/* -------------------------------------------------------------------------- */
+/*  Context                                                                   */
+/* -------------------------------------------------------------------------- */
+
+type ProfileFormContextValue = {
+  form: ProfileData
+  set: (field: keyof ProfileData, value: string) => void
+  save: () => void
+  status: Status
+}
+
+const ProfileFormContext = createContext<ProfileFormContextValue | null>(null)
+
+function useProfileForm() {
+  const ctx = useContext(ProfileFormContext)
+  if (!ctx) {
+    throw new Error("useProfileForm must be used inside <ProfileFormRoot>")
+  }
+  return ctx
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Constants                                                                 */
+/* -------------------------------------------------------------------------- */
+
+const HOUSEHOLD_OPTIONS = [
+  "Solo",
+  "Partner",
+  "Family (with kids)",
+  "Roommates",
+]
+
+const SCHEDULE_OPTIONS = [
+  "9-5",
+  "Shift work",
+  "Flexible",
+  "Remote",
+  "Self-employed",
+]
+
+/* -------------------------------------------------------------------------- */
+/*  Root (Context Provider)                                                   */
+/* -------------------------------------------------------------------------- */
+
+function ProfileFormRoot({
+  initial,
+  children,
+  className,
+}: {
+  initial: ProfileData | null
+  children: ReactNode
+  className?: string
+}) {
   const [form, setForm] = useState<ProfileData>({
     occupation: initial?.occupation ?? "",
     employer: initial?.employer ?? "",
@@ -36,170 +97,299 @@ export function ProfileForm({ initial }: { initial: ProfileData | null }) {
     lifeValues: initial?.lifeValues ?? "",
     notes: initial?.notes ?? "",
   })
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [status, setStatus] = useState<Status>("idle")
 
-  function set(field: keyof ProfileData, value: string) {
+  const set = useCallback((field: keyof ProfileData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
-    setSaved(false)
-  }
+    setStatus("idle")
+  }, [])
 
-  async function save() {
-    setSaving(true)
+  const save = useCallback(async () => {
+    setStatus("saving")
     await fetch("/api/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     })
-    setSaving(false)
-    setSaved(true)
-  }
+    setStatus("saved")
+  }, [form])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>About You</CardTitle>
-        <CardDescription>
-          This background is always included in the AI coach context — the more you fill in,
-          the more personalized and relevant the advice.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="occupation">Occupation</Label>
-            <Input
-              id="occupation"
-              placeholder="e.g. Registered Nurse, Software Engineer"
-              value={form.occupation ?? ""}
-              onChange={(e) => set("occupation", e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="employer">Employer / Business</Label>
-            <Input
-              id="employer"
-              placeholder="e.g. Banner Health, Self-employed"
-              value={form.employer ?? ""}
-              onChange={(e) => set("employer", e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="city">City / Location</Label>
-            <Input
-              id="city"
-              placeholder="e.g. Phoenix, AZ"
-              value={form.city ?? ""}
-              onChange={(e) => set("city", e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Household</Label>
-            <div className="flex flex-wrap gap-1.5 pt-0.5">
-              {HOUSEHOLD_OPTIONS.map((opt) => (
-                <ChipButton
-                  key={opt}
-                  label={opt}
-                  selected={form.householdType === opt}
-                  onClick={() => set("householdType", form.householdType === opt ? "" : opt)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Work Schedule</Label>
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
-            {SCHEDULE_OPTIONS.map((opt) => (
-              <ChipButton
-                key={opt}
-                label={opt}
-                selected={form.workSchedule === opt}
-                onClick={() => set("workSchedule", form.workSchedule === opt ? "" : opt)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="lifePhase">Current life phase</Label>
-          <Input
-            id="lifePhase"
-            placeholder="e.g. Building a SaaS while working full-time, paying off debt"
-            value={form.lifePhase ?? ""}
-            onChange={(e) => set("lifePhase", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="sideProjects">Side projects / businesses</Label>
-          <Input
-            id="sideProjects"
-            placeholder="e.g. VaporForge (AI SaaS), Clarity (this app)"
-            value={form.sideProjects ?? ""}
-            onChange={(e) => set("sideProjects", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="healthContext">Health context</Label>
-          <Input
-            id="healthContext"
-            placeholder="e.g. Managing Type 2 diabetes, daily medications"
-            value={form.healthContext ?? ""}
-            onChange={(e) => set("healthContext", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="values">What matters most to you right now (1-3 things)</Label>
-          <Input
-            id="values"
-            placeholder="e.g. Financial independence, family health, building products"
-            value={form.lifeValues ?? ""}
-            onChange={(e) => set("lifeValues", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="notes">Anything else the AI should always know</Label>
-          <Textarea
-            id="notes"
-            placeholder="Free-form background info..."
-            rows={3}
-            value={form.notes ?? ""}
-            onChange={(e) => set("notes", e.target.value)}
-          />
-        </div>
-
-        <div className="flex items-center gap-3 pt-1">
-          <Button onClick={save} disabled={saving}>
-            {saving ? "Saving..." : "Save profile"}
-          </Button>
-          {saved && <span className="text-sm text-muted-foreground">Saved</span>}
-        </div>
-      </CardContent>
-    </Card>
+    <ProfileFormContext.Provider value={{ form, set, save, status }}>
+      <div className={cn("space-y-6", className)}>{children}</div>
+    </ProfileFormContext.Provider>
   )
 }
 
-function ChipButton({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+/* -------------------------------------------------------------------------- */
+/*  Field (text input)                                                        */
+/* -------------------------------------------------------------------------- */
+
+function ProfileFormField({
+  field,
+  label,
+  placeholder,
+  className,
+}: {
+  field: keyof ProfileData
+  label: string
+  placeholder?: string
+  className?: string
+}) {
+  const { form, set } = useProfileForm()
+  const id = `profile-${field}`
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      <Label
+        htmlFor={id}
+        className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+      >
+        {label}
+      </Label>
+      <Input
+        id={id}
+        placeholder={placeholder}
+        value={form[field] ?? ""}
+        onChange={(e) => set(field, e.target.value)}
+        className="focus-visible:border-clarity-amber/40 focus-visible:ring-clarity-amber/20"
+      />
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  TextareaField                                                             */
+/* -------------------------------------------------------------------------- */
+
+function ProfileFormTextarea({
+  field,
+  label,
+  placeholder,
+  rows = 3,
+  className,
+}: {
+  field: keyof ProfileData
+  label: string
+  placeholder?: string
+  rows?: number
+  className?: string
+}) {
+  const { form, set } = useProfileForm()
+  const id = `profile-${field}`
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      <Label
+        htmlFor={id}
+        className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+      >
+        {label}
+      </Label>
+      <Textarea
+        id={id}
+        placeholder={placeholder}
+        rows={rows}
+        value={form[field] ?? ""}
+        onChange={(e) => set(field, e.target.value)}
+        className="focus-visible:border-clarity-amber/40 focus-visible:ring-clarity-amber/20"
+      />
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  ChipGroup                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function ProfileFormChipGroup({
+  field,
+  label,
+  options,
+  className,
+}: {
+  field: keyof ProfileData
+  label: string
+  options: readonly string[]
+  className?: string
+}) {
+  const { form, set } = useProfileForm()
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </Label>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
+        {options.map((opt) => (
+          <ProfileFormChip
+            key={opt}
+            label={opt}
+            selected={form[field] === opt}
+            onClick={() => set(field, form[field] === opt ? "" : opt)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Chip                                                                      */
+/* -------------------------------------------------------------------------- */
+
+function ProfileFormChip({
+  label,
+  selected,
+  onClick,
+  className,
+}: {
+  label: string
+  selected: boolean
+  onClick: () => void
+  className?: string
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={[
-        "h-7 rounded-full px-3 text-xs font-medium transition-colors",
+      aria-pressed={selected}
+      className={cn(
+        "min-h-[44px] rounded-full px-4 py-2.5 text-xs font-medium transition-colors",
         selected
-          ? "bg-primary text-primary-foreground"
-          : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground",
-      ].join(" ")}
+          ? "bg-clarity-amber/10 text-clarity-amber ring-1 ring-inset ring-clarity-amber/20"
+          : "border text-muted-foreground hover:text-foreground",
+        className,
+      )}
     >
       {label}
     </button>
   )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Actions (save button + saved indicator)                                   */
+/* -------------------------------------------------------------------------- */
+
+function ProfileFormActions({ className }: { className?: string }) {
+  const { save, status } = useProfileForm()
+
+  return (
+    <div className={cn("flex items-center gap-3 pt-2", className)}>
+      <button
+        type="button"
+        onClick={save}
+        disabled={status === "saving"}
+        className={cn(
+          "inline-flex min-h-[44px] items-center gap-2 rounded-md px-4 text-sm font-medium transition-colors",
+          "bg-clarity-amber text-clarity-amber-foreground hover:bg-clarity-amber/90",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+        )}
+      >
+        {status === "saving" && (
+          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
+        )}
+        {status === "saving" ? "Saving..." : "Save profile"}
+      </button>
+      {status === "saved" && (
+        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+          <CheckIcon className="size-4" aria-hidden="true" />
+          Saved
+        </span>
+      )}
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Composed Form (convenience export)                                        */
+/* -------------------------------------------------------------------------- */
+
+export function ProfileForm({
+  initial,
+  className,
+}: {
+  initial: ProfileData | null
+  className?: string
+}) {
+  return (
+    <ProfileFormRoot initial={initial} className={className}>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <ProfileFormField
+          field="occupation"
+          label="Occupation"
+          placeholder="e.g. Registered Nurse, Software Engineer"
+        />
+        <ProfileFormField
+          field="employer"
+          label="Employer / Business"
+          placeholder="e.g. Banner Health, Self-employed"
+        />
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <ProfileFormField
+          field="city"
+          label="City / Location"
+          placeholder="e.g. Phoenix, AZ"
+        />
+        <ProfileFormChipGroup
+          field="householdType"
+          label="Household"
+          options={HOUSEHOLD_OPTIONS}
+        />
+      </div>
+
+      <ProfileFormChipGroup
+        field="workSchedule"
+        label="Work Schedule"
+        options={SCHEDULE_OPTIONS}
+      />
+
+      <ProfileFormField
+        field="lifePhase"
+        label="Current life phase"
+        placeholder="e.g. Building a SaaS while working full-time"
+      />
+
+      <ProfileFormField
+        field="sideProjects"
+        label="Side projects / businesses"
+        placeholder="e.g. VaporForge (AI SaaS), Clarity (this app)"
+      />
+
+      <ProfileFormField
+        field="healthContext"
+        label="Health context"
+        placeholder="e.g. Managing Type 2 diabetes, daily medications"
+      />
+
+      <ProfileFormField
+        field="lifeValues"
+        label="What matters most right now (1-3 things)"
+        placeholder="e.g. Financial independence, family health"
+      />
+
+      <ProfileFormTextarea
+        field="notes"
+        label="Anything else the AI should always know"
+        placeholder="Free-form background info..."
+      />
+
+      <ProfileFormActions />
+    </ProfileFormRoot>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Named exports for compound composition                                    */
+/* -------------------------------------------------------------------------- */
+
+export {
+  ProfileFormRoot,
+  ProfileFormField,
+  ProfileFormTextarea,
+  ProfileFormChipGroup,
+  ProfileFormChip,
+  ProfileFormActions,
 }
