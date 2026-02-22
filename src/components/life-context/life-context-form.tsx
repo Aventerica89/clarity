@@ -1,10 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { Loader2 } from "lucide-react"
 
 interface FormValues {
   title: string
@@ -79,59 +76,81 @@ export function LifeContextForm({ onSave, onCancel, initialValues, itemId }: Pro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-1">
-        <Label htmlFor="ctx-title" className="text-sm">Title</Label>
-        <Input
+      <div className="space-y-1.5">
+        <label htmlFor="ctx-title" className="text-xs text-muted-foreground">
+          Title
+        </label>
+        <input
           id="ctx-title"
           placeholder="e.g. Job search in progress"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
         />
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="ctx-description" className="text-sm">Description</Label>
-        <Textarea
+      <div className="space-y-1.5">
+        <label htmlFor="ctx-description" className="text-xs text-muted-foreground">
+          Description
+        </label>
+        <textarea
           id="ctx-description"
           placeholder="Optional details..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
+          className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:border-clarity-amber/40"
         />
       </div>
 
-      <div className="space-y-1">
-        <Label className="text-sm">Urgency</Label>
+      <div className="space-y-1.5">
+        <label className="text-xs text-muted-foreground">Urgency</label>
         <div className="flex gap-2">
-          <Button
+          <button
             type="button"
-            size="sm"
-            variant={urgency === "active" ? "default" : "outline"}
             onClick={() => setUrgency("active")}
+            className={
+              urgency === "active"
+                ? "rounded-lg px-3 py-1.5 text-xs font-medium bg-clarity-amber/10 text-clarity-amber ring-1 ring-inset ring-clarity-amber/20"
+                : "rounded-lg px-3 py-1.5 text-xs font-medium border text-muted-foreground hover:text-foreground"
+            }
           >
             Active
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            size="sm"
-            variant={urgency === "critical" ? "destructive" : "outline"}
             onClick={() => setUrgency("critical")}
+            className={
+              urgency === "critical"
+                ? "rounded-lg px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20"
+                : "rounded-lg px-3 py-1.5 text-xs font-medium border text-muted-foreground hover:text-foreground"
+            }
           >
             Critical
-          </Button>
+          </button>
         </div>
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
 
       <div className="flex gap-2 justify-end">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          className="rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+        >
           Cancel
-        </Button>
-        <Button type="submit" size="sm" disabled={saving || !title.trim()}>
+        </button>
+        <button
+          type="submit"
+          disabled={saving || !title.trim()}
+          className="flex items-center gap-1.5 rounded-lg bg-clarity-amber/10 px-3 py-1.5 text-xs font-medium text-clarity-amber transition-colors hover:bg-clarity-amber/20 disabled:opacity-50"
+        >
+          {saving && <Loader2 className="h-3 w-3 animate-spin" />}
           {saving ? "Saving..." : itemId ? "Update" : "Add"}
-        </Button>
+        </button>
       </div>
     </form>
   )

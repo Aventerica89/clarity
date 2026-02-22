@@ -1,12 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DollarSign } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
+import { DollarSign, Loader2 } from "lucide-react"
 
 interface Snapshot {
   id: string
@@ -74,71 +69,83 @@ export function FinancialSnapshotCard({ snapshot }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <DollarSign className="h-4 w-4 text-primary" />
-          Financial Snapshot
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label htmlFor="bank-balance" className="text-sm">Bank Balance</Label>
-            <Input
-              id="bank-balance"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0"
-              value={balance}
-              onChange={(e) => setBalance(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="monthly-burn" className="text-sm">Monthly Burn</Label>
-            <Input
-              id="monthly-burn"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0"
-              value={burn}
-              onChange={(e) => setBurn(e.target.value)}
-            />
-          </div>
-        </div>
+    <div className="rounded-xl border bg-card p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-medium">Financial Snapshot</h3>
+      </div>
 
-        {runway !== null && (
-          <p className="text-sm text-muted-foreground">
-            Runway: ~{runway} months
-          </p>
-        )}
-
-        <div className="space-y-1">
-          <Label htmlFor="snapshot-notes" className="text-sm">Notes</Label>
-          <Textarea
-            id="snapshot-notes"
-            placeholder="Any context..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <label htmlFor="bank-balance" className="text-xs text-muted-foreground">
+            Bank Balance
+          </label>
+          <input
+            id="bank-balance"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0"
+            value={balance}
+            onChange={(e) => setBalance(e.target.value)}
+            className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
           />
         </div>
-
-        {error && <p className="text-xs text-red-500">{error}</p>}
-
-        <div className="flex items-center justify-between">
-          <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save"}
-          </Button>
-          {updatedAt && (
-            <p className="text-xs text-muted-foreground">
-              Last updated: {updatedAt.toLocaleDateString()}
-            </p>
-          )}
+        <div className="space-y-1.5">
+          <label htmlFor="monthly-burn" className="text-xs text-muted-foreground">
+            Monthly Burn
+          </label>
+          <input
+            id="monthly-burn"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0"
+            value={burn}
+            onChange={(e) => setBurn(e.target.value)}
+            className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-clarity-amber/40"
+          />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {runway !== null && (
+        <p className="text-xs text-muted-foreground">
+          Runway: ~{runway} months
+        </p>
+      )}
+
+      <div className="space-y-1.5">
+        <label htmlFor="snapshot-notes" className="text-xs text-muted-foreground">
+          Notes
+        </label>
+        <textarea
+          id="snapshot-notes"
+          placeholder="Any context..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+          className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:border-clarity-amber/40"
+        />
+      </div>
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-1.5 rounded-lg bg-clarity-amber/10 px-3 py-1.5 text-xs font-medium text-clarity-amber transition-colors hover:bg-clarity-amber/20 disabled:opacity-50"
+        >
+          {saving && <Loader2 className="h-3 w-3 animate-spin" />}
+          {saving ? "Saving..." : "Save"}
+        </button>
+        {updatedAt && (
+          <p className="text-xs text-muted-foreground/60">
+            Updated {updatedAt.toLocaleDateString()}
+          </p>
+        )}
+      </div>
+    </div>
   )
 }

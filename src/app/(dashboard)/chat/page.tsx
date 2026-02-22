@@ -145,8 +145,8 @@ function ChatPageInner() {
     }
   }
 
-  async function sendMessage(overrideQuestion?: string) {
-    const question = (overrideQuestion ?? input).trim()
+  async function sendMessage(overrideQuestion?: string | unknown) {
+    const question = (typeof overrideQuestion === "string" ? overrideQuestion : input).trim()
     if (!question || isStreaming) return
 
     // If no session, create one first
