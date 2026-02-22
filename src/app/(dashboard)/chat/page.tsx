@@ -315,12 +315,12 @@ function ChatPageInner() {
               <Image
                 src="/pwa/manifest-icon-192.maskable.png"
                 alt="Clarity"
-                width={48}
-                height={48}
+                width={64}
+                height={64}
                 className="rounded-2xl"
               />
               <div>
-                <h2 className="text-lg font-semibold">Clarity Coach</h2>
+                <h1 className="text-2xl font-bold">Clarity Coach</h1>
                 <p className="mt-1 text-sm text-muted-foreground max-w-sm">
                   Ask anything about your day, priorities, routines, or goals.
                 </p>
@@ -374,7 +374,7 @@ function ChatPageInner() {
                           alt="Clarity"
                           width={28}
                           height={28}
-                          className="shrink-0 rounded-full mt-0.5"
+                          className="h-7 w-7 shrink-0 rounded-full mt-0.5"
                         />
                       )}
                       <MessageContent role={msg.role} markdown={msg.role === "assistant"}>
