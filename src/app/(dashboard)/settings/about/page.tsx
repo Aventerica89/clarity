@@ -124,11 +124,11 @@ export default function AboutPage() {
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="size-3.5" />
           <span>About</span>
         </div>
         <div className="flex items-center gap-3 mb-2">
-          <Sparkles className="h-6 w-6 text-primary" />
+          <Sparkles className="size-6 text-clarity-amber" />
           <h1 className="text-2xl font-bold">Clarity</h1>
         </div>
         <p className="text-muted-foreground text-sm">
@@ -148,7 +148,7 @@ export default function AboutPage() {
                   <Link key={step} href={href}>
                     <Card className="py-0 hover:bg-accent/50 transition-colors cursor-pointer">
                       <CardContent className="flex items-center gap-3 py-3 px-4">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
                           {step}
                         </span>
                         <div className="flex-1 min-w-0">
@@ -162,7 +162,7 @@ export default function AboutPage() {
                           </div>
                           <p className="text-xs text-muted-foreground">{description}</p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                       </CardContent>
                     </Card>
                   </Link>
@@ -179,7 +179,7 @@ export default function AboutPage() {
                   <Link key={title} href={href}>
                     <Card className="h-full py-0 hover:bg-accent/50 transition-colors cursor-pointer">
                       <CardContent className="flex items-start gap-3 py-3 px-3">
-                        <Icon className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                        <Icon className="size-4 mt-0.5 text-muted-foreground shrink-0" />
                         <div className="min-w-0">
                           <p className="text-sm font-medium leading-tight">{title}</p>
                           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>

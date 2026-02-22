@@ -39,7 +39,7 @@ export function SyncButton({ provider, label = "Sync now" }: Props) {
         disabled={isPending}
         className="gap-2"
       >
-        <RefreshCw className={`h-3 w-3 ${isPending ? "animate-spin" : ""}`} />
+        <RefreshCw className={`size-3 ${isPending ? "animate-spin" : ""}`} />
         {label}
       </Button>
       {message && <p className="text-xs text-muted-foreground">{message}</p>}

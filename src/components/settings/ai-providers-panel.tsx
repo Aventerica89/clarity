@@ -140,12 +140,12 @@ export function AIProvidersPanel({ connected }: Props) {
                     <img
                       src={p.logoSrc}
                       alt={p.label}
-                      className="h-8 w-8 rounded-md object-contain shrink-0"
+                      className="size-8 rounded-md object-contain shrink-0"
                     />
                   ) : (
                     <div
                       className={cn(
-                        "h-8 w-8 rounded-md flex items-center justify-center",
+                        "size-8 rounded-md flex items-center justify-center",
                         "text-white text-xs font-bold shrink-0",
                         p.avatarColor
                       )}
@@ -165,8 +165,8 @@ export function AIProvidersPanel({ connected }: Props) {
                   <div className="shrink-0 flex items-center gap-2">
                     {isConnected ? (
                       <>
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="size-3.5 text-green-500 dark:text-green-400" />
                           <span className="text-xs text-green-600 dark:text-green-400 font-medium">
                             Connected
                           </span>
@@ -226,7 +226,7 @@ export function AIProvidersPanel({ connected }: Props) {
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Get API key
-                      <ExternalLink className="h-3 w-3" />
+                      <ExternalLink className="size-3" />
                     </a>
                   </div>
                 )}

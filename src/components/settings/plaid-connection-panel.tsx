@@ -149,7 +149,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Landmark className="h-4 w-4 text-muted-foreground" />
+            <Landmark className="size-4 text-muted-foreground" />
             <CardTitle className="text-base">Bank Accounts</CardTitle>
           </div>
           <div className="flex gap-2">
@@ -161,9 +161,9 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
                 disabled={syncing}
               >
                 {syncing ? (
-                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  <Loader2 className="size-3 animate-spin mr-1" />
                 ) : (
-                  <RefreshCw className="h-3 w-3 mr-1" />
+                  <RefreshCw className="size-3 mr-1" />
                 )}
                 Sync now
               </Button>
@@ -173,7 +173,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
               onClick={handleConnect}
               disabled={loading}
             >
-              {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              {loading ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
               Connect bank
             </Button>
           </div>
@@ -207,8 +207,8 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
                       item.syncStatus === "error"
                         ? "text-destructive border-destructive/20 bg-destructive/5"
                         : item.syncStatus === "syncing"
-                          ? "text-blue-600 border-blue-200 bg-blue-50"
-                          : "text-green-600 border-green-200 bg-green-50"
+                          ? "text-blue-600 dark:text-blue-400 border-blue-600/20 bg-blue-600/5"
+                          : "text-green-600 dark:text-green-400 border-green-600/20 bg-green-600/5"
                     }
                   >
                     {item.syncStatus}
@@ -216,11 +216,11 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    className="size-7 text-muted-foreground hover:text-destructive"
                     onClick={() => handleDisconnect(item.id)}
                     disabled={deletingId === item.id}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="size-3.5" />
                   </Button>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
         {/* Coming soon: CSV import */}
         <div className="flex items-center justify-between rounded-lg border border-dashed p-3 opacity-60">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+            <FileSpreadsheet className="size-4 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">Import bank statements</p>
               <p className="text-xs text-muted-foreground">Upload CSV or OFX files for historical data</p>

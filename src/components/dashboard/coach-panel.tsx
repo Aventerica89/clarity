@@ -16,7 +16,7 @@ export function CoachPanel() {
 
   return (
     <div
-      className="group relative flex items-center rounded-xl border bg-card px-4 py-3 transition-colors focus-within:border-clarity-amber/40 hover:border-border/80"
+      className="group relative flex items-center rounded-lg border bg-card px-4 py-3 transition-colors focus-within:border-clarity-amber/40 hover:border-border/80"
     >
       <input
         type="text"
@@ -35,10 +35,10 @@ export function CoachPanel() {
         type="button"
         onClick={go}
         disabled={!query.trim()}
-        className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-clarity-amber/10 text-clarity-amber transition-opacity disabled:opacity-30"
+        className="ml-2 flex size-7 shrink-0 items-center justify-center rounded-md bg-clarity-amber/10 text-clarity-amber transition-opacity disabled:opacity-30"
         aria-label="Go to chat"
       >
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="size-4" />
       </button>
     </div>
   )

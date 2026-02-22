@@ -12,7 +12,7 @@ export default function RoutinesPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <RotateCcw className="h-4 w-4 text-primary" />
+            <RotateCcw className="size-4 text-muted-foreground" />
             Coming soon
           </CardTitle>
         </CardHeader>

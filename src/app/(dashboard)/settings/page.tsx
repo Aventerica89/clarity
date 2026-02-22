@@ -124,7 +124,7 @@ export default async function SettingsPage() {
                       <Badge
                         variant="outline"
                         className={googleConnected
-                          ? "text-green-600 border-green-200 bg-green-50"
+                          ? "text-green-600 dark:text-green-400 border-green-600/20 bg-green-600/5"
                           : "text-muted-foreground"}
                       >
                         {googleConnected ? "Connected" : "Not connected"}
@@ -153,8 +153,8 @@ export default async function SettingsPage() {
                           !todoist
                             ? "text-muted-foreground"
                             : todoist.syncStatus === "error"
-                              ? "text-red-600 border-red-200 bg-red-50"
-                              : "text-green-600 border-green-200 bg-green-50"
+                              ? "text-destructive border-destructive/20 bg-destructive/5"
+                              : "text-green-600 dark:text-green-400 border-green-600/20 bg-green-600/5"
                         }
                       >
                         {!todoist ? "Not connected" : todoist.syncStatus === "error" ? "Error" : "Connected"}
@@ -167,7 +167,7 @@ export default async function SettingsPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {todoist?.lastError && <p className="text-xs text-red-500">{todoist.lastError}</p>}
+                    {todoist?.lastError && <p className="text-xs text-destructive">{todoist.lastError}</p>}
                     <TodoistConnectForm connected={Boolean(todoist)} />
                     {todoist && <SyncButton provider="todoist" label="Sync now" />}
                   </CardContent>
@@ -199,10 +199,10 @@ export default async function SettingsPage() {
                     <CardHeader className="py-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Info className="h-4 w-4 text-muted-foreground" />
+                          <Info className="size-4 text-muted-foreground" />
                           <CardTitle className="text-base">About Clarity</CardTitle>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="size-4 text-muted-foreground" />
                       </div>
                       <CardDescription>Getting started guide, features, and changelog.</CardDescription>
                     </CardHeader>

@@ -38,16 +38,16 @@ export function LifeContextStrip({ items, snapshot }: Props) {
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
       >
         {open ? (
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronDown className="size-3.5 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronRight className="size-3.5 text-muted-foreground" />
         )}
         <span className="font-medium text-xs uppercase tracking-wide text-muted-foreground">
           Life Context
         </span>
         {criticalItems.length > 0 && (
-          <span className="flex items-center gap-1 text-red-600 text-xs">
-            <AlertTriangle className="h-3 w-3" />
+          <span className="flex items-center gap-1 text-destructive text-xs">
+            <AlertTriangle className="size-3" />
             {criticalItems.length} critical
           </span>
         )}
@@ -58,15 +58,15 @@ export function LifeContextStrip({ items, snapshot }: Props) {
         )}
       </button>
       {open && (
-        <div className="border-t border-border px-4 py-3 space-y-1.5">
+        <div className="border-t border-border px-4 py-3 space-y-2">
           {items.map((item) => (
             <div key={item.id} className="flex items-start gap-2">
               <span
                 className={cn(
-                  "mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
+                  "mt-0.5 shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold uppercase",
                   item.urgency === "critical"
                     ? "bg-destructive/10 text-destructive"
-                    : "bg-clarity-amber/15 text-clarity-amber",
+                    : "bg-muted text-foreground",
                 )}
               >
                 {item.urgency}

@@ -38,7 +38,7 @@ export function Sidebar() {
                 : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             )}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="size-4" />
             {label}
           </Link>
         ))}

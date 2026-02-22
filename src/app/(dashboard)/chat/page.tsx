@@ -255,11 +255,11 @@ function ChatPageInner() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="size-7"
             onClick={createNewSession}
             title="New conversation"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="size-3.5" />
           </Button>
         </div>
 
@@ -284,7 +284,7 @@ function ChatPageInner() {
                     onClick={() => loadSession(s.id)}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <MessageSquare className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                      <MessageSquare className="size-3.5 shrink-0 opacity-60" />
                       <span className="truncate text-xs">{s.title}</span>
                     </div>
                     <button
@@ -296,7 +296,7 @@ function ChatPageInner() {
                       }}
                       title="Delete"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="size-3" />
                     </button>
                   </div>
                 ))}
@@ -348,8 +348,8 @@ function ChatPageInner() {
                     disabled={!input.trim() || isStreaming}
                   >
                     {isStreaming
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <Send className="h-4 w-4" />}
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Send className="size-4" />}
                   </PromptInputAction>
                 </PromptInputActions>
               </PromptInput>
@@ -361,7 +361,7 @@ function ChatPageInner() {
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
               {isLoadingMessages ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="size-3.5 animate-spin" />
                   Loading...
                 </div>
               ) : (
@@ -374,7 +374,7 @@ function ChatPageInner() {
                           alt="Clarity"
                           width={28}
                           height={28}
-                          className="h-7 w-7 shrink-0 rounded-full mt-0.5"
+                          className="size-7 shrink-0 rounded-full mt-0.5"
                         />
                       )}
                       <MessageContent role={msg.role} markdown={msg.role === "assistant"}>
@@ -414,8 +414,8 @@ function ChatPageInner() {
                       disabled={!input.trim() || isStreaming}
                     >
                       {isStreaming
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : <Send className="h-4 w-4" />}
+                        ? <Loader2 className="size-4 animate-spin" />
+                        : <Send className="size-4" />}
                     </PromptInputAction>
                   </PromptInputActions>
                 </PromptInput>
