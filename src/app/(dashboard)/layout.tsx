@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { MobileNav } from "@/components/mobile-nav"
 import { InstallGuide } from "@/components/onboarding/install-guide"
+import { UpdatePrompt } from "@/components/pwa/update-prompt"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       <MobileNav />
       <InstallGuide />
+      <UpdatePrompt />
     </div>
   )
 }
