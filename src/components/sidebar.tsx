@@ -3,12 +3,20 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
+import { useEffect, useState } from "react"
+import { InboxIcon, LayoutDashboard, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const APP_VERSION = "0.1.0"
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string
+  label: string
+  icon: React.ElementType
+  badge?: number
+}
+
+const STATIC_NAV: NavItem[] = [
   { href: "/", label: "Today", icon: LayoutDashboard },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/routines", label: "Routines", icon: RotateCcw },
@@ -19,6 +27,20 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [triageCount, setTriageCount] = useState(0)
+
+  useEffect(() => {
+    fetch("/api/triage/count")
+      .then((r) => r.json())
+      .then((d) => setTriageCount(d.count ?? 0))
+      .catch(() => {})
+  }, [pathname])
+
+  const navItems: NavItem[] = [
+    STATIC_NAV[0],
+    { href: "/triage", label: "Triage", icon: InboxIcon, badge: triageCount },
+    ...STATIC_NAV.slice(1),
+  ]
 
   return (
     <aside className="hidden md:flex w-56 flex-col border-r px-3 py-4">
@@ -27,7 +49,7 @@ export function Sidebar() {
         <span className="font-semibold text-lg">Clarity</span>
       </div>
       <nav className="flex flex-col gap-1 flex-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
+        {navItems.map(({ href, label, icon: Icon, badge }) => (
           <Link
             key={href}
             href={href}
@@ -39,7 +61,12 @@ export function Sidebar() {
             )}
           >
             <Icon className="size-4" />
-            {label}
+            <span className="flex-1">{label}</span>
+            {badge != null && badge > 0 && (
+              <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold text-destructive-foreground min-w-[18px] text-center">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
