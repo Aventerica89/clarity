@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Check, Calendar } from "lucide-react"
+import { Check, Calendar, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
@@ -17,7 +17,7 @@ interface TaskItem {
 
 interface TaskCardProps {
   task: TaskItem
-  onComplete?: (taskId: string) => Promise<void>
+  onComplete?: (id: string) => Promise<void>
 }
 
 const PRIORITY_COLORS: Record<number, string> = {
@@ -56,9 +56,9 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
   const overdue = isOverdue(task.dueDate)
 
   function handleComplete() {
-    if (!onComplete || !task.sourceId) return
+    if (!onComplete) return
     startTransition(async () => {
-      await onComplete(task.sourceId!)
+      await onComplete(task.id)
       setDone(true)
     })
   }
@@ -79,7 +79,20 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
       </Button>
 
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium leading-snug">{task.title}</p>
+        <div className="flex items-start gap-1.5">
+          <p className="text-[13px] font-medium leading-snug">{task.title}</p>
+          {task.source === "todoist" && task.sourceId && (
+            <a
+              href={`https://todoist.com/app/task/${task.sourceId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 mt-0.5 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Open in Todoist"
+            >
+              <ExternalLink className="size-3" />
+            </a>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-2 mt-1">
           {priority > 1 && (
             <Badge

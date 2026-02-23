@@ -10,7 +10,7 @@ import { COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts"
 type ProviderId = "anthropic" | "gemini" | "deepseek" | "groq"
 
 // Auto fallback priority: best quality first, quota-prone last
-const FALLBACK_ORDER: ProviderId[] = ["anthropic", "deepseek", "groq", "gemini"]
+const FALLBACK_ORDER: ProviderId[] = ["anthropic", "deepseek", "gemini"]
 
 function isRateLimited(err: unknown): boolean {
   const e = err as { status?: number; message?: string }

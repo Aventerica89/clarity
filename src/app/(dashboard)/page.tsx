@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { events, financialSnapshot, lifeContextItems, tasks } from "@/lib/schema"
 import { EventCard } from "@/components/dashboard/event-card"
-import { TaskCard } from "@/components/dashboard/task-card"
+import { TaskList } from "@/components/dashboard/task-list"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
 import { LifeContextStrip } from "@/components/dashboard/life-context-strip"
 
@@ -100,20 +100,17 @@ export default async function TodayPage() {
               No pending tasks. Connect Todoist in Settings to sync.
             </p>
           ) : (
-            pendingTasks.map((t) => (
-              <TaskCard
-                key={t.id}
-                task={{
-                  id: t.id,
-                  title: t.title,
-                  source: t.source,
-                  sourceId: t.sourceId,
-                  dueDate: t.dueDate,
-                  priorityManual: t.priorityManual,
-                  labels: t.labels,
-                }}
-              />
-            ))
+            <TaskList
+              tasks={pendingTasks.map((t) => ({
+                id: t.id,
+                title: t.title,
+                source: t.source,
+                sourceId: t.sourceId,
+                dueDate: t.dueDate,
+                priorityManual: t.priorityManual,
+                labels: t.labels,
+              }))}
+            />
           )}
         </div>
 
