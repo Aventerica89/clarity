@@ -242,3 +242,24 @@ export const plaidAccounts = sqliteTable("plaid_accounts", {
   availableBalanceCents: integer("available_balance_cents"),
   lastUpdatedAt: integer("last_updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
+
+// Triage queue — AI-scored items from all sources, pending user review
+export const triageQueue = sqliteTable("triage_queue", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  source: text("source").notNull(), // gmail | google_calendar | todoist | apple_reminders | apple_notes | apple_mail | apple_calendar
+  sourceId: text("source_id").notNull(),
+  title: text("title").notNull(),
+  snippet: text("snippet").notNull().default(""),
+  aiScore: integer("ai_score").notNull().default(0),
+  aiReasoning: text("ai_reasoning").notNull().default(""),
+  status: text("status", { enum: ["pending", "approved", "dismissed", "pushed_to_context"] })
+    .notNull()
+    .default("pending"),
+  todoistTaskId: text("todoist_task_id"),
+  sourceMetadata: text("source_metadata").notNull().default("{}"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
+}, (t) => [
+  uniqueIndex("triage_user_source_idx").on(t.userId, t.source, t.sourceId),
+])
