@@ -1,0 +1,158 @@
+import { google } from "googleapis"
+import { and, eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { account } from "@/lib/schema"
+import Anthropic from "@anthropic-ai/sdk"
+
+export interface GmailMessage {
+  id: string
+  threadId: string
+  subject: string
+  from: string
+  snippet: string
+  date: string
+}
+
+interface TriageScore {
+  score: number
+  reasoning: string
+}
+
+function createOAuth2Client() {
+  return new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+  )
+}
+
+async function getGoogleAccount(userId: string) {
+  const rows = await db
+    .select()
+    .from(account)
+    .where(and(eq(account.userId, userId), eq(account.providerId, "google")))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function scoreGmailMessage(msg: GmailMessage): Promise<TriageScore> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set")
+
+  const client = new Anthropic({ apiKey })
+
+  const prompt = [
+    `Rate the urgency of this email for a busy professional (0-100).`,
+    `0 = newsletter/promotional, 100 = requires action today.`,
+    ``,
+    `From: ${msg.from}`,
+    `Subject: ${msg.subject}`,
+    `Preview: ${msg.snippet}`,
+    ``,
+    `Respond with JSON only: {"score": <number>, "reasoning": "<one sentence>"}`,
+  ].join("\n")
+
+  const response = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 100,
+    messages: [{ role: "user", content: prompt }],
+  })
+
+  const text = response.content[0].type === "text" ? response.content[0].text : ""
+
+  try {
+    const parsed = JSON.parse(text) as { score: number; reasoning: string }
+    return {
+      score: Math.max(0, Math.min(100, parsed.score)),
+      reasoning: parsed.reasoning ?? "Flagged by AI",
+    }
+  } catch {
+    return { score: 50, reasoning: "Could not parse AI response" }
+  }
+}
+
+export async function fetchGmailMessages(userId: string, maxResults = 100): Promise<{
+  messages: GmailMessage[]
+  error?: string
+}> {
+  const googleAccount = await getGoogleAccount(userId)
+  if (!googleAccount?.accessToken) {
+    return { messages: [], error: "google_not_connected" }
+  }
+
+  const oauth2Client = createOAuth2Client()
+  oauth2Client.setCredentials({
+    access_token: googleAccount.accessToken,
+    refresh_token: googleAccount.refreshToken ?? undefined,
+    expiry_date: googleAccount.accessTokenExpiresAt?.getTime(),
+  })
+
+  // Persist refreshed tokens
+  oauth2Client.on("tokens", async (tokens) => {
+    const updates: Record<string, unknown> = {}
+    if (tokens.access_token) updates.accessToken = tokens.access_token
+    if (tokens.expiry_date) updates.accessTokenExpiresAt = new Date(tokens.expiry_date)
+    if (Object.keys(updates).length > 0) {
+      await db.update(account).set(updates).where(
+        and(eq(account.userId, userId), eq(account.providerId, "google"))
+      )
+    }
+  })
+
+  const gmail = google.gmail({ version: "v1", auth: oauth2Client })
+
+  let listRes
+  try {
+    listRes = await gmail.users.messages.list({
+      userId: "me",
+      maxResults,
+      q: "in:inbox -category:promotions -category:social -category:updates",
+    })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (
+      msg.includes("insufficientPermissions") ||
+      msg.includes("Request had insufficient authentication scopes")
+    ) {
+      return { messages: [], error: "gmail_scope_missing" }
+    }
+    return { messages: [], error: msg }
+  }
+
+  const ids = listRes.data.messages ?? []
+  const messages: GmailMessage[] = []
+
+  // Fetch headers in parallel (batches of 10)
+  const chunks: (typeof ids[0])[][] = []
+  for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10))
+
+  for (const chunk of chunks) {
+    const results = await Promise.allSettled(
+      chunk.map((m) =>
+        gmail.users.messages.get({
+          userId: "me",
+          id: m.id!,
+          format: "metadata",
+          metadataHeaders: ["Subject", "From", "Date"],
+        })
+      )
+    )
+
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue
+      const msg = result.value.data
+      const headers = msg.payload?.headers ?? []
+      const get = (name: string) => headers.find((h) => h.name === name)?.value ?? ""
+
+      messages.push({
+        id: msg.id!,
+        threadId: msg.threadId!,
+        subject: get("Subject") || "(no subject)",
+        from: get("From"),
+        snippet: (msg.snippet ?? "").slice(0, 300),
+        date: get("Date"),
+      })
+    }
+  }
+
+  return { messages }
+}
