@@ -19,6 +19,7 @@ All notable user-facing changes. See CHANGELOG-DEV.md for technical log.
 * Fixed    PWA standalone mode background color mismatch
 * Fixed    Content behind iOS status bar in standalone mode
 * Fixed    iOS keyboard pushing layout off-screen
+* Fixed    Update prompt no longer flashes and disappears
 
 ## v0.1.0 — February 19, 2026
 

@@ -4,6 +4,16 @@ Technical log. Updated on every deploy.
 
 <!-- Entries added automatically by deploy hook -->
 
+### 2026-02-23 · d1b0d0b · v0.2.0
+FIX     pwa — SW update banner persistence (remove skipWaiting from install handler)
+FIX     pwa — reloading ref guard to prevent double-reload on controllerchange
+REFACTOR nav — HIG-compliant tab bar using --tab-bar-height token + spacer div
+REFACTOR css — scope pb-safe-nav to max-width:767px, rename pb-safe-area to h-safe-bottom
+
+### 2026-02-22 · c03ad51 · v0.2.0
+CHORE   changelog — backfill three-tier changelog for v0.1.0 and v0.2.0
+FIX     nav — mobile nav bottom padding using CSS class instead of inline style
+
 ### 2026-02-22 · b91150f · v0.2.0
 FEAT    pwa — service worker with version-based caching and update prompt
 FEAT    devtools — hide widget on mobile (desktop-only via media query)

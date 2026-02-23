@@ -10,3 +10,5 @@
 { "v": "0.2.0", "ts": "2026-02-22T06:00:00Z", "msg": "Onboarding walkthrough, settings toggle", "hash": "b901d45" }
 { "v": "0.2.0", "ts": "2026-02-22T08:00:00Z", "msg": "PWA fixes: background, auth, safe areas", "hash": "fd0c56b" }
 { "v": "0.2.0", "ts": "2026-02-23T00:19:00Z", "msg": "SW update prompt, hide devtools on mobile", "hash": "b91150f" }
+{ "v": "0.2.0", "ts": "2026-02-23T00:30:00Z", "msg": "Backfill changelog, fix mobile nav padding", "hash": "c03ad51" }
+{ "v": "0.2.0", "ts": "2026-02-23T00:55:00Z", "msg": "Fix SW update banner + HIG nav tokens", "hash": "d1b0d0b" }
