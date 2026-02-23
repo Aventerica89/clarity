@@ -27,6 +27,7 @@ export const auth = betterAuth({
         "profile",
         "email",
         "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/gmail.readonly",
       ],
     },
   },
