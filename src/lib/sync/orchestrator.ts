@@ -1,6 +1,7 @@
 import { syncGoogleCalendarEvents } from "@/lib/integrations/google-calendar"
 import { syncTodoistTasks } from "@/lib/integrations/todoist"
 import { syncPlaidForUser } from "@/lib/plaid/sync"
+import { syncTriageQueue } from "@/lib/triage/sync"
 import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { plaidItems } from "@/lib/schema"
@@ -10,6 +11,7 @@ interface SyncResult {
   google?: { synced: number; error?: string }
   todoist?: { synced: number; error?: string }
   plaid?: { synced: number; error?: string }
+  triage?: { added: number; skipped: number; errors: string[] }
 }
 
 export async function syncAllForUser(userId: string): Promise<SyncResult> {
@@ -45,7 +47,15 @@ export async function syncAllForUser(userId: string): Promise<SyncResult> {
     ? extractResult(settled[2] as PromiseSettledResult<{ synced: number; error?: string }>)
     : undefined
 
-  return { userId, google, todoist, ...(hasPlaid ? { plaid } : {}) }
+  // Triage sync runs after source syncs complete (needs fresh data)
+  let triage: SyncResult["triage"]
+  try {
+    triage = await syncTriageQueue(userId)
+  } catch (err) {
+    triage = { added: 0, skipped: 0, errors: [err instanceof Error ? err.message : String(err)] }
+  }
+
+  return { userId, google, todoist, ...(hasPlaid ? { plaid } : {}), triage }
 }
 
 export async function syncAllUsers(userIds: string[]): Promise<SyncResult[]> {
