@@ -55,9 +55,11 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --spacing-tab-bar: var(--tab-bar-height);
 }
 
 :root {
+  --tab-bar-height: 3.5rem;
   --clarity-amber: oklch(0.769 0.188 70.08);
   --clarity-amber-foreground: oklch(0.145 0 0);
   --clarity-amber-muted: oklch(0.769 0.188 70.08 / 12%);
@@ -249,11 +251,13 @@
 }
 
 /* Safe area utilities — used by mobile nav and body clearance */
-.pb-safe-nav {
-  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 34px));
+@media (max-width: 767px) {
+  .pb-safe-nav {
+    padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
-/* Bottom nav safe-area fill — extends bg through home indicator region */
-.pb-safe-area {
-  padding-bottom: env(safe-area-inset-bottom, 34px);
+/* Spacer that fills exactly the home-indicator safe area */
+.h-safe-bottom {
+  height: env(safe-area-inset-bottom, 0px);
 }

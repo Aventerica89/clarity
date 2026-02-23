@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function UpdatePrompt() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const reloading = useRef(false)
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return
@@ -14,9 +15,10 @@ export function UpdatePrompt() {
     const swUrl = `/sw.js?v=${commitSha}`
 
     navigator.serviceWorker.register(swUrl).then((registration) => {
-      // If there's already a waiting worker on load, surface it immediately.
+      // If there's already a waiting worker on load, show the banner.
       if (registration.waiting) {
         setWaitingWorker(registration.waiting)
+        return
       }
 
       // Detect new service worker installed and waiting to activate.
@@ -25,15 +27,22 @@ export function UpdatePrompt() {
         if (!newWorker) return
 
         newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          // Only show banner when there's a NEW version waiting and an
+          // existing controller is active (not on first install).
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
             setWaitingWorker(newWorker)
           }
         })
       })
     })
 
-    // When the new SW activates (after skipWaiting), reload the page.
+    // When the new SW activates (after skipWaiting), reload once.
     navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloading.current) return
+      reloading.current = true
       window.location.reload()
     })
   }, [])
@@ -46,7 +55,7 @@ export function UpdatePrompt() {
   if (!waitingWorker) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-3 bg-clarity-amber px-4 py-2.5 text-clarity-amber-foreground shadow-md">
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-3 bg-clarity-amber px-4 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] text-clarity-amber-foreground shadow-md">
       <RefreshCw className="size-4 animate-spin" />
       <span className="text-sm font-medium">Clarity has been updated</span>
       <Button

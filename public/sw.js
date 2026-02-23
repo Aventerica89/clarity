@@ -10,13 +10,11 @@ const CACHE_NAME = `clarity-${VERSION}`
 // Assets to pre-cache on install (app shell).
 const APP_SHELL = ["/", "/manifest.json"]
 
-// Install: cache app shell, then immediately take over.
+// Install: cache app shell. Do NOT call skipWaiting here — let the
+// update prompt control activation so the banner persists until tapped.
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   )
 })
 

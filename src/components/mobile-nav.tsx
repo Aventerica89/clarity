@@ -42,9 +42,9 @@ export function MobileNav() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background pb-safe-area z-50"
+        className="md:hidden fixed bottom-0 inset-x-0 bg-background z-50"
       >
-        <div className="flex h-14">
+        <div className="flex h-tab-bar border-t">
           {PRIMARY_TABS.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href
             return (
@@ -81,6 +81,7 @@ export function MobileNav() {
             </span>
           </button>
         </div>
+        <div className="h-safe-bottom bg-background" />
       </nav>
 
       <Sheet open={open} onOpenChange={setOpen}>
