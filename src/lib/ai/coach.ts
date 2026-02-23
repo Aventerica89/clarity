@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm"
+import { and, asc, desc, eq, gt, gte, isNull, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, routineCosts, tasks, userProfile } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
@@ -53,7 +53,7 @@ function formatRoutineCostsBlock(costs: RoutineCostRow[]): string {
     const amt = (cost.amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
     const freqSuffix = cost.frequency === "monthly" ? "/mo" : cost.frequency === "annual" ? "/yr" : `/${cost.frequency}`
     const monthlyNote = cost.frequency !== "monthly" ? ` (${(monthly / 100).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}/mo)` : ""
-    const highFlag = HIGH_THRESHOLDS[cost.category] && monthly > (HIGH_THRESHOLDS[cost.category] ?? 0) ? " ⚠️ high" : ""
+    const highFlag = HIGH_THRESHOLDS[cost.category] && monthly > (HIGH_THRESHOLDS[cost.category] ?? 0) ? " high" : ""
     lines.push(`  ${cost.label}: ${amt}${freqSuffix}${monthlyNote}${highFlag}`)
   }
   return lines.join("\n")
@@ -91,6 +91,12 @@ export function formatLifeContext(items: LifeContextItem[], snap: FinancialSnap)
 
 function todayString(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
+}
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T00:00:00`)
+  d.setDate(d.getDate() + days)
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" }).format(d)
 }
 
 export async function getAnthropicToken(userId: string): Promise<string | null> {
@@ -133,12 +139,58 @@ export async function getGroqToken(userId: string): Promise<string | null> {
   return enc ? decryptToken(enc) : null
 }
 
+type TaskRow = {
+  title: string
+  dueDate: string | null
+  dueTime: string | null
+  priorityManual: number | null
+  source: string
+  labels: string | null
+}
+
+function formatTaskLine(t: TaskRow): string {
+  const due = t.dueDate ? ` [due ${t.dueDate}${t.dueTime ? ` ${t.dueTime}` : ""}]` : ""
+  const pri = t.priorityManual ? ` (priority ${t.priorityManual}/5)` : ""
+  const src = `, ${t.source}`
+  let labelsStr = ""
+  if (t.labels) {
+    try {
+      const parsed = JSON.parse(t.labels) as string[]
+      if (parsed.length > 0) labelsStr = ` [${parsed.join(", ")}]`
+    } catch {
+      // Ignore malformed labels
+    }
+  }
+  return `  - ${t.title}${due}${pri}${src}${labelsStr}`
+}
+
 export async function buildContext(userId: string, now: Date): Promise<string> {
   const today = todayString()
+  const sevenDaysOut = addDays(today, 7)
 
   const nextThreeHours = new Date(now.getTime() + 3 * 60 * 60 * 1000)
 
-  const [upcomingEvents, pendingTasks, todayRoutines, todayCompletions, lifeContextRows, financialRows, profileRows, costsRows] = await Promise.all([
+  const taskSelect = {
+    title: tasks.title,
+    dueDate: tasks.dueDate,
+    dueTime: tasks.dueTime,
+    priorityManual: tasks.priorityManual,
+    source: tasks.source,
+    labels: tasks.labels,
+  }
+
+  const [
+    upcomingEvents,
+    overdueTasks,
+    todayTasks,
+    upcomingTasks,
+    todayRoutines,
+    todayCompletions,
+    lifeContextRows,
+    financialRows,
+    profileRows,
+    costsRows,
+  ] = await Promise.all([
     // Next 3 hours of events
     db
       .select({ title: events.title, startAt: events.startAt, endAt: events.endAt, location: events.location })
@@ -147,18 +199,46 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
       .orderBy(asc(events.startAt))
       .limit(5),
 
-    // Overdue + today's tasks, not completed
+    // Overdue tasks (dueDate < today, not completed)
     db
-      .select({ title: tasks.title, dueDate: tasks.dueDate, dueTime: tasks.dueTime, priorityManual: tasks.priorityManual, priorityScore: tasks.priorityScore, source: tasks.source })
+      .select(taskSelect)
       .from(tasks)
       .where(and(
         eq(tasks.userId, userId),
         eq(tasks.isCompleted, false),
-        or(isNull(tasks.dueDate), lte(tasks.dueDate, today)),
+        // has a dueDate AND it's before today
+        gt(tasks.dueDate, ""),
+        lte(tasks.dueDate, today),
       ))
       .orderBy(asc(tasks.dueDate), asc(tasks.priorityManual))
       .limit(20),
 
+    // Tasks due today (dueDate = today, not completed)
+    db
+      .select(taskSelect)
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.isCompleted, false),
+        eq(tasks.dueDate, today),
+      ))
+      .orderBy(asc(tasks.priorityManual))
+      .limit(20),
+
+    // Upcoming tasks (dueDate in next 7 days, not today, not completed)
+    db
+      .select(taskSelect)
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.isCompleted, false),
+        gt(tasks.dueDate, today),
+        lte(tasks.dueDate, sevenDaysOut),
+      ))
+      .orderBy(asc(tasks.dueDate), asc(tasks.priorityManual))
+      .limit(20),
+
+    // Tasks with no due date (not completed)
     // Active routines scheduled for any day (filter in JS for simplicity)
     db
       .select({ id: routines.id, title: routines.title, preferredTime: routines.preferredTime, frequency: routines.frequency, customDays: routines.customDays })
@@ -199,6 +279,10 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     // Routine costs
     db.select().from(routineCosts).where(and(eq(routineCosts.userId, userId), eq(routineCosts.isActive, true))),
   ])
+
+  // Deduplicate: overdue query may include today's tasks if lte boundary is inclusive
+  const todaySet = new Set(todayTasks.map((t) => t.title))
+  const trueOverdue = overdueTasks.filter((t) => t.dueDate !== today && !todaySet.has(t.title))
 
   const completedRoutineIds = new Set(todayCompletions.map((r) => r.routineId))
   const dayOfWeek = now.getDay() // 0=Sun..6=Sat
@@ -251,13 +335,36 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     lines.push("")
   }
 
-  if (pendingTasks.length > 0) {
-    lines.push("Pending tasks:")
-    for (const t of pendingTasks) {
-      const due = t.dueDate ? ` [due ${t.dueDate}${t.dueTime ? ` ${t.dueTime}` : ""}]` : ""
-      const pri = t.priorityManual ? ` (priority ${t.priorityManual}/5)` : ""
-      lines.push(`  - ${t.title}${due}${pri}`)
+  const hasAnyTasks = trueOverdue.length > 0 || todayTasks.length > 0 || upcomingTasks.length > 0
+
+  if (hasAnyTasks) {
+    lines.push("[Tasks]")
+
+    if (trueOverdue.length > 0) {
+      lines.push(`Overdue (${trueOverdue.length}):`)
+      for (const t of trueOverdue) lines.push(formatTaskLine(t))
     }
+
+    if (todayTasks.length > 0) {
+      lines.push(`Today (${todayTasks.length}):`)
+      for (const t of todayTasks) lines.push(formatTaskLine(t))
+    }
+
+    if (upcomingTasks.length > 0) {
+      lines.push(`Upcoming 7 days (${upcomingTasks.length}):`)
+      for (const t of upcomingTasks) lines.push(formatTaskLine(t))
+    }
+
+    // Summary line
+    const totalTasks = trueOverdue.length + todayTasks.length + upcomingTasks.length
+    const allTasks = [...trueOverdue, ...todayTasks, ...upcomingTasks]
+    const todoistCount = allTasks.filter((t) => t.source === "todoist").length
+    const summaryParts: string[] = []
+    if (trueOverdue.length > 0) summaryParts.push(`${trueOverdue.length} overdue`)
+    if (todayTasks.length > 0) summaryParts.push(`${todayTasks.length} today`)
+    if (upcomingTasks.length > 0) summaryParts.push(`${upcomingTasks.length} upcoming`)
+    const fromTodoist = todoistCount > 0 ? ` ${todoistCount}/${totalTasks} from Todoist.` : ""
+    lines.push(`Task summary: ${summaryParts.join(", ")}.${fromTodoist}`)
     lines.push("")
   }
 
@@ -270,7 +377,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     lines.push("")
   }
 
-  if (pendingTasks.length === 0 && pendingRoutines.length === 0 && upcomingEvents.length === 0) {
+  if (!hasAnyTasks && pendingRoutines.length === 0 && upcomingEvents.length === 0) {
     lines.push("No pending tasks, routines, or upcoming events.")
   }
 

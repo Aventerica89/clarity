@@ -20,3 +20,9 @@ export const authRatelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, "1 m"),
   prefix: "rl:auth",
 })
+
+export const todoistWebhookRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(60, "1 m"),
+  prefix: "rl:todoist-wh",
+})

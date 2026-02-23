@@ -28,7 +28,12 @@ export default async function SettingsPage() {
       .where(and(eq(account.userId, userId), eq(account.providerId, "google")))
       .limit(1),
     db
-      .select({ syncStatus: integrations.syncStatus, lastError: integrations.lastError })
+      .select({
+        syncStatus: integrations.syncStatus,
+        lastError: integrations.lastError,
+        config: integrations.config,
+        providerAccountId: integrations.providerAccountId,
+      })
       .from(integrations)
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "todoist")))
       .limit(1),
@@ -66,6 +71,18 @@ export default async function SettingsPage() {
 
   const googleConnected = Boolean(googleRows[0]?.accessToken)
   const todoist = todoistRows[0] ?? null
+
+  let todoistDisplayName: string | null = null
+  let todoistConnectionMethod: string | null = null
+  if (todoist?.config) {
+    try {
+      const cfg = JSON.parse(todoist.config) as Record<string, unknown>
+      todoistDisplayName = typeof cfg.todoistDisplayName === "string" ? cfg.todoistDisplayName : null
+      todoistConnectionMethod = typeof cfg.connectionMethod === "string" ? cfg.connectionMethod : null
+    } catch {
+      // Malformed config — ignore
+    }
+  }
   const aiConnected = {
     anthropic: anthropicRows.length > 0,
     gemini: geminiRows.length > 0,
@@ -163,13 +180,19 @@ export default async function SettingsPage() {
                     </div>
                     <CardDescription>
                       {todoist
-                        ? "API token saved. Tasks sync daily."
-                        : "Enter your Todoist API token to sync tasks. Find it in Todoist Settings → Integrations → API token."}
+                        ? todoistConnectionMethod === "oauth"
+                          ? "Connected via OAuth. Tasks sync in real time."
+                          : "API token saved. Tasks sync daily."
+                        : "Connect your Todoist account to sync tasks automatically."}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {todoist?.lastError && <p className="text-xs text-destructive">{todoist.lastError}</p>}
-                    <TodoistConnectForm connected={Boolean(todoist)} />
+                    <TodoistConnectForm
+                      connected={Boolean(todoist)}
+                      displayName={todoistDisplayName}
+                      connectionMethod={todoistConnectionMethod}
+                    />
                     {todoist && <SyncButton provider="todoist" label="Sync now" />}
                   </CardContent>
                 </Card>

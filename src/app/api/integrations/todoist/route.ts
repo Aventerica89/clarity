@@ -14,7 +14,12 @@ export async function GET() {
   }
 
   const rows = await db
-    .select({ syncStatus: integrations.syncStatus, lastSyncedAt: integrations.lastSyncedAt })
+    .select({
+      syncStatus: integrations.syncStatus,
+      lastSyncedAt: integrations.lastSyncedAt,
+      config: integrations.config,
+      providerAccountId: integrations.providerAccountId,
+    })
     .from(integrations)
     .where(
       and(
@@ -25,10 +30,26 @@ export async function GET() {
     .limit(1)
 
   const row = rows[0]
+  if (!row) {
+    return NextResponse.json({ connected: false, syncStatus: null, lastSyncedAt: null })
+  }
+
+  let displayName: string | null = null
+  let connectionMethod: string | null = null
+  try {
+    const config = JSON.parse(row.config ?? "{}") as Record<string, unknown>
+    displayName = typeof config.todoistDisplayName === "string" ? config.todoistDisplayName : null
+    connectionMethod = typeof config.connectionMethod === "string" ? config.connectionMethod : null
+  } catch {
+    // Malformed config JSON — treat as empty
+  }
+
   return NextResponse.json({
-    connected: Boolean(row),
-    syncStatus: row?.syncStatus ?? null,
-    lastSyncedAt: row?.lastSyncedAt ?? null,
+    connected: true,
+    syncStatus: row.syncStatus,
+    lastSyncedAt: row.lastSyncedAt,
+    displayName,
+    connectionMethod,
   })
 }
 
@@ -46,7 +67,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Token is required" }, { status: 400 })
   }
 
-  await saveTodoistToken(session.user.id, parsed.data.token)
+  await saveTodoistToken(session.user.id, parsed.data.token, {
+    config: { connectionMethod: "token" },
+  })
   return NextResponse.json({ ok: true })
 }
 

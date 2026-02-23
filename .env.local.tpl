@@ -25,6 +25,10 @@ PLAID_CLIENT_ID={{ op://App Dev/PLAID_CLIENT_ID/credential }}
 PLAID_SECRET={{ op://App Dev/PLAID_SECRET/credential }}
 PLAID_ENV=sandbox
 
+# Todoist OAuth
+TODOIST_CLIENT_ID={{ op://App Dev/#clarity / TODOIST_CLIENT_ID/credential }}
+TODOIST_CLIENT_SECRET={{ op://App Dev/#clarity / TODOIST_CLIENT_SECRET/credential }}
+
 # Upstash Redis (rate limiting)
 UPSTASH_REDIS_REST_URL={{ op://App Dev/#clarity / UPSTASH_REDIS_REST_URL/credential }}
 UPSTASH_REDIS_REST_TOKEN={{ op://App Dev/#clarity / UPSTASH_REDIS_REST_TOKEN/credential }}
