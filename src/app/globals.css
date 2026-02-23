@@ -242,9 +242,9 @@
 
 /* PWA standalone mode overrides */
 @media (display-mode: standalone) {
-  /* Installed PWA: ensure status bar area is covered by app background */
+  /* Installed PWA: extend app background behind status bar + home indicator */
   html {
-    background-color: hsl(var(--background));
+    background-color: var(--background);
   }
 }
 
