@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gt, gte, isNull, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, routineCosts, tasks, userProfile } from "@/lib/schema"
+import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, routineCosts, tasks, triageQueue, userProfile } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
 
 // User timezone — America/Phoenix has no DST (UTC-7 year-round)
@@ -190,6 +190,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     financialRows,
     profileRows,
     costsRows,
+    triageRows,
   ] = await Promise.all([
     // Next 3 hours of events
     db
@@ -278,6 +279,20 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
 
     // Routine costs
     db.select().from(routineCosts).where(and(eq(routineCosts.userId, userId), eq(routineCosts.isActive, true))),
+
+    // Pending triage items (high-priority items needing attention)
+    db
+      .select({
+        title: triageQueue.title,
+        snippet: triageQueue.snippet,
+        source: triageQueue.source,
+        aiScore: triageQueue.aiScore,
+        aiReasoning: triageQueue.aiReasoning,
+      })
+      .from(triageQueue)
+      .where(and(eq(triageQueue.userId, userId), eq(triageQueue.status, "pending")))
+      .orderBy(desc(triageQueue.aiScore))
+      .limit(15),
   ])
 
   // Deduplicate: overdue query may include today's tasks if lte boundary is inclusive
@@ -365,6 +380,16 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     if (upcomingTasks.length > 0) summaryParts.push(`${upcomingTasks.length} upcoming`)
     const fromTodoist = todoistCount > 0 ? ` ${todoistCount}/${totalTasks} from Todoist.` : ""
     lines.push(`Task summary: ${summaryParts.join(", ")}.${fromTodoist}`)
+    lines.push("")
+  }
+
+  if (triageRows.length > 0) {
+    lines.push(`[Triage Queue] — ${triageRows.length} item(s) flagged for attention`)
+    for (const t of triageRows) {
+      const src = t.source === "todoist" ? "Todoist" : t.source === "gmail" ? "Gmail" : t.source === "google_calendar" ? "Calendar" : t.source
+      const desc = t.snippet ? ` — ${t.snippet.slice(0, 100)}` : ""
+      lines.push(`  - [${src}, score ${t.aiScore}] ${t.title}${desc} (${t.aiReasoning})`)
+    }
     lines.push("")
   }
 
