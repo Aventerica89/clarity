@@ -37,6 +37,10 @@ export default function TriagePage() {
     setItems((prev) => prev.filter((i) => i.id !== id))
   }
 
+  function handleComplete(id: string) {
+    setItems((prev) => prev.filter((i) => i.id !== id))
+  }
+
   function handleApproveSuccess(itemId: string) {
     setItems((prev) => prev.filter((i) => i.id !== itemId))
     setApproveTarget(null)
@@ -89,6 +93,7 @@ export default function TriagePage() {
               onApprove={setApproveTarget}
               onDismiss={handleDismiss}
               onPushToContext={handlePushToContext}
+              onComplete={handleComplete}
             />
           ))}
         </div>

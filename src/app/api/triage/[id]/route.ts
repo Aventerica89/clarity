@@ -4,8 +4,12 @@ import { headers } from "next/headers"
 import { db } from "@/lib/db"
 import { triageQueue, lifeContextItems } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
+import { getTodoistIntegrationRow } from "@/lib/integrations/todoist"
+import { decryptToken } from "@/lib/crypto"
 
-type Action = "dismiss" | "push_to_context"
+type Action = "dismiss" | "push_to_context" | "complete"
+
+const TODOIST_REST = "https://api.todoist.com/rest/v2"
 
 export async function POST(
   request: NextRequest,
@@ -46,6 +50,30 @@ export async function POST(
       description: item.snippet,
       urgency: item.aiScore >= 80 ? "critical" : "active",
     })
+
+    return NextResponse.json({ ok: true })
+  }
+
+  if (body.action === "complete") {
+    await db.update(triageQueue)
+      .set({ status: "dismissed", reviewedAt: new Date() })
+      .where(eq(triageQueue.id, id))
+
+    // Close task in Todoist if it's a Todoist item
+    if (item.source === "todoist" && item.sourceId) {
+      try {
+        const row = await getTodoistIntegrationRow(session.user.id)
+        if (row?.accessTokenEncrypted) {
+          const token = decryptToken(row.accessTokenEncrypted)
+          await fetch(`${TODOIST_REST}/tasks/${item.sourceId}/close`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        }
+      } catch {
+        // Best-effort — item is already dismissed locally
+      }
+    }
 
     return NextResponse.json({ ok: true })
   }

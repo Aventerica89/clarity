@@ -21,6 +21,7 @@ const SOURCE_LABELS: Record<string, string> = {
 export interface TriageItem {
   id: string
   source: string
+  sourceId: string
   title: string
   snippet: string
   aiScore: number
@@ -33,11 +34,13 @@ interface TriageCardProps {
   onApprove: (item: TriageItem) => void
   onDismiss: (id: string) => void
   onPushToContext: (id: string) => void
+  onComplete: (id: string) => void
 }
 
-export function TriageCard({ item, onApprove, onDismiss, onPushToContext }: TriageCardProps) {
-  const [loading, setLoading] = useState<"approve" | "dismiss" | "context" | null>(null)
+export function TriageCard({ item, onApprove, onDismiss, onPushToContext, onComplete }: TriageCardProps) {
+  const [loading, setLoading] = useState<"approve" | "dismiss" | "context" | "complete" | null>(null)
   const SourceIcon = SOURCE_ICONS[item.source] ?? Mail
+  const isTodoist = item.source === "todoist"
 
   async function handleDismiss() {
     setLoading("dismiss")
@@ -58,6 +61,17 @@ export function TriageCard({ item, onApprove, onDismiss, onPushToContext }: Tria
       body: JSON.stringify({ action: "push_to_context" }),
     })
     onPushToContext(item.id)
+    setLoading(null)
+  }
+
+  async function handleComplete() {
+    setLoading("complete")
+    await fetch(`/api/triage/${item.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete" }),
+    })
+    onComplete(item.id)
     setLoading(null)
   }
 
@@ -95,15 +109,27 @@ export function TriageCard({ item, onApprove, onDismiss, onPushToContext }: Tria
       </div>
 
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          className="flex-1"
-          onClick={() => onApprove(item)}
-          disabled={loading !== null}
-        >
-          <CheckCircle2 className="size-3.5 mr-1.5" />
-          Add to Todoist
-        </Button>
+        {isTodoist ? (
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={handleComplete}
+            disabled={loading !== null}
+          >
+            <CheckCircle2 className="size-3.5 mr-1.5" />
+            {loading === "complete" ? "Completing..." : "Complete"}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={() => onApprove(item)}
+            disabled={loading !== null}
+          >
+            <CheckCircle2 className="size-3.5 mr-1.5" />
+            Add to Todoist
+          </Button>
+        )}
         <Button
           size="sm"
           variant="outline"
