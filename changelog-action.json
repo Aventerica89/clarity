@@ -3,3 +3,10 @@
 { "v": "0.1.0", "ts": "2026-02-20T00:10:00Z", "msg": "Fix: require real API key, reject OAuth tokens", "hash": "6c2dc39" }
 { "v": "0.1.0", "ts": "2026-02-20T00:46:00Z", "msg": "Switch AI coach to Gemini provider", "hash": "44a911d" }
 { "v": "0.1.0", "ts": "2026-02-20T02:00:00Z", "msg": "Fix: AI coach uses Claude.ai OAuth (x-app: cli)", "hash": "5088e99" }
+{ "v": "0.2.0", "ts": "2026-02-20T18:00:00Z", "msg": "Plaid banking, rate limiting, profile page", "hash": "729f25c" }
+{ "v": "0.2.0", "ts": "2026-02-21T06:00:00Z", "msg": "Warmth & Focus design system", "hash": "50745c6" }
+{ "v": "0.2.0", "ts": "2026-02-21T12:00:00Z", "msg": "PWA HIG pass, splash screens, icon set", "hash": "fce23bb" }
+{ "v": "0.2.0", "ts": "2026-02-22T02:00:00Z", "msg": "Full chat UI, sun gradients, design audit", "hash": "be4cc20" }
+{ "v": "0.2.0", "ts": "2026-02-22T06:00:00Z", "msg": "Onboarding walkthrough, settings toggle", "hash": "b901d45" }
+{ "v": "0.2.0", "ts": "2026-02-22T08:00:00Z", "msg": "PWA fixes: background, auth, safe areas", "hash": "fd0c56b" }
+{ "v": "0.2.0", "ts": "2026-02-23T00:19:00Z", "msg": "SW update prompt, hide devtools on mobile", "hash": "b91150f" }

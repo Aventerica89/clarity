@@ -42,8 +42,7 @@ export function MobileNav() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background z-50"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background pb-safe-area z-50"
       >
         <div className="flex h-14">
           {PRIMARY_TABS.map(({ href, label, icon: Icon }) => {

@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.2.0",
+    "date": "2026-02-22",
+    "entries": [
+      { "type": "added", "text": "Bank account linking via Plaid — see balances and net cash flow" },
+      { "type": "added", "text": "Full-page AI chat with session history and multi-turn memory" },
+      { "type": "added", "text": "Warmth & Focus design system — amber accent, sun-tracking gradients" },
+      { "type": "added", "text": "PWA install onboarding walkthrough for new users" },
+      { "type": "added", "text": "Automatic update prompt — no more deleting and re-adding the app" },
+      { "type": "added", "text": "Privacy policy page" },
+      { "type": "added", "text": "Profile page with About Me and Routine Costs" },
+      { "type": "changed", "text": "Design system audit — all pages and components aligned to new tokens" },
+      { "type": "changed", "text": "Login page redesigned with Clarity logo and live sun gradient" },
+      { "type": "fixed", "text": "Google sign-in no longer asks for permission every time" },
+      { "type": "fixed", "text": "PWA standalone mode background color mismatch" },
+      { "type": "fixed", "text": "Content behind iOS status bar in standalone mode" },
+      { "type": "fixed", "text": "iOS keyboard pushing layout off-screen" }
+    ]
+  },
+  {
     "version": "0.1.0",
     "date": "2026-02-19",
     "entries": [

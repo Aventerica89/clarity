@@ -248,7 +248,12 @@
   }
 }
 
-/* Safe area utility — used by mobile nav and body clearance */
+/* Safe area utilities — used by mobile nav and body clearance */
 .pb-safe-nav {
-  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 20px));
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 34px));
+}
+
+/* Bottom nav safe-area fill — extends bg through home indicator region */
+.pb-safe-area {
+  padding-bottom: env(safe-area-inset-bottom, 34px);
 }
