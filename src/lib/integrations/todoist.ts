@@ -261,3 +261,79 @@ export async function fetchTodoistUserProfile(token: string): Promise<{
   const data = (await res.json()) as { id: string; email: string; full_name: string }
   return data
 }
+
+// ── Triage: Projects + Task creation with subtasks ───────────────────────────
+
+export interface TodoistProject {
+  id: string
+  name: string
+  color: string
+}
+
+export async function fetchTodoistProjects(userId: string): Promise<{
+  projects: TodoistProject[]
+  error?: string
+}> {
+  const token = await getTodoistToken(userId)
+  if (!token) return { projects: [], error: "Todoist not connected" }
+
+  const res = await fetch(`${TODOIST_BASE}/projects`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!res.ok) return { projects: [], error: `Todoist error: ${res.status}` }
+
+  const data = (await res.json()) as TodoistProject[]
+  return { projects: data }
+}
+
+export async function createTodoistTaskWithSubtasks(
+  userId: string,
+  input: {
+    title: string
+    projectId: string
+    dueDate?: string
+    subtasks: string[]
+  }
+): Promise<{ taskId: string; error?: string }> {
+  const token = await getTodoistToken(userId)
+  if (!token) return { taskId: "", error: "Todoist not connected" }
+
+  // Create parent task
+  const parentRes = await fetch(`${TODOIST_BASE}/tasks`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      content: input.title,
+      project_id: input.projectId,
+      ...(input.dueDate ? { due_date: input.dueDate } : {}),
+    }),
+  })
+
+  if (!parentRes.ok) {
+    return { taskId: "", error: `Failed to create task: ${parentRes.status}` }
+  }
+
+  const parent = (await parentRes.json()) as { id: string }
+
+  // Create subtasks in sequence (Todoist requires parent_id)
+  for (const subtask of input.subtasks) {
+    await fetch(`${TODOIST_BASE}/tasks`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: subtask,
+        project_id: input.projectId,
+        parent_id: parent.id,
+      }),
+    })
+  }
+
+  return { taskId: parent.id }
+}
