@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { messages, error } = await fetchGmailMessages(session.user.id, 25, "is:starred")
+  const { messages, error } = await fetchGmailMessages(session.user.id, 25, "is:starred newer_than:14d")
 
   if (error) {
     return NextResponse.json({ messages: [], error })
