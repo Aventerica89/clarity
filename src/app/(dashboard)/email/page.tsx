@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Loader2, MailX } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmailList } from "@/components/email/email-list"
 
 interface GmailMessage {
@@ -11,6 +12,7 @@ interface GmailMessage {
   from: string
   snippet: string
   date: string
+  isFavorited?: boolean
 }
 
 export default function EmailPage() {
@@ -31,6 +33,26 @@ export default function EmailPage() {
       setLoading(false)
     }
     load()
+  }, [])
+
+  const handleArchived = useCallback((gmailId: string) => {
+    setRecent((prev) => prev.filter((m) => m.id !== gmailId))
+    setStarred((prev) => prev.filter((m) => m.id !== gmailId))
+  }, [])
+
+  const handleFavoriteToggled = useCallback((gmailId: string, favorited: boolean) => {
+    const update = (msgs: GmailMessage[]) => {
+      const updated = msgs.map((m) =>
+        m.id === gmailId ? { ...m, isFavorited: favorited } : m
+      )
+      return [...updated].sort((a, b) => {
+        if (a.isFavorited && !b.isFavorited) return -1
+        if (!a.isFavorited && b.isFavorited) return 1
+        return 0
+      })
+    }
+    setRecent(update)
+    setStarred(update)
   }, [])
 
   if (loading) {
@@ -59,18 +81,42 @@ export default function EmailPage() {
           </p>
         </div>
       ) : (
-        <>
-          {starred.length > 0 && (
-            <div>
-              <h2 className="text-sm font-semibold text-muted-foreground mb-2">Starred</h2>
-              <EmailList messages={starred} />
-            </div>
-          )}
-          <div>
-            <h2 className="text-sm font-semibold text-muted-foreground mb-2">Recent</h2>
-            <EmailList messages={recent} />
-          </div>
-        </>
+        <Tabs defaultValue={starred.length > 0 ? "starred" : "recent"}>
+          <TabsList>
+            <TabsTrigger value="starred">
+              Starred{starred.length > 0 ? ` (${starred.length})` : ""}
+            </TabsTrigger>
+            <TabsTrigger value="recent">
+              Recent{recent.length > 0 ? ` (${recent.length})` : ""}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="starred" className="mt-4">
+            {starred.length > 0 ? (
+              <EmailList
+                messages={starred}
+                onArchived={handleArchived}
+                onFavoriteToggled={handleFavoriteToggled}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No starred emails
+              </p>
+            )}
+          </TabsContent>
+          <TabsContent value="recent" className="mt-4">
+            {recent.length > 0 ? (
+              <EmailList
+                messages={recent}
+                onArchived={handleArchived}
+                onFavoriteToggled={handleFavoriteToggled}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No recent emails
+              </p>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   )

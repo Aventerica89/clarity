@@ -308,7 +308,7 @@ export async function createTodoistTaskWithSubtasks(
     },
     body: JSON.stringify({
       content: input.title,
-      project_id: input.projectId,
+      ...(input.projectId ? { project_id: input.projectId } : {}),
       ...(input.dueDate ? { due_date: input.dueDate } : {}),
     }),
   })
@@ -329,7 +329,7 @@ export async function createTodoistTaskWithSubtasks(
       },
       body: JSON.stringify({
         content: subtask,
-        project_id: input.projectId,
+        ...(input.projectId ? { project_id: input.projectId } : {}),
         parent_id: parent.id,
       }),
     })

@@ -162,3 +162,45 @@ export async function fetchGmailMessages(
 
   return { messages }
 }
+
+export async function archiveGmailMessage(
+  userId: string,
+  gmailId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const googleAccount = await getGoogleAccount(userId)
+  if (!googleAccount?.accessToken) {
+    return { ok: false, error: "Google not connected" }
+  }
+
+  const oauth2Client = createOAuth2Client()
+  oauth2Client.setCredentials({
+    access_token: googleAccount.accessToken,
+    refresh_token: googleAccount.refreshToken ?? undefined,
+    expiry_date: googleAccount.accessTokenExpiresAt?.getTime(),
+  })
+
+  oauth2Client.on("tokens", async (tokens) => {
+    const updates: Record<string, unknown> = {}
+    if (tokens.access_token) updates.accessToken = tokens.access_token
+    if (tokens.expiry_date) updates.accessTokenExpiresAt = new Date(tokens.expiry_date)
+    if (Object.keys(updates).length > 0) {
+      await db.update(account).set(updates).where(
+        and(eq(account.userId, userId), eq(account.providerId, "google"))
+      )
+    }
+  })
+
+  const gmail = google.gmail({ version: "v1", auth: oauth2Client })
+
+  try {
+    await gmail.users.messages.modify({
+      userId: "me",
+      id: gmailId,
+      requestBody: { removeLabelIds: ["INBOX"] },
+    })
+    return { ok: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return { ok: false, error: msg }
+  }
+}

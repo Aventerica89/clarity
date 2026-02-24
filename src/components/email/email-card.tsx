@@ -1,7 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { CheckSquare, ArrowUpCircle, Loader2 } from "lucide-react"
+import {
+  CheckSquare,
+  ArrowUpCircle,
+  Archive,
+  Star,
+  Loader2,
+} from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 
@@ -12,10 +18,13 @@ interface GmailMessage {
   from: string
   snippet: string
   date: string
+  isFavorited?: boolean
 }
 
 interface EmailCardProps {
   message: GmailMessage
+  onArchived?: (gmailId: string) => void
+  onFavoriteToggled?: (gmailId: string, favorited: boolean) => void
 }
 
 function parseSender(from: string): { name: string; email: string } {
@@ -48,8 +57,9 @@ function formatDate(dateStr: string): string {
   }
 }
 
-export function EmailCard({ message }: EmailCardProps) {
-  const [loading, setLoading] = useState<"todoist" | "context" | null>(null)
+export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardProps) {
+  const [loading, setLoading] = useState<string | null>(null)
+  const [favorited, setFavorited] = useState(message.isFavorited ?? false)
   const sender = parseSender(message.from)
 
   async function handleAction(action: "add_to_todoist" | "push_to_context") {
@@ -82,13 +92,71 @@ export function EmailCard({ message }: EmailCardProps) {
     }
   }
 
+  async function handleArchive() {
+    setLoading("archive")
+    try {
+      const res = await fetch("/api/emails/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gmailId: message.id }),
+      })
+
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        toast.error(data.error ?? "Archive failed")
+        return
+      }
+
+      toast.success("Archived")
+      onArchived?.(message.id)
+    } catch {
+      toast.error("Archive failed")
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleFavorite() {
+    const next = !favorited
+    setFavorited(next)
+    try {
+      const res = await fetch("/api/emails/favorite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gmailId: message.id, favorited: next }),
+      })
+
+      if (!res.ok) {
+        setFavorited(!next)
+        toast.error("Failed to update favorite")
+        return
+      }
+
+      onFavoriteToggled?.(message.id, next)
+    } catch {
+      setFavorited(!next)
+      toast.error("Failed to update favorite")
+    }
+  }
+
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="text-xs font-medium text-muted-foreground truncate">
-            {sender.name}
-          </p>
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={handleFavorite}
+              className="flex-shrink-0 text-muted-foreground hover:text-amber-500 transition-colors"
+              aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Star
+                className={`size-3.5 ${favorited ? "fill-amber-500 text-amber-500" : ""}`}
+              />
+            </button>
+            <p className="text-xs font-medium text-muted-foreground truncate">
+              {sender.name}
+            </p>
+          </div>
           <span className="text-xs text-muted-foreground/70 flex-shrink-0">
             {formatDate(message.date)}
           </span>
@@ -112,7 +180,7 @@ export function EmailCard({ message }: EmailCardProps) {
             ? <Loader2 className="size-3.5 mr-1.5 animate-spin" />
             : <CheckSquare className="size-3.5 mr-1.5" />
           }
-          Add to Todoist
+          Todoist
         </Button>
         <Button
           size="sm"
@@ -125,6 +193,18 @@ export function EmailCard({ message }: EmailCardProps) {
             : <ArrowUpCircle className="size-3.5 mr-1.5" />
           }
           Context
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleArchive}
+          disabled={loading !== null}
+        >
+          {loading === "archive"
+            ? <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+            : <Archive className="size-3.5 mr-1.5" />
+          }
+          Archive
         </Button>
       </div>
     </div>
