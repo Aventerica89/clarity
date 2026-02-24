@@ -4,7 +4,13 @@ import { headers } from "next/headers"
 import { db } from "@/lib/db"
 import { triageQueue } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
-import { createTodoistTaskWithSubtasks } from "@/lib/integrations/todoist"
+import {
+  createTodoistTaskWithSubtasks,
+  fetchTodoistTaskById,
+  upsertTodoistTask,
+  getTodoistIntegrationRow,
+} from "@/lib/integrations/todoist"
+import { decryptToken } from "@/lib/crypto"
 import Anthropic from "@anthropic-ai/sdk"
 
 interface ApproveBody {
@@ -43,6 +49,20 @@ export async function POST(
   })
 
   if (error) return NextResponse.json({ error }, { status: 400 })
+
+  // Sync the new Todoist task into the tasks table so it appears on /tasks
+  try {
+    const row = await getTodoistIntegrationRow(session.user.id)
+    if (row?.accessTokenEncrypted) {
+      const token = decryptToken(row.accessTokenEncrypted)
+      const todoistTask = await fetchTodoistTaskById(token, taskId)
+      if (todoistTask) {
+        await upsertTodoistTask(session.user.id, todoistTask)
+      }
+    }
+  } catch {
+    // Best-effort — task exists in Todoist, will sync on next cron
+  }
 
   await db.update(triageQueue)
     .set({ status: "approved", reviewedAt: new Date(), todoistTaskId: taskId })
