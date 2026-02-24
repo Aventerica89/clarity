@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -35,51 +35,6 @@ const MORE_ITEMS = [
 
 const MORE_PATHS = MORE_ITEMS.map((item) => item.href)
 
-function DebugBanner() {
-  const [info, setInfo] = useState("")
-  useEffect(() => {
-    const update = () => {
-      const standalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-      const sai = getComputedStyle(document.documentElement).getPropertyValue("--safari-toolbar-h")
-      const saib = getComputedStyle(document.documentElement).getPropertyValue("env(safe-area-inset-bottom)")
-      const vh = window.visualViewport?.height ?? "n/a"
-      const ih = window.innerHeight
-      const navEl = document.querySelector("[data-debug-nav]")
-      const navRect = navEl?.getBoundingClientRect()
-      const navBottom = navRect ? Math.round(navRect.bottom) : "n/a"
-      const navTop = navRect ? Math.round(navRect.top) : "n/a"
-
-      const testDiv = document.createElement("div")
-      testDiv.style.cssText = "position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);pointer-events:none"
-      document.body.appendChild(testDiv)
-      const measuredSAIB = testDiv.getBoundingClientRect().height
-      document.body.removeChild(testDiv)
-
-      setInfo(
-        `mode:${standalone ? "PWA" : "Safari"} | ` +
-        `saib:${measuredSAIB}px | toolbar-h:${sai} | ` +
-        `vvH:${vh} iH:${ih} | ` +
-        `nav:${navTop}-${navBottom} screenH:${screen.height}`
-      )
-    }
-    update()
-    window.visualViewport?.addEventListener("resize", update)
-    const t = setInterval(update, 2000)
-    return () => {
-      window.visualViewport?.removeEventListener("resize", update)
-      clearInterval(t)
-    }
-  }, [])
-
-  return (
-    <div className="bg-red-600 text-white text-[10px] px-2 py-1 font-mono leading-tight z-[9999]">
-      {info}
-    </div>
-  )
-}
-
 export function MobileNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -89,11 +44,9 @@ export function MobileNav() {
   return (
     <>
       <nav
-        data-debug-nav
         className="md:hidden fixed inset-x-0 bg-background z-50"
         style={{ bottom: "var(--safari-toolbar-h, 0px)" }}
       >
-        <DebugBanner />
         <div className="flex h-tab-bar border-t">
           {PRIMARY_TABS.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href
