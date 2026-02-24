@@ -70,7 +70,13 @@ export async function scoreGmailMessage(msg: GmailMessage): Promise<TriageScore>
   }
 }
 
-export async function fetchGmailMessages(userId: string, maxResults = 100): Promise<{
+const DEFAULT_GMAIL_QUERY = "in:inbox -category:promotions -category:social -category:updates"
+
+export async function fetchGmailMessages(
+  userId: string,
+  maxResults = 100,
+  query = DEFAULT_GMAIL_QUERY,
+): Promise<{
   messages: GmailMessage[]
   error?: string
 }> {
@@ -105,7 +111,7 @@ export async function fetchGmailMessages(userId: string, maxResults = 100): Prom
     listRes = await gmail.users.messages.list({
       userId: "me",
       maxResults,
-      q: "in:inbox -category:promotions -category:social -category:updates",
+      q: query,
     })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)

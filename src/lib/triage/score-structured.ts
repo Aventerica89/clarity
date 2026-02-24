@@ -3,6 +3,12 @@ interface TriageScore {
   reasoning: string
 }
 
+interface GoogleTaskInput {
+  title: string
+  due: string | null // RFC 3339 timestamp
+  notes: string
+}
+
 interface TodoistInput {
   priority: number // 1=normal, 2=medium, 3=high, 4=urgent
   dueDate: string | null // YYYY-MM-DD
@@ -12,6 +18,37 @@ interface TodoistInput {
 interface CalendarInput {
   startAt: string // ISO datetime
   title: string
+}
+
+export function scoreGoogleTask(input: GoogleTaskInput): TriageScore {
+  const base = 30
+
+  if (!input.due) {
+    return { score: base, reasoning: "Google Task, no due date" }
+  }
+
+  const dueDate = input.due.split("T")[0]
+  const today = new Date().toISOString().split("T")[0]
+
+  if (dueDate < today) {
+    return { score: Math.min(90, base + 55), reasoning: "Google Task, overdue" }
+  }
+  if (dueDate === today) {
+    return { score: Math.min(80, base + 45), reasoning: "Google Task, due today" }
+  }
+
+  const daysUntil = Math.ceil(
+    (new Date(dueDate).getTime() - Date.now()) / 86400000
+  )
+
+  if (daysUntil <= 2) {
+    return { score: Math.min(70, base + 35), reasoning: `Google Task, due in ${daysUntil} day(s)` }
+  }
+  if (daysUntil <= 7) {
+    return { score: Math.min(55, base + 20), reasoning: `Google Task, due in ${daysUntil} days` }
+  }
+
+  return { score: base, reasoning: `Google Task, due in ${daysUntil} days` }
 }
 
 const PRIORITY_BASE: Record<number, number> = { 4: 40, 3: 30, 2: 25, 1: 20 }

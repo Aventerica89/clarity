@@ -2,7 +2,8 @@ import { eq, and } from "drizzle-orm"
 import { db, client } from "@/lib/db"
 import { triageQueue, account, integrations } from "@/lib/schema"
 import { fetchGmailMessages, scoreGmailMessage } from "@/lib/integrations/gmail"
-import { scoreTodoistTask, scoreCalendarEvent } from "./score-structured"
+import { fetchGoogleTasks } from "@/lib/integrations/google-tasks"
+import { scoreTodoistTask, scoreCalendarEvent, scoreGoogleTask } from "./score-structured"
 import { decryptToken } from "@/lib/crypto"
 
 const SCORE_THRESHOLD = 60
@@ -145,6 +146,33 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
     }
   } catch (err) {
     errors.push(`Calendar: ${err instanceof Error ? err.message : String(err)}`)
+  }
+
+  // ── Google Tasks ─────────────────────────────────────────────────────────────
+  try {
+    const { tasks: googleTasks, error: tasksError } = await fetchGoogleTasks(userId)
+
+    if (tasksError && tasksError !== "tasks_scope_missing" && tasksError !== "google_not_connected") {
+      errors.push(`Google Tasks: ${tasksError}`)
+    } else if (!tasksError) {
+      for (const task of googleTasks) {
+        const score = scoreGoogleTask({ title: task.title, due: task.due, notes: task.notes })
+        if (score.score < SCORE_THRESHOLD) { skipped++; continue }
+
+        await upsertTriageItem(userId, {
+          source: "google_tasks",
+          sourceId: task.id,
+          title: task.title,
+          snippet: task.notes.slice(0, 200),
+          aiScore: score.score,
+          aiReasoning: score.reasoning,
+          sourceMetadata: JSON.stringify({ due: task.due, status: task.status }),
+        })
+        added++
+      }
+    }
+  } catch (err) {
+    errors.push(`Google Tasks: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   return { added, skipped, errors }

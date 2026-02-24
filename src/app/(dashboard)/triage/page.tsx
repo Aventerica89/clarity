@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { RefreshCw, Loader2, CheckCircle2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { TriageCard, type TriageItem } from "@/components/triage/triage-card"
 import { ApproveModal } from "@/components/triage/approve-modal"
@@ -24,9 +25,26 @@ export default function TriagePage() {
 
   async function handleScan() {
     setScanning(true)
-    await fetch("/api/triage/scan", { method: "POST" })
-    await loadItems()
-    setScanning(false)
+    try {
+      const res = await fetch("/api/triage/scan", { method: "POST" })
+      const data = (await res.json()) as { added: number; skipped: number; errors: string[] }
+
+      if (data.errors?.length > 0) {
+        toast.warning(`Scan complete with ${data.errors.length} error(s)`, {
+          description: data.errors[0],
+        })
+      } else if (data.added > 0) {
+        toast.success(`Found ${data.added} new item${data.added !== 1 ? "s" : ""}`)
+      } else {
+        toast.info("All up to date")
+      }
+
+      await loadItems()
+    } catch {
+      toast.error("Scan failed — check your connection")
+    } finally {
+      setScanning(false)
+    }
   }
 
   function handleDismiss(id: string) {

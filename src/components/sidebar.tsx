@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { InboxIcon, LayoutDashboard, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
+import { Calendar, InboxIcon, LayoutDashboard, Mail, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const APP_VERSION = "0.1.0"
@@ -18,6 +18,8 @@ interface NavItem {
 
 const STATIC_NAV: NavItem[] = [
   { href: "/", label: "Today", icon: LayoutDashboard },
+  { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/email", label: "Email", icon: Mail },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/routines", label: "Routines", icon: RotateCcw },
   { href: "/life-context", label: "Life Context", icon: MapPin },

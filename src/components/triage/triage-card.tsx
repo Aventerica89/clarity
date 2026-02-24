@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CheckCircle2, X, ArrowUpCircle, Mail, Calendar, CheckSquare } from "lucide-react"
+import { CheckCircle2, X, ArrowUpCircle, Mail, Calendar, CheckSquare, ListTodo } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -10,12 +10,14 @@ const SOURCE_ICONS: Record<string, React.ElementType> = {
   gmail: Mail,
   google_calendar: Calendar,
   todoist: CheckSquare,
+  google_tasks: ListTodo,
 }
 
 const SOURCE_LABELS: Record<string, string> = {
   gmail: "Gmail",
   google_calendar: "Calendar",
   todoist: "Todoist",
+  google_tasks: "Google Tasks",
 }
 
 export interface TriageItem {

@@ -4,7 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  Calendar,
   LayoutDashboard,
+  Mail,
   MapPin,
   MessageSquare,
   MoreHorizontal,
@@ -29,6 +31,8 @@ const PRIMARY_TABS = [
 ]
 
 const MORE_ITEMS = [
+  { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/email", label: "Email", icon: Mail },
   { href: "/life-context", label: "Life Context", icon: MapPin },
   { href: "/profile", label: "Profile", icon: User },
 ]
