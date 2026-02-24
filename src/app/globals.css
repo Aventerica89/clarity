@@ -250,10 +250,21 @@
   }
 }
 
+/* Safari toolbar offset — set by useSafariToolbar hook via visualViewport API.
+   In standalone PWA mode this is always 0px. In Safari browser mode it tracks
+   the dynamic toolbar height that env(safe-area-inset-bottom) does NOT include. */
+:root {
+  --safari-toolbar-h: 0px;
+}
+
 /* Safe area utilities — used by mobile nav and body clearance */
 @media (max-width: 767px) {
   .pb-safe-nav {
-    padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(
+      var(--tab-bar-height)
+      + env(safe-area-inset-bottom, 0px)
+      + var(--safari-toolbar-h, 0px)
+    );
   }
 }
 
