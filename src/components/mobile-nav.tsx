@@ -45,7 +45,7 @@ export function MobileNav() {
     <>
       <nav
         className="md:hidden fixed inset-x-0 bg-background z-50"
-        style={{ bottom: "calc(var(--safari-toolbar-h, 0px) - 4px)" }}
+        style={{ bottom: "calc(var(--safari-toolbar-h, 0px) + var(--pwa-nav-nudge, 0px))" }}
       >
         <div className="flex h-tab-bar border-t">
           {PRIMARY_TABS.map(({ href, label, icon: Icon }) => {

@@ -255,6 +255,11 @@
    the dynamic toolbar height that env(safe-area-inset-bottom) does NOT include. */
 :root {
   --safari-toolbar-h: 0px;
+  --pwa-nav-nudge: 0px;
+}
+
+html[data-standalone] {
+  --pwa-nav-nudge: -6px;
 }
 
 /* Safe area utilities — used by mobile nav and body clearance */
