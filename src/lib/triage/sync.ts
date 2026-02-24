@@ -20,37 +20,42 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
   let skipped = 0
 
   // ── Gmail ──────────────────────────────────────────────────────────────────
-  const { messages, error: gmailError } = await fetchGmailMessages(userId, 100)
+  const { messages, error: gmailError } = await fetchGmailMessages(userId, 25)
 
   if (gmailError && gmailError !== "gmail_scope_missing") {
     errors.push(`Gmail: ${gmailError}`)
   } else if (!gmailError) {
-    const scored = await Promise.allSettled(
-      messages.map(async (msg) => ({
-        msg,
-        score: await scoreGmailMessage(msg),
-      }))
-    )
+    // Score in batches of 5 to avoid Anthropic rate limits (429)
+    const BATCH_SIZE = 5
+    for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+      const batch = messages.slice(i, i + BATCH_SIZE)
+      const scored = await Promise.allSettled(
+        batch.map(async (msg) => ({
+          msg,
+          score: await scoreGmailMessage(msg),
+        }))
+      )
 
-    for (const result of scored) {
-      if (result.status === "rejected") {
-        errors.push(`Gmail scoring: ${result.reason}`)
-        continue
+      for (const result of scored) {
+        if (result.status === "rejected") {
+          errors.push(`Gmail scoring: ${result.reason}`)
+          continue
+        }
+
+        const { msg, score } = result.value
+        if (score.score < SCORE_THRESHOLD) { skipped++; continue }
+
+        await upsertTriageItem(userId, {
+          source: "gmail",
+          sourceId: msg.id,
+          title: msg.subject,
+          snippet: msg.snippet,
+          aiScore: score.score,
+          aiReasoning: score.reasoning,
+          sourceMetadata: JSON.stringify({ threadId: msg.threadId, from: msg.from, date: msg.date }),
+        })
+        added++
       }
-
-      const { msg, score } = result.value
-      if (score.score < SCORE_THRESHOLD) { skipped++; continue }
-
-      await upsertTriageItem(userId, {
-        source: "gmail",
-        sourceId: msg.id,
-        title: msg.subject,
-        snippet: msg.snippet,
-        aiScore: score.score,
-        aiReasoning: score.reasoning,
-        sourceMetadata: JSON.stringify({ threadId: msg.threadId, from: msg.from, date: msg.date }),
-      })
-      added++
     }
   }
 
