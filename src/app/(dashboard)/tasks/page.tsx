@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TasksFilterBar } from "@/components/tasks/tasks-filter-bar"
 import { TaskGroup } from "@/components/tasks/task-group"
+import { CreateTaskModal } from "@/components/tasks/create-task-modal"
+import { SubtaskList } from "@/components/tasks/subtask-list"
 import {
   type TaskItem,
   type TaskFilters,
@@ -18,6 +20,7 @@ export default function TasksPage() {
   const [tab, setTab] = useState("active")
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [createOpen, setCreateOpen] = useState(false)
   const [filters, setFilters] = useState<TaskFilters>({
     source: "all",
     priority: "all",
@@ -52,6 +55,17 @@ export default function TasksPage() {
     setTasks((prev) => prev.filter((t) => t.id !== id))
   }
 
+  async function handleReschedule(id: string, newDate: string) {
+    await fetch(`/api/tasks/${id}/reschedule`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dueDate: newDate }),
+    })
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, dueDate: newDate } : t)),
+    )
+  }
+
   const grouped = groupTasksByDate(tasks)
 
   return (
@@ -59,7 +73,7 @@ export default function TasksPage() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Tasks</h1>
-          <Button size="sm" className="gap-1.5">
+          <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
             <Plus className="size-3.5" />
             New Task
           </Button>
@@ -85,11 +99,24 @@ export default function TasksPage() {
                   group={group as DateGroup}
                   tasks={grouped[group as DateGroup]}
                   onComplete={handleComplete}
+                  onReschedule={handleReschedule}
+                  renderSubtasks={(taskId, sourceId, source) => (
+                    <SubtaskList
+                      taskId={taskId}
+                      sourceId={sourceId}
+                      source={source}
+                    />
+                  )}
                 />
               ))
             )}
           </TabsContent>
         </Tabs>
+        <CreateTaskModal
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          onSuccess={fetchTasks}
+        />
       </div>
     </div>
   )

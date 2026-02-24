@@ -4,6 +4,11 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { tasks } from "@/lib/schema"
+import {
+  createTodoistTaskWithSubtasks,
+  upsertTodoistTask,
+  fetchTodoistTaskById,
+} from "@/lib/integrations/todoist"
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -66,4 +71,73 @@ export async function GET(request: NextRequest) {
   }))
 
   return NextResponse.json({ tasks: items })
+}
+
+interface CreateTaskBody {
+  title: string
+  projectId?: string
+  dueDate?: string
+  priority?: number
+  subtasks?: string[]
+}
+
+export async function POST(request: NextRequest) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const body = (await request.json()) as CreateTaskBody
+
+  if (!body.title?.trim()) {
+    return NextResponse.json({ error: "Title required" }, { status: 400 })
+  }
+
+  // If a Todoist project is selected, create in Todoist first then sync to DB
+  if (body.projectId) {
+    const result = await createTodoistTaskWithSubtasks(session.user.id, {
+      title: body.title,
+      projectId: body.projectId,
+      dueDate: body.dueDate,
+      subtasks: body.subtasks ?? [],
+    })
+
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
+    }
+
+    // Fetch the created task from Todoist to get full data, then upsert to DB
+    try {
+      const { getTodoistIntegrationRow } = await import("@/lib/integrations/todoist")
+      const { decryptToken } = await import("@/lib/crypto")
+      const row = await getTodoistIntegrationRow(session.user.id)
+      if (row?.accessTokenEncrypted) {
+        const token = decryptToken(row.accessTokenEncrypted)
+        const todoistTask = await fetchTodoistTaskById(token, result.taskId)
+        if (todoistTask) {
+          await upsertTodoistTask(session.user.id, todoistTask)
+        }
+      }
+    } catch {
+      // Best-effort DB sync — task exists in Todoist
+    }
+
+    return NextResponse.json({ ok: true, taskId: result.taskId })
+  }
+
+  // Manual task — insert directly into DB
+  const [row] = await db
+    .insert(tasks)
+    .values({
+      userId: session.user.id,
+      source: "manual",
+      title: body.title.trim(),
+      dueDate: body.dueDate ?? null,
+      priorityManual: body.priority ?? 1,
+      labels: "[]",
+      metadata: "{}",
+    })
+    .returning({ id: tasks.id })
+
+  return NextResponse.json({ ok: true, taskId: row.id })
 }

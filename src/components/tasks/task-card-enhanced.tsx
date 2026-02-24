@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Check, Calendar, ChevronDown, ChevronRight } from "lucide-react"
+import { Check, ChevronDown, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SourceBadge } from "./source-badge"
+import { ReschedulePopover } from "./reschedule-popover"
 import { cn } from "@/lib/utils"
 import {
   type TaskItem,
@@ -81,24 +82,23 @@ export function TaskCardEnhanced({
           <p className="text-sm font-medium leading-snug">{task.title}</p>
 
           <div className="flex flex-wrap items-center gap-2 mt-1.5">
-            {task.dueDate && (
-              <button
-                type="button"
-                onClick={() => onReschedule && onReschedule(task.id, task.dueDate!)}
-                disabled={!onReschedule}
+            {task.dueDate && onReschedule ? (
+              <ReschedulePopover
+                taskId={task.id}
+                currentDate={task.dueDate}
+                isOverdue={overdue}
+                onReschedule={onReschedule}
+              />
+            ) : task.dueDate ? (
+              <span
                 className={cn(
-                  "flex items-center gap-1 font-mono text-[11px] rounded px-1.5 py-0.5",
-                  "transition-colors",
-                  overdue
-                    ? "text-destructive bg-destructive/10"
-                    : "text-muted-foreground hover:bg-muted",
-                  !onReschedule && "cursor-default",
+                  "flex items-center gap-1 font-mono text-[11px] px-1.5 py-0.5",
+                  overdue ? "text-destructive" : "text-muted-foreground",
                 )}
               >
-                <Calendar className="size-3" />
                 {overdue ? "Overdue" : task.dueDate}
-              </button>
-            )}
+              </span>
+            ) : null}
             {labels.slice(0, 3).map((label) => (
               <Badge key={label} variant="secondary" className="text-xs px-2 py-0">
                 {label}

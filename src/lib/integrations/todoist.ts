@@ -10,6 +10,7 @@ interface TodoistTask {
   id: string
   content: string
   description?: string
+  project_id?: string
   due?: {
     date: string
     datetime?: string
@@ -97,7 +98,10 @@ export async function upsertTodoistTask(
       dueTime,
       priorityManual: mapPriority(t.priority),
       labels: JSON.stringify(t.labels),
-      metadata: JSON.stringify({ todoistPriority: t.priority }),
+      metadata: JSON.stringify({
+        todoistPriority: t.priority,
+        ...(t.project_id ? { projectId: t.project_id } : {}),
+      }),
     })
     .onConflictDoUpdate({
       target: [tasks.userId, tasks.source, tasks.sourceId],
@@ -108,6 +112,10 @@ export async function upsertTodoistTask(
         dueTime,
         priorityManual: mapPriority(t.priority),
         labels: JSON.stringify(t.labels),
+        metadata: JSON.stringify({
+          todoistPriority: t.priority,
+          ...(t.project_id ? { projectId: t.project_id } : {}),
+        }),
         updatedAt: new Date(),
       },
     })
@@ -260,6 +268,74 @@ export async function fetchTodoistUserProfile(token: string): Promise<{
   }
   const data = (await res.json()) as { id: string; email: string; full_name: string }
   return data
+}
+
+// ── Task mutations ───────────────────────────────────────────────────────────
+
+export async function updateTodoistTask(
+  userId: string,
+  taskId: string,
+  updates: { due_date?: string; content?: string; priority?: number },
+): Promise<void> {
+  const token = await getTodoistToken(userId)
+  if (!token) throw new Error("Todoist not connected")
+
+  const res = await fetch(`${TODOIST_BASE}/tasks/${taskId}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  })
+  if (!res.ok) {
+    throw new Error(`Todoist update error: ${res.status}`)
+  }
+}
+
+export async function fetchTodoistSubtasks(
+  userId: string,
+  parentId: string,
+): Promise<TodoistTask[]> {
+  const token = await getTodoistToken(userId)
+  if (!token) return []
+
+  const url = new URL(`${TODOIST_BASE}/tasks`)
+  url.searchParams.set("parent_id", parentId)
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) return []
+
+  const data = (await res.json()) as { results: TodoistTask[] } | TodoistTask[]
+  return Array.isArray(data) ? data : data.results
+}
+
+export async function addTodoistSubtask(
+  userId: string,
+  parentId: string,
+  content: string,
+  projectId?: string,
+): Promise<{ id: string } | null> {
+  const token = await getTodoistToken(userId)
+  if (!token) return null
+
+  const res = await fetch(`${TODOIST_BASE}/tasks`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      content,
+      parent_id: parentId,
+      ...(projectId ? { project_id: projectId } : {}),
+    }),
+  })
+  if (!res.ok) return null
+
+  return (await res.json()) as { id: string }
 }
 
 // ── Triage: Projects + Task creation with subtasks ───────────────────────────
