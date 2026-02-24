@@ -33,13 +33,29 @@ export function Header() {
   async function handleSync() {
     setSyncing(true)
     try {
-      const res = await fetch("/api/triage/scan", { method: "POST" })
-      const data = (await res.json()) as { added: number; errors: string[] }
+      // Run all syncs in parallel: triage, calendar events, todoist tasks
+      const [triageRes, calRes, todoistRes] = await Promise.all([
+        fetch("/api/triage/scan", { method: "POST" }),
+        fetch("/api/sync/google-calendar", { method: "POST" }),
+        fetch("/api/sync/todoist", { method: "POST" }),
+      ])
 
-      if (data.errors?.length > 0) {
-        toast.warning(`Sync done with ${data.errors.length} error(s)`)
-      } else if (data.added > 0) {
-        toast.success(`Synced ${data.added} new item${data.added !== 1 ? "s" : ""}`)
+      const triage = (await triageRes.json()) as { added: number; errors: string[] }
+      const cal = (await calRes.json()) as { synced?: number; error?: string }
+      const todoist = (await todoistRes.json()) as { synced?: number; error?: string }
+
+      const errors: string[] = [...(triage.errors ?? [])]
+      if (cal.error) errors.push(`Calendar: ${cal.error}`)
+      if (todoist.error) errors.push(`Todoist: ${todoist.error}`)
+
+      const totalSynced = (triage.added ?? 0) + (cal.synced ?? 0) + (todoist.synced ?? 0)
+
+      if (errors.length > 0) {
+        toast.warning(`Sync done with ${errors.length} error(s)`, {
+          description: errors[0],
+        })
+      } else if (totalSynced > 0) {
+        toast.success(`Synced ${totalSynced} item${totalSynced !== 1 ? "s" : ""}`)
       } else {
         toast.info("All up to date")
       }
