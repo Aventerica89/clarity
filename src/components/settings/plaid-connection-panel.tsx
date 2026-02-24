@@ -45,6 +45,10 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // Check for OAuth redirect return (bank OAuth flow)
+  const isOAuthReturn = typeof window !== "undefined"
+    && new URLSearchParams(window.location.search).has("oauth_state_id")
+
   async function fetchLinkToken() {
     setLoading(true)
     setError(null)
@@ -59,6 +63,13 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
       setLoading(false)
     }
   }
+
+  // Auto-fetch link token on OAuth return so Plaid Link can resume
+  useEffect(() => {
+    if (isOAuthReturn && !linkToken) {
+      fetchLinkToken()
+    }
+  }, [isOAuthReturn])
 
   const onPlaidSuccess = useCallback(
     async (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
@@ -92,10 +103,15 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
     [setItems, setError],
   )
 
+  const receivedRedirectUri = isOAuthReturn
+    ? window.location.href
+    : undefined
+
   const { open, ready } = usePlaidLink({
     token: linkToken,
     onSuccess: onPlaidSuccess,
     onExit: () => setLinkToken(null),
+    receivedRedirectUri,
   })
 
   // Auto-open Plaid Link once token is ready
