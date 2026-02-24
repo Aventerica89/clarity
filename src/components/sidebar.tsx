@@ -72,12 +72,21 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
-      <Link
-        href="/changelog"
-        className="px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
-      >
-        v{APP_VERSION}
-      </Link>
+      <div className="flex items-center gap-2 px-3 py-2">
+        <Link
+          href="/changelog"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+        >
+          v{APP_VERSION}
+        </Link>
+        <span className="text-muted-foreground/30">|</span>
+        <Link
+          href="/dev"
+          className="text-xs text-muted-foreground/50 hover:text-foreground transition-colors font-mono"
+        >
+          dev
+        </Link>
+      </div>
     </aside>
   )
 }
