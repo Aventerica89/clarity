@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Calendar, InboxIcon, LayoutDashboard, Mail, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
+import { Calendar, CheckSquare, InboxIcon, LayoutDashboard, Mail, MapPin, MessageSquare, RotateCcw, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const APP_VERSION = "0.1.0"
@@ -41,6 +41,7 @@ export function Sidebar() {
   const navItems: NavItem[] = [
     STATIC_NAV[0],
     { href: "/triage", label: "Triage", icon: InboxIcon, badge: triageCount },
+    { href: "/tasks", label: "Tasks", icon: CheckSquare },
     ...STATIC_NAV.slice(1),
   ]
 

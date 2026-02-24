@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Calendar,
+  CheckSquare,
   LayoutDashboard,
   Mail,
   MapPin,
@@ -25,12 +26,13 @@ import { useSafariToolbar } from "@/lib/use-safari-toolbar"
 
 const PRIMARY_TABS = [
   { href: "/", label: "Today", icon: LayoutDashboard },
+  { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/routines", label: "Routines", icon: RotateCcw },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 const MORE_ITEMS = [
+  { href: "/routines", label: "Routines", icon: RotateCcw },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/email", label: "Email", icon: Mail },
   { href: "/life-context", label: "Life Context", icon: MapPin },
