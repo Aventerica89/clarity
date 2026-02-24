@@ -10,8 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, RefreshCw } from "lucide-react"
+import { Loader2, Moon, Sun, RefreshCw } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
 
 function formatDate() {
   return new Date().toLocaleDateString("en-US", {
@@ -24,6 +27,30 @@ function formatDate() {
 export function Header() {
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
+  const [syncing, setSyncing] = useState(false)
+
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      const res = await fetch("/api/triage/scan", { method: "POST" })
+      const data = (await res.json()) as { added: number; errors: string[] }
+
+      if (data.errors?.length > 0) {
+        toast.warning(`Sync done with ${data.errors.length} error(s)`)
+      } else if (data.added > 0) {
+        toast.success(`Synced ${data.added} new item${data.added !== 1 ? "s" : ""}`)
+      } else {
+        toast.info("All up to date")
+      }
+
+      router.refresh()
+    } catch {
+      toast.error("Sync failed")
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   const initials = session?.user.name
     ?.split(" ")
@@ -46,8 +73,11 @@ export function Header() {
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         </Button>
 
-        <Button variant="ghost" size="icon" aria-label="Sync data">
-          <RefreshCw className="h-4 w-4" />
+        <Button variant="ghost" size="icon" aria-label="Sync data" onClick={handleSync} disabled={syncing}>
+          {syncing
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : <RefreshCw className="h-4 w-4" />
+          }
         </Button>
 
         <DropdownMenu>
