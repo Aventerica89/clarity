@@ -268,7 +268,17 @@
   }
 }
 
-/* Spacer that fills exactly the home-indicator safe area */
+/* Spacer that fills exactly the home-indicator safe area.
+   In PWA standalone mode, iOS already constrains the viewport above
+   the home indicator — the spacer would double-count the safe area. */
 .h-safe-bottom {
   height: env(safe-area-inset-bottom, 0px);
+}
+
+html[data-standalone] .h-safe-bottom {
+  height: 0px;
+}
+
+html[data-standalone] .pb-safe-nav {
+  padding-bottom: var(--tab-bar-height);
 }
