@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { RefreshCw } from "lucide-react"
+import { RefreshCw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function UpdatePrompt() {
@@ -48,8 +48,24 @@ export function UpdatePrompt() {
   }, [])
 
   function handleUpdate() {
-    if (!waitingWorker) return
+    if (!waitingWorker) {
+      // No waiting worker — just reload to pick up latest
+      window.location.reload()
+      return
+    }
     waitingWorker.postMessage("SKIP_WAITING")
+
+    // Fallback: if controllerchange doesn't fire within 2s, force reload
+    setTimeout(() => {
+      if (!reloading.current) {
+        reloading.current = true
+        window.location.reload()
+      }
+    }, 2000)
+  }
+
+  function handleDismiss() {
+    setWaitingWorker(null)
   }
 
   if (!waitingWorker) return null
@@ -66,6 +82,14 @@ export function UpdatePrompt() {
       >
         Update
       </Button>
+      <button
+        type="button"
+        onClick={handleDismiss}
+        className="ml-1 rounded-full p-1 hover:bg-black/10 transition-colors"
+        aria-label="Dismiss"
+      >
+        <X className="size-4" />
+      </button>
     </div>
   )
 }
