@@ -4,6 +4,20 @@ All notable user-facing changes. See CHANGELOG-DEV.md for technical log.
 
 <!-- Entries added by /changelog feature or deploy --feature flag -->
 
+## v0.3.0 — February 24, 2026
+
++ Added   Unified Tasks page — filter by source, priority, and status
++ Added   Task creation with Todoist project picker and subtasks
++ Added   Reschedule tasks from the task list
++ Added   Expand Todoist tasks to view and add subtasks inline
++ Added   Gmail messages cached in database for faster email page
++ Added   GitHub Actions cron sync every 15 minutes
++ Added   Developer wiki page (admin-only)
++ Added   Plaid production bank linking — connect your real bank
+~ Changed  Plaid upgraded from sandbox to production environment
+~ Changed  Triage-approved items now appear on the Tasks page
+* Fixed    Header sync runs all providers in parallel
+
 ## v0.2.0 — February 22, 2026
 
 + Added   Bank account linking via Plaid — see balances and net cash flow

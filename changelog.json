@@ -1,5 +1,22 @@
 [
   {
+    "version": "0.3.0",
+    "date": "2026-02-24",
+    "entries": [
+      { "type": "added", "text": "Unified Tasks page — filter by source, priority, and status" },
+      { "type": "added", "text": "Task creation with Todoist project picker and subtasks" },
+      { "type": "added", "text": "Reschedule tasks from the task list" },
+      { "type": "added", "text": "Expand Todoist tasks to view and add subtasks inline" },
+      { "type": "added", "text": "Gmail messages cached in database for faster email page" },
+      { "type": "added", "text": "GitHub Actions cron sync every 15 minutes" },
+      { "type": "added", "text": "Developer wiki page (admin-only)" },
+      { "type": "added", "text": "Plaid production bank linking — connect your real bank" },
+      { "type": "changed", "text": "Plaid upgraded from sandbox to production environment" },
+      { "type": "changed", "text": "Triage-approved items now appear on the Tasks page" },
+      { "type": "fixed", "text": "Header sync runs all providers in parallel" }
+    ]
+  },
+  {
     "version": "0.2.0",
     "date": "2026-02-22",
     "entries": [

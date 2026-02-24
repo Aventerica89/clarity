@@ -12,3 +12,4 @@
 { "v": "0.2.0", "ts": "2026-02-23T00:19:00Z", "msg": "SW update prompt, hide devtools on mobile", "hash": "b91150f" }
 { "v": "0.2.0", "ts": "2026-02-23T00:30:00Z", "msg": "Backfill changelog, fix mobile nav padding", "hash": "c03ad51" }
 { "v": "0.2.0", "ts": "2026-02-23T00:55:00Z", "msg": "Fix SW update banner + HIG nav tokens", "hash": "d1b0d0b" }
+{ "v": "0.3.0", "ts": "2026-02-24T21:00:00Z", "msg": "Tasks page, Gmail cache, Plaid production", "hash": "dd8805a" }

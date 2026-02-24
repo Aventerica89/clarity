@@ -4,6 +4,28 @@ Technical log. Updated on every deploy.
 
 <!-- Entries added automatically by deploy hook -->
 
+### 2026-02-24 · dd8805a · v0.3.0
+FEAT    plaid — OAuth callback route for bank OAuth flows
+FEAT    plaid — webhook + redirect_uri in link token creation
+FEAT    plaid — resume Plaid Link on OAuth return (receivedRedirectUri)
+FIX     plaid — surface actual Plaid error in create-link-token response
+FIX     plaid — trailing newline in PLAID_SECRET and PLAID_ENV env vars
+CHORE   plaid — switch to production keys and environment
+
+### 2026-02-24 · 8f041de · v0.3.0
+FEAT    tasks — unified /tasks page with source filters, priority, date grouping
+FEAT    tasks — create modal with Todoist project picker + subtasks
+FEAT    tasks — reschedule popover, complete checkbox with Todoist write-back
+FEAT    tasks — expand Todoist tasks to view/add subtasks inline
+FIX     triage — approve now upserts to tasks table (was Todoist-only)
+
+### 2026-02-24 · 22dc0b0 · v0.3.0
+FEAT    email — tabs, archive, favorites for email page
+FEAT    email — Gmail messages cached in DB, served from cache
+FEAT    sync — Gmail added to cron sync + GitHub Actions every 15 min
+FEAT    dev — admin-only /dev wiki page with 5 tabs
+FIX     sync — header sync runs all 4 providers in parallel
+
 ### 2026-02-23 · d1b0d0b · v0.2.0
 FIX     pwa — SW update banner persistence (remove skipWaiting from install handler)
 FIX     pwa — reloading ref guard to prevent double-reload on controllerchange
