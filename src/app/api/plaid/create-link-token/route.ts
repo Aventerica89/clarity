@@ -19,8 +19,11 @@ export async function POST(request: NextRequest) {
       redirect_uri: `${appUrl}/api/plaid/oauth-callback`,
     })
     return NextResponse.json({ link_token: response.data.link_token })
-  } catch (err) {
-    console.error("[plaid] create-link-token error:", err)
-    return NextResponse.json({ error: "Failed to create link token" }, { status: 502 })
+  } catch (err: unknown) {
+    const plaidError = (err as { response?: { data?: unknown } })?.response?.data
+    console.error("[plaid] create-link-token error:", JSON.stringify(plaidError ?? err))
+    const message = (plaidError as { error_message?: string })?.error_message
+      ?? "Failed to create link token"
+    return NextResponse.json({ error: message }, { status: 502 })
   }
 }
