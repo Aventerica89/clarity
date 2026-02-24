@@ -243,6 +243,23 @@ export const plaidAccounts = sqliteTable("plaid_accounts", {
   lastUpdatedAt: integer("last_updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
+// Emails — cached Gmail messages, synced via cron or manual refresh
+export const emails = sqliteTable("emails", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  gmailId: text("gmail_id").notNull(),
+  threadId: text("thread_id").notNull(),
+  subject: text("subject").notNull(),
+  fromRaw: text("from_raw").notNull(),
+  snippet: text("snippet").notNull().default(""),
+  date: text("date").notNull(),
+  isStarred: integer("is_starred", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  uniqueIndex("emails_user_gmail_idx").on(t.userId, t.gmailId),
+])
+
 // Triage queue — AI-scored items from all sources, pending user review
 export const triageQueue = sqliteTable("triage_queue", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
