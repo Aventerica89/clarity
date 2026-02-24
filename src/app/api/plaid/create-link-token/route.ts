@@ -8,12 +8,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const client = createPlaidClient()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     const response = await client.linkTokenCreate({
       user: { client_user_id: session.user.id },
       client_name: "Clarity",
       products: [...PLAID_PRODUCTS],
       country_codes: [...PLAID_COUNTRY_CODES],
       language: "en",
+      webhook: `${appUrl}/api/webhooks/plaid`,
+      redirect_uri: `${appUrl}/api/plaid/oauth-callback`,
     })
     return NextResponse.json({ link_token: response.data.link_token })
   } catch (err) {
