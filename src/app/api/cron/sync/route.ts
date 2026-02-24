@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
     googleError: r.google?.error ?? null,
     todoistSynced: r.todoist?.synced ?? 0,
     todoistError: r.todoist?.error ?? null,
+    gmailSynced: r.gmail?.synced ?? 0,
+    gmailError: r.gmail?.error ?? null,
     plaidSynced: r.plaid?.synced ?? 0,
     plaidError: r.plaid?.error ?? null,
     triageAdded: r.triage?.added ?? 0,
