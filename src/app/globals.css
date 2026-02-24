@@ -259,7 +259,7 @@
 }
 
 html[data-standalone] {
-  --pwa-nav-nudge: -6px;
+  --pwa-nav-nudge: -12px;
 }
 
 /* Safe area utilities — used by mobile nav and body clearance */
