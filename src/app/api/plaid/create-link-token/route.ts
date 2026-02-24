@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       country_codes: [...PLAID_COUNTRY_CODES],
       language: "en",
       webhook: `${appUrl}/api/webhooks/plaid`,
-      redirect_uri: `${appUrl}/settings/`,
+      redirect_uri: `${appUrl}/api/plaid/oauth-callback`,
     })
     return NextResponse.json({ link_token: response.data.link_token })
   } catch (err: unknown) {
