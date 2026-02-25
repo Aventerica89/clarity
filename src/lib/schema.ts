@@ -262,7 +262,6 @@ export const transactions = sqliteTable("transactions", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (t) => [
   uniqueIndex("transactions_plaid_id_idx").on(t.plaidTransactionId),
-  uniqueIndex("transactions_dedup_idx").on(t.userId, t.date, t.amountCents, t.name),
 ])
 
 // Emails — cached Gmail messages, synced via cron or manual refresh
