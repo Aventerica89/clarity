@@ -47,7 +47,7 @@ async function syncPlaidItem(
   item: PlaidItem,
 ): Promise<{ bankBalanceCents: number; netFlowCents: number }> {
   const { decryptToken } = await import("@/lib/crypto")
-  const { plaidAccounts } = await import("@/lib/schema")
+  const { plaidAccounts, transactions } = await import("@/lib/schema")
   const { db } = await import("@/lib/db")
 
   const accessToken = decryptToken(item.accessTokenEncrypted)
@@ -103,7 +103,46 @@ async function syncPlaidItem(
     end_date: now.toISOString().slice(0, 10),
   })
 
-  const netFlowCents = computeNetCashFlowCents(txResponse.data.transactions as TransactionLike[])
+  const plaidTxns = txResponse.data.transactions
+
+  // 3. Persist transactions to DB (upsert by plaid_transaction_id)
+  if (plaidTxns.length > 0) {
+    const txRows = plaidTxns.map((tx) => ({
+      id: crypto.randomUUID(),
+      userId: item.userId,
+      plaidItemId: item.id,
+      accountId: tx.account_id,
+      plaidTransactionId: tx.transaction_id,
+      date: tx.date,
+      amountCents: Math.round(tx.amount * 100),
+      name: tx.name ?? "Unknown",
+      merchantName: tx.merchant_name ?? null,
+      category: tx.personal_finance_category?.primary ?? null,
+      subcategory: tx.personal_finance_category?.detailed ?? null,
+      pending: tx.pending,
+      source: "plaid" as const,
+      updatedAt: now,
+    }))
+
+    // Batch upsert in chunks of 50 to stay under SQLite variable limits
+    for (let i = 0; i < txRows.length; i += 50) {
+      const chunk = txRows.slice(i, i + 50)
+      await db.insert(transactions).values(chunk).onConflictDoUpdate({
+        target: transactions.plaidTransactionId,
+        set: {
+          amountCents: sql`excluded.amount_cents`,
+          name: sql`excluded.name`,
+          merchantName: sql`excluded.merchant_name`,
+          category: sql`excluded.category`,
+          subcategory: sql`excluded.subcategory`,
+          pending: sql`excluded.pending`,
+          updatedAt: sql`excluded.updated_at`,
+        },
+      })
+    }
+  }
+
+  const netFlowCents = computeNetCashFlowCents(plaidTxns as TransactionLike[])
 
   const bankBalanceCents = aggregateBalanceCents(
     plaidAccountList.map((a: { type: string; balances: { current?: number | null } }) => ({

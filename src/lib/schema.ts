@@ -243,6 +243,28 @@ export const plaidAccounts = sqliteTable("plaid_accounts", {
   lastUpdatedAt: integer("last_updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
+// Transactions — from Plaid sync, CSV imports, or n8n
+export const transactions = sqliteTable("transactions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  plaidItemId: text("plaid_item_id").references(() => plaidItems.id, { onDelete: "set null" }),
+  accountId: text("account_id"),                    // plaid_account_id or free-text for CSV
+  plaidTransactionId: text("plaid_transaction_id"), // Plaid's unique ID, null for CSV
+  date: text("date").notNull(),                     // YYYY-MM-DD
+  amountCents: integer("amount_cents").notNull(),   // positive = outflow, negative = inflow
+  name: text("name").notNull(),                     // raw transaction name from bank
+  merchantName: text("merchant_name"),              // cleaned merchant name (Plaid or manual)
+  category: text("category"),                       // primary category (Plaid or AI-assigned)
+  subcategory: text("subcategory"),                 // detailed category
+  pending: integer("pending", { mode: "boolean" }).notNull().default(false),
+  source: text("source").notNull().default("plaid"), // plaid | csv-import | n8n
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  uniqueIndex("transactions_plaid_id_idx").on(t.plaidTransactionId),
+  uniqueIndex("transactions_dedup_idx").on(t.userId, t.date, t.amountCents, t.name),
+])
+
 // Emails — cached Gmail messages, synced via cron or manual refresh
 export const emails = sqliteTable("emails", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
