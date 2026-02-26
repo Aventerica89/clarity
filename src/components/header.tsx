@@ -15,14 +15,7 @@ import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-
-function formatDate() {
-  return new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  })
-}
+import { LiveClock } from "@/components/dashboard/live-clock"
 
 export function Header() {
   const { data: session } = useSession()
@@ -63,6 +56,15 @@ export function Header() {
         toast.info("All up to date")
       }
 
+      // Regenerate day plan with freshly synced data
+      fetch("/api/ai/day-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: localStorage.getItem("clarity-day-plan-model") ?? "haiku" }),
+      }).catch(() => {
+        // Silent — plan card will show stale plan which is fine
+      })
+
       router.refresh()
     } catch {
       toast.error("Sync failed")
@@ -80,7 +82,7 @@ export function Header() {
 
   return (
     <header className="flex min-h-14 items-center justify-between border-b px-4 pt-[env(safe-area-inset-top)]">
-      <span className="text-sm text-muted-foreground">{formatDate()}</span>
+      <LiveClock />
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"

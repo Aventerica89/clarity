@@ -9,6 +9,7 @@ import { lifeContextItems, lifeContextUpdates } from "@/lib/schema"
 const createSchema = z.object({
   content: z.string().min(1).max(2000),
   severity: z.enum(["monitoring", "active", "escalated", "critical", "resolved"]),
+  source: z.enum(["user", "ai"]).default("user"),
 })
 
 export async function GET(
@@ -78,6 +79,7 @@ export async function POST(
       userId: session.user.id,
       content: parsed.data.content,
       severity: parsed.data.severity,
+      source: parsed.data.source,
     })
     .returning()
 

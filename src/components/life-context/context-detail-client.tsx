@@ -100,36 +100,51 @@ export function ContextDetailClient({
           {/* Vertical timeline line */}
           <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
 
-          {updates.map((update, i) => (
-            <div key={update.id} className="relative flex gap-4 pb-6 last:pb-0">
-              {/* Timeline dot */}
-              <div
-                className={cn(
-                  "relative z-10 mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-background",
-                  severityDotColor(update.severity),
-                )}
-              />
-
-              {/* Update content */}
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <SeverityBadge severity={update.severity} size="sm" />
-                  <span className="text-xs text-muted-foreground">
-                    {formatRelativeTime(update.createdAt)}
-                  </span>
-                  {i === 0 && (
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-clarity-amber">
-                      Latest
-                    </span>
+          {updates.map((update, i) => {
+            const isAi = update.source === "ai"
+            return (
+              <div key={update.id} className="relative flex gap-4 pb-6 last:pb-0">
+                {/* Timeline dot */}
+                <div
+                  className={cn(
+                    "relative z-10 mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-background",
+                    isAi ? "bg-blue-400" : severityDotColor(update.severity),
                   )}
+                />
+
+                {/* Update content */}
+                <div
+                  className={cn(
+                    "flex-1 min-w-0 space-y-1",
+                    isAi && "rounded-md bg-blue-500/5 px-3 py-2 -ml-1",
+                  )}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SeverityBadge severity={update.severity} size="sm" />
+                    {isAi && (
+                      <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
+                        AI note
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {formatRelativeTime(update.createdAt)}
+                    </span>
+                    {i === 0 && !isAi && (
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-clarity-amber">
+                        Latest
+                      </span>
+                    )}
+                  </div>
+                  <p className={cn("text-sm leading-relaxed", isAi && "italic text-muted-foreground")}>
+                    {update.content}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/60">
+                    {formatTimestamp(update.createdAt)}
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed">{update.content}</p>
-                <p className="text-[11px] text-muted-foreground/60">
-                  {formatTimestamp(update.createdAt)}
-                </p>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

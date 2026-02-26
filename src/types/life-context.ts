@@ -33,6 +33,7 @@ export interface ContextUpdate {
   contextItemId: string
   content: string
   severity: Severity
+  source?: "user" | "ai"
   createdAt: string | Date
 }
 

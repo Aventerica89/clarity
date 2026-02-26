@@ -8,6 +8,8 @@ import { EventCard } from "@/components/dashboard/event-card"
 import { TaskList } from "@/components/dashboard/task-list"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
 import { LifeContextStrip } from "@/components/dashboard/life-context-strip"
+import { DayPlanCard } from "@/components/dashboard/day-plan-card"
+import { LiveClock } from "@/components/dashboard/live-clock"
 
 const TIMEZONE = "America/Phoenix"
 
@@ -77,10 +79,12 @@ export default async function TodayPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold">Today</h1>
-        <p className="text-muted-foreground text-sm">Your unified view</p>
+        <LiveClock />
       </div>
+
+      <DayPlanCard />
 
       <CoachPanel />
 

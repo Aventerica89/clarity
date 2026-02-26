@@ -155,6 +155,7 @@ export const lifeContextUpdates = sqliteTable("life_context_updates", {
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   severity: text("severity", { enum: ["monitoring", "active", "escalated", "critical", "resolved"] }).notNull().default("active"),
+  source: text("source").notNull().default("user"), // user | ai
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
@@ -313,4 +314,18 @@ export const triageQueue = sqliteTable("triage_queue", {
   reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
 }, (t) => [
   uniqueIndex("triage_user_source_idx").on(t.userId, t.source, t.sourceId),
+])
+
+// Day plans — AI-generated daily plan + 3-day horizon, cached per user per day
+export const dayPlans = sqliteTable("day_plans", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  planDate: text("plan_date").notNull(),
+  todayPlan: text("today_plan").notNull(),
+  horizon: text("horizon").notNull(),
+  model: text("model").notNull().default("haiku"),
+  generatedAt: integer("generated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  contextSnapshot: text("context_snapshot"),
+}, (t) => [
+  uniqueIndex("dp_user_date_idx").on(t.userId, t.planDate),
 ])
