@@ -3,20 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  Calendar,
-  CheckSquare,
-  HelpCircle,
-  LayoutDashboard,
-  Mail,
-  MapPin,
-  MessageSquare,
-  MoreHorizontal,
-  RotateCcw,
-  Settings,
-  User,
-  Wallet,
-} from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -25,24 +12,24 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useSafariToolbar } from "@/lib/use-safari-toolbar"
+import { NAV_ITEMS } from "@/lib/nav-items"
 
-const PRIMARY_TABS = [
-  { href: "/", label: "Today", icon: LayoutDashboard },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/settings", label: "Settings", icon: Settings },
+const PRIMARY_HREFS = ["/", "/tasks", "/chat", "/settings"]
+const MORE_HREFS = [
+  "/getting-started",
+  "/spending",
+  "/routines",
+  "/calendar",
+  "/email",
+  "/life-context",
+  "/profile",
 ]
 
-const MORE_ITEMS = [
-  { href: "/getting-started", label: "Getting Started", icon: HelpCircle },
-  { href: "/spending", label: "Spending", icon: Wallet },
-  { href: "/routines", label: "Routines", icon: RotateCcw },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/email", label: "Email", icon: Mail },
-  { href: "/life-context", label: "Life Context", icon: MapPin },
-  { href: "/profile", label: "Profile", icon: User },
-]
-
+const PRIMARY_TABS = NAV_ITEMS.filter((item) => PRIMARY_HREFS.includes(item.href))
+const MORE_ITEMS = MORE_HREFS.flatMap((href) => {
+  const item = NAV_ITEMS.find((n) => n.href === href)
+  return item ? [item] : []
+})
 const MORE_PATHS = MORE_ITEMS.map((item) => item.href)
 
 export function MobileNav() {

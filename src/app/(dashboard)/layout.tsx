@@ -3,6 +3,7 @@ import { Header } from "@/components/header"
 import { MobileNav } from "@/components/mobile-nav"
 import { InstallGuide } from "@/components/onboarding/install-guide"
 import { UpdatePrompt } from "@/components/pwa/update-prompt"
+import { CommandPalette } from "@/components/command-palette"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <MobileNav />
       <InstallGuide />
       <UpdatePrompt />
+      <CommandPalette />
     </div>
   )
 }
