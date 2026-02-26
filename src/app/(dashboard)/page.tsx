@@ -9,7 +9,15 @@ import { TaskList } from "@/components/dashboard/task-list"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
 import { LifeContextStrip } from "@/components/dashboard/life-context-strip"
 import { LiveClock } from "@/components/dashboard/live-clock"
-import { TodayClientLayout } from "@/components/dashboard/today-client-layout"
+import { TodayMobileShell } from "@/components/dashboard/today-mobile-shell"
+import { DayPlanV3 } from "@/components/dashboard/day-plan"
+import { WidgetSidebar } from "@/components/dashboard/widgets/widget-sidebar"
+import { WeatherWidget } from "@/components/dashboard/widgets/weather-widget"
+import { FinanceWidget } from "@/components/dashboard/widgets/finance-widget"
+import { RunwayWidget } from "@/components/dashboard/widgets/runway-widget"
+import { StreaksWidget } from "@/components/dashboard/widgets/streaks-widget"
+import { TriageWidget } from "@/components/dashboard/widgets/triage-widget"
+import { WeekWidget } from "@/components/dashboard/widgets/week-widget"
 
 const TIMEZONE = "America/Phoenix"
 
@@ -24,6 +32,15 @@ function todayRange() {
 function todayDateString() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
 }
+
+const WIDGETS = [
+  { id: "weather", component: <WeatherWidget /> },
+  { id: "finance", component: <FinanceWidget /> },
+  { id: "runway", component: <RunwayWidget /> },
+  { id: "streaks", component: <StreaksWidget /> },
+  { id: "triage", component: <TriageWidget /> },
+  { id: "week", component: <WeekWidget /> },
+]
 
 export default async function TodayPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -82,23 +99,18 @@ export default async function TodayPage() {
         <LiveClock />
       </div>
 
-      <CoachPanel />
-
-      {/* Two-column layout: Day Plan (left) + Widgets (right) */}
-      <TodayClientLayout />
-
-      <LifeContextStrip
-        items={lifeContextRows}
-        snapshot={financialRows[0] ?? null}
-      />
-
-      <div className="grid gap-6 md:grid-cols-[3fr_2fr]">
-        <div className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Tasks
-            {pendingTasks.length > 0 && <span className="ml-1.5 normal-case">({pendingTasks.length})</span>}
-          </h2>
-          {pendingTasks.length === 0 ? (
+      <TodayMobileShell
+        coachSlot={<CoachPanel />}
+        planSlot={<DayPlanV3 />}
+        widgetsSlot={<WidgetSidebar widgets={WIDGETS} />}
+        contextSlot={
+          <LifeContextStrip
+            items={lifeContextRows}
+            snapshot={financialRows[0] ?? null}
+          />
+        }
+        tasksSlot={
+          pendingTasks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No pending tasks. Connect Todoist in Settings to sync.
             </p>
@@ -114,15 +126,10 @@ export default async function TodayPage() {
                 labels: t.labels,
               }))}
             />
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Events
-            {todayEvents.length > 0 && <span className="ml-1.5 normal-case">({todayEvents.length})</span>}
-          </h2>
-          {todayEvents.length === 0 ? (
+          )
+        }
+        eventsSlot={
+          todayEvents.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No events today. Connect Google Calendar in Settings to sync.
             </p>
@@ -141,9 +148,11 @@ export default async function TodayPage() {
                 }}
               />
             ))
-          )}
-        </div>
-      </div>
+          )
+        }
+        taskCount={pendingTasks.length}
+        eventCount={todayEvents.length}
+      />
     </div>
   )
 }
