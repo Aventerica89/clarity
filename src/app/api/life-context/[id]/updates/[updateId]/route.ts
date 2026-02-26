@@ -7,7 +7,7 @@ import { db } from "@/lib/db"
 import { lifeContextUpdates } from "@/lib/schema"
 
 const updateSchema = z.object({
-  content: z.string().min(1).max(2000),
+  content: z.string().min(1).max(20000),
   severity: z.enum(["monitoring", "active", "escalated", "critical", "resolved"]),
 })
 

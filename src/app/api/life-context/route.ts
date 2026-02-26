@@ -8,7 +8,7 @@ import { lifeContextItems } from "@/lib/schema"
 
 const createSchema = z.object({
   title: z.string().min(1).max(200),
-  description: z.string().max(2000).default(""),
+  description: z.string().max(20000).default(""),
   urgency: z.enum(["monitoring", "active", "escalated", "critical", "resolved"]).default("active"),
 })
 
