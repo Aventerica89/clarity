@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { lifeContextItems, lifeContextUpdates } from "@/lib/schema"
+import { fetchPinsForContext } from "@/lib/pins"
 import { ContextDetailClient } from "@/components/life-context/context-detail-client"
 
 export default async function ContextItemPage({
@@ -31,16 +32,19 @@ export default async function ContextItemPage({
 
   if (!item) notFound()
 
-  const updates = await db
-    .select()
-    .from(lifeContextUpdates)
-    .where(
-      and(
-        eq(lifeContextUpdates.contextItemId, id),
-        eq(lifeContextUpdates.userId, session.user.id),
-      ),
-    )
-    .orderBy(desc(lifeContextUpdates.createdAt))
+  const [updates, pins] = await Promise.all([
+    db
+      .select()
+      .from(lifeContextUpdates)
+      .where(
+        and(
+          eq(lifeContextUpdates.contextItemId, id),
+          eq(lifeContextUpdates.userId, session.user.id),
+        ),
+      )
+      .orderBy(desc(lifeContextUpdates.createdAt)),
+    fetchPinsForContext(id, session.user.id),
+  ])
 
   return (
     <div className="space-y-6">
@@ -70,6 +74,7 @@ export default async function ContextItemPage({
           source: (u.source ?? "user") as "user" | "ai",
           createdAt: u.createdAt.toISOString(),
         }))}
+        initialPins={pins}
       />
     </div>
   )

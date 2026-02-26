@@ -2,7 +2,19 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react"
+import Link from "next/link"
+import {
+  CalendarDays,
+  CheckSquare,
+  Layers,
+  Loader2,
+  Mail,
+  MapPin,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RichEditor } from "@/components/ui/rich-editor"
 import { RichContent } from "@/components/ui/rich-content"
@@ -10,26 +22,59 @@ import {
   type Severity,
   type ContextItem,
   type ContextUpdate,
+  type ContextPin,
+  type PinnedItemType,
   SEVERITY_LIST,
   SEVERITY_LABELS,
   SEVERITY_CLASSES,
   formatTimestamp,
   formatRelativeTime,
 } from "@/types/life-context"
+import { PinSearchDialog } from "@/components/life-context/pin-search-dialog"
+
+const PIN_TYPE_ICONS: Record<PinnedItemType, typeof CheckSquare> = {
+  task: CheckSquare,
+  email: Mail,
+  event: CalendarDays,
+  context: Layers,
+}
+
+const PIN_TYPE_LABELS: Record<PinnedItemType, string> = {
+  task: "Task",
+  email: "Email",
+  event: "Event",
+  context: "Context",
+}
+
+const PIN_LINK_DESTINATIONS: Record<PinnedItemType, (id: string) => string> = {
+  task: () => "/tasks",
+  email: () => "/email",
+  event: () => "/calendar",
+  context: (id) => `/life-context/${id}`,
+}
 
 interface ContextDetailClientProps {
   item: ContextItem
   initialUpdates: ContextUpdate[]
+  initialPins?: ContextPin[]
 }
+
+// Unified timeline entry: update or pin
+type TimelineEntry =
+  | { kind: "update"; data: ContextUpdate }
+  | { kind: "pin"; data: ContextPin }
 
 export function ContextDetailClient({
   item,
   initialUpdates,
+  initialPins = [],
 }: ContextDetailClientProps) {
   const router = useRouter()
   const [updates, setUpdates] = useState<ContextUpdate[]>(initialUpdates)
+  const [pins, setPins] = useState<ContextPin[]>(initialPins)
   const [currentSeverity, setCurrentSeverity] = useState<Severity>(item.urgency)
   const [showForm, setShowForm] = useState(false)
+  const [showPinSearch, setShowPinSearch] = useState(false)
 
   const [editing, setEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(item.title)
@@ -182,6 +227,14 @@ export function ContextDetailClient({
             <div className="ml-auto flex items-center gap-1">
               <button
                 type="button"
+                onClick={() => setShowPinSearch(true)}
+                className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-violet-500/10 hover:text-violet-500"
+                title="Pin item"
+              >
+                <MapPin className="size-4" />
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setEditTitle(displayTitle)
                   setEditDescription(displayDescription)
@@ -275,36 +328,70 @@ export function ContextDetailClient({
         )}
       </div>
 
-      {/* Timeline */}
-      {updates.length === 0 && !showForm && (
-        <p className="text-sm text-muted-foreground">
-          No updates yet. Add one to track progress.
-        </p>
-      )}
+      {/* Timeline — merged updates + pins, sorted by createdAt DESC */}
+      {(() => {
+        const timeline: TimelineEntry[] = [
+          ...updates.map((u) => ({ kind: "update" as const, data: u })),
+          ...pins.map((p) => ({ kind: "pin" as const, data: p })),
+        ].sort((a, b) => {
+          const aDate = new Date(a.data.createdAt).getTime()
+          const bDate = new Date(b.data.createdAt).getTime()
+          return bDate - aDate
+        })
 
-      {updates.length > 0 && (
-        <div className="relative space-y-0">
-          {/* Vertical timeline line */}
-          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
+        if (timeline.length === 0 && !showForm) {
+          return (
+            <p className="text-sm text-muted-foreground">
+              No updates yet. Add one to track progress.
+            </p>
+          )
+        }
 
-          {updates.map((update, i) => (
-            <TimelineEntry
-              key={update.id}
-              itemId={item.id}
-              update={update}
-              isLatest={i === 0}
-              onUpdated={(updated) => {
-                setUpdates((prev) =>
-                  prev.map((u) => (u.id === updated.id ? updated : u)),
+        const firstUpdateIdx = timeline.findIndex((e) => e.kind === "update")
+
+        return (
+          <div className="relative space-y-0">
+            <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
+            {timeline.map((entry, i) => {
+              if (entry.kind === "update") {
+                return (
+                  <UpdateTimelineEntry
+                    key={entry.data.id}
+                    itemId={item.id}
+                    update={entry.data}
+                    isLatest={i === firstUpdateIdx}
+                    onUpdated={(updated) => {
+                      setUpdates((prev) =>
+                        prev.map((u) => (u.id === updated.id ? updated : u)),
+                      )
+                    }}
+                    onDeleted={(id) => {
+                      setUpdates((prev) => prev.filter((u) => u.id !== id))
+                    }}
+                  />
                 )
-              }}
-              onDeleted={(id) => {
-                setUpdates((prev) => prev.filter((u) => u.id !== id))
-              }}
-            />
-          ))}
-        </div>
-      )}
+              }
+              return (
+                <PinTimelineEntry
+                  key={entry.data.id}
+                  itemId={item.id}
+                  pin={entry.data}
+                  onUnpinned={(pinId) => {
+                    setPins((prev) => prev.filter((p) => p.id !== pinId))
+                  }}
+                />
+              )
+            })}
+          </div>
+        )
+      })()}
+
+      <PinSearchDialog
+        contextItemId={item.id}
+        open={showPinSearch}
+        onOpenChange={setShowPinSearch}
+        onPinCreated={(pin) => setPins((prev) => [pin, ...prev])}
+      />
     </div>
   )
 }
@@ -340,7 +427,94 @@ function severityDotColor(severity: Severity): string {
   return map[severity]
 }
 
-function TimelineEntry({
+function PinTimelineEntry({
+  itemId,
+  pin,
+  onUnpinned,
+}: {
+  itemId: string
+  pin: ContextPin
+  onUnpinned: (pinId: string) => void
+}) {
+  const [unpinning, setUnpinning] = useState(false)
+  const Icon = PIN_TYPE_ICONS[pin.pinnedType]
+  const linkTo = PIN_LINK_DESTINATIONS[pin.pinnedType](pin.pinnedId)
+
+  async function handleUnpin() {
+    setUnpinning(true)
+    try {
+      const res = await fetch(`/api/life-context/${itemId}/pins/${pin.id}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        onUnpinned(pin.id)
+      }
+    } finally {
+      setUnpinning(false)
+    }
+  }
+
+  return (
+    <div className="group relative flex gap-4 pb-6 last:pb-0">
+      {/* Violet dot for pins */}
+      <div className="relative z-10 mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-background bg-violet-500" />
+
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-500 ring-1 ring-inset ring-violet-500/20">
+            <Icon className="size-3" />
+            {PIN_TYPE_LABELS[pin.pinnedType]}
+          </span>
+          <Link
+            href={linkTo}
+            className="text-sm font-medium hover:underline truncate"
+          >
+            {pin.resolved.title}
+          </Link>
+          <span className="text-xs text-muted-foreground">
+            {formatRelativeTime(pin.createdAt)}
+          </span>
+
+          {/* Unpin button — hover reveal */}
+          <div className="ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 md:opacity-0 max-md:opacity-100">
+            <button
+              type="button"
+              onClick={handleUnpin}
+              disabled={unpinning}
+              className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+              title="Unpin"
+            >
+              {unpinning ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <X className="size-3" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {pin.resolved.subtitle && (
+          <p className="text-xs text-muted-foreground">{pin.resolved.subtitle}</p>
+        )}
+        {pin.note && (
+          <p className="text-xs text-muted-foreground italic">
+            &ldquo;{pin.note}&rdquo;
+          </p>
+        )}
+        {pin.direction === "incoming" && (
+          <p className="text-[10px] text-muted-foreground/60">
+            Linked from another context
+          </p>
+        )}
+        <p className="text-[11px] text-muted-foreground/60">
+          {formatTimestamp(pin.createdAt)}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function UpdateTimelineEntry({
   itemId,
   update,
   isLatest,

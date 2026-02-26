@@ -159,6 +159,19 @@ export const lifeContextUpdates = sqliteTable("life_context_updates", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
+// Context pins — lightweight links between a life context item and tasks, emails, events, or other context items
+export const contextPins = sqliteTable("context_pins", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  contextItemId: text("context_item_id").notNull().references(() => lifeContextItems.id, { onDelete: "cascade" }),
+  pinnedType: text("pinned_type").notNull(), // task | email | event | context
+  pinnedId: text("pinned_id").notNull(),
+  note: text("note"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  uniqueIndex("context_pins_unique").on(t.contextItemId, t.pinnedType, t.pinnedId),
+])
+
 // User profile — biographical background for AI personalization
 export const userProfile = sqliteTable("user_profile", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),

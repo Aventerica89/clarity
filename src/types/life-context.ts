@@ -37,6 +37,26 @@ export interface ContextUpdate {
   createdAt: string | Date
 }
 
+// ─── Context Pins ────────────────────────────────────────────────────────────
+
+export type PinnedItemType = "task" | "email" | "event" | "context"
+
+export interface ContextPin {
+  id: string
+  contextItemId: string
+  pinnedType: PinnedItemType
+  pinnedId: string
+  note: string | null
+  createdAt: string | Date
+  direction: "outgoing" | "incoming"
+  resolved: {
+    title: string
+    subtitle: string | null
+  }
+}
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+
 export function formatRelativeTime(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date
   const now = new Date()
