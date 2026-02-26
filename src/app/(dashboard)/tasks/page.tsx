@@ -69,8 +69,7 @@ export default function TasksPage() {
   const grouped = groupTasksByDate(tasks)
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+    <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Tasks</h1>
           <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
@@ -117,7 +116,6 @@ export default function TasksPage() {
           onClose={() => setCreateOpen(false)}
           onSuccess={fetchTasks}
         />
-      </div>
     </div>
   )
 }

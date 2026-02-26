@@ -435,7 +435,7 @@ function RoadmapSection({ title, items }: {
 
 export function DevWiki() {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold">Dev</h1>

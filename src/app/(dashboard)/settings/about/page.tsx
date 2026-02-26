@@ -120,7 +120,7 @@ const DATA_SOURCES = [
 
 export default function AboutPage() {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">

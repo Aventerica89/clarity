@@ -122,7 +122,7 @@ export default async function SettingsPage() {
   }))
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground text-sm">Manage your connected integrations and preferences.</p>
