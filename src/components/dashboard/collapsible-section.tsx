@@ -21,7 +21,7 @@ export function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   return (
-    <section id={id} className="scroll-mt-14">
+    <section id={id} className="min-w-0 scroll-mt-14">
       <button
         type="button"
         onClick={onToggle}
