@@ -1,13 +1,30 @@
 import { and, asc, desc, eq, gt, gte, isNull, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { events, financialSnapshot, integrations, lifeContextItems, routineCompletions, routines, routineCosts, tasks, triageQueue, userProfile } from "@/lib/schema"
+import { events, financialSnapshot, integrations, lifeContextItems, lifeContextUpdates, routineCompletions, routines, routineCosts, tasks, triageQueue, userProfile } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
 
 // User timezone — America/Phoenix has no DST (UTC-7 year-round)
 const TIMEZONE = process.env.CLARITY_TIMEZONE ?? "America/Phoenix"
 
-type LifeContextItem = { title: string; description: string; urgency: "monitoring" | "active" | "escalated" | "critical" | "resolved" }
+type LifeContextItem = { id: string; title: string; description: string; urgency: "monitoring" | "active" | "escalated" | "critical" | "resolved" }
+type LifeContextUpdateRow = { contextItemId: string; content: string; severity: string; createdAt: Date }
 type FinancialSnap = { bankBalanceCents: number; monthlyBurnCents: number; notes: string | null } | null
+
+const SEVERITY_WEIGHT: Record<string, number> = {
+  critical: 0,
+  escalated: 1,
+  active: 2,
+  monitoring: 3,
+  resolved: 4,
+}
+
+const SEVERITY_LABEL: Record<string, string> = {
+  critical: "CRITICAL",
+  escalated: "ESCALATED",
+  active: "ACTIVE",
+  monitoring: "MONITORING",
+  resolved: "RESOLVED",
+}
 type UserProfileData = typeof userProfile.$inferSelect
 type RoutineCostRow = typeof routineCosts.$inferSelect
 
@@ -59,18 +76,40 @@ function formatRoutineCostsBlock(costs: RoutineCostRow[]): string {
   return lines.join("\n")
 }
 
-export function formatLifeContext(items: LifeContextItem[], snap: FinancialSnap): string {
+export function formatLifeContext(
+  items: LifeContextItem[],
+  snap: FinancialSnap,
+  recentUpdates: LifeContextUpdateRow[] = [],
+): string {
   if (items.length === 0 && !snap) return ""
 
   const lines: string[] = ["[Life Context]"]
 
+  // Group updates by context item (max 3 per item, already ordered desc)
+  const updatesByItem = new Map<string, LifeContextUpdateRow[]>()
+  for (const u of recentUpdates) {
+    const existing = updatesByItem.get(u.contextItemId) ?? []
+    if (existing.length < 3) {
+      existing.push(u)
+      updatesByItem.set(u.contextItemId, existing)
+    }
+  }
+
   const sorted = [...items].sort((a, b) => {
-    if (a.urgency === b.urgency) return 0
-    return a.urgency === "critical" ? -1 : 1
+    return (SEVERITY_WEIGHT[a.urgency] ?? 4) - (SEVERITY_WEIGHT[b.urgency] ?? 4)
   })
+
   for (const item of sorted) {
-    const label = item.urgency === "critical" ? "CRITICAL" : "ACTIVE"
+    const label = SEVERITY_LABEL[item.urgency] ?? "ACTIVE"
     lines.push(`${label}: ${item.title}${item.description ? ` — ${item.description}` : ""}`)
+
+    const updates = updatesByItem.get(item.id)
+    if (updates && updates.length > 0) {
+      for (const u of updates) {
+        const dateStr = u.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        lines.push(`  ${dateStr}: ${u.content} [${SEVERITY_LABEL[u.severity] ?? u.severity}]`)
+      }
+    }
   }
 
   if (snap && (snap.bankBalanceCents > 0 || snap.monthlyBurnCents > 0)) {
@@ -191,6 +230,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     profileRows,
     costsRows,
     triageRows,
+    contextUpdateRows,
   ] = await Promise.all([
     // Next 3 hours of events
     db
@@ -255,6 +295,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     // Active life context items
     db
       .select({
+        id: lifeContextItems.id,
         title: lifeContextItems.title,
         description: lifeContextItems.description,
         urgency: lifeContextItems.urgency,
@@ -293,6 +334,19 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
       .where(and(eq(triageQueue.userId, userId), eq(triageQueue.status, "pending")))
       .orderBy(desc(triageQueue.aiScore))
       .limit(15),
+
+    // Recent life context updates (last 3 per item, newest first)
+    db
+      .select({
+        contextItemId: lifeContextUpdates.contextItemId,
+        content: lifeContextUpdates.content,
+        severity: lifeContextUpdates.severity,
+        createdAt: lifeContextUpdates.createdAt,
+      })
+      .from(lifeContextUpdates)
+      .where(eq(lifeContextUpdates.userId, userId))
+      .orderBy(desc(lifeContextUpdates.createdAt))
+      .limit(30),
   ])
 
   // Deduplicate: overdue query may include today's tasks if lte boundary is inclusive
@@ -319,7 +373,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
 
   const profileBlock = formatProfileBlock(profileRows[0] ?? null)
   const costsBlock = formatRoutineCostsBlock(costsRows)
-  const lifeContextBlock = formatLifeContext(lifeContextRows, financialRows[0] ?? null)
+  const lifeContextBlock = formatLifeContext(lifeContextRows, financialRows[0] ?? null, contextUpdateRows)
 
   const lines: string[] = []
 
