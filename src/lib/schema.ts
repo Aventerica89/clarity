@@ -257,6 +257,8 @@ export const transactions = sqliteTable("transactions", {
   category: text("category"),                       // primary category (Plaid or AI-assigned)
   subcategory: text("subcategory"),                 // detailed category
   pending: integer("pending", { mode: "boolean" }).notNull().default(false),
+  isRecurring: integer("is_recurring", { mode: "boolean" }).notNull().default(false),
+  accountLabel: text("account_label"),               // "personal" | "business" | custom label
   source: text("source").notNull().default("plaid"), // plaid | csv-import | n8n
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),

@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Settings,
   User,
+  Wallet,
 } from "lucide-react"
 import {
   Sheet,
@@ -32,6 +33,7 @@ const PRIMARY_TABS = [
 ]
 
 const MORE_ITEMS = [
+  { href: "/spending", label: "Spending", icon: Wallet },
   { href: "/routines", label: "Routines", icon: RotateCcw },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/email", label: "Email", icon: Mail },
