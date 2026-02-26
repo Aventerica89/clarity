@@ -242,6 +242,50 @@
   }
 }
 
+/* Tiptap editor styles */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+/* Task list checkbox styling */
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+  background-color: var(--clarity-amber);
+  border-color: var(--clarity-amber);
+}
+
+.tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--clarity-amber-foreground);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 /* PWA standalone mode overrides */
 @media (display-mode: standalone) {
   /* Installed PWA: extend app background behind status bar + home indicator */

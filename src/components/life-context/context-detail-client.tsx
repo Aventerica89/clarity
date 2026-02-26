@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { RichEditor } from "@/components/ui/rich-editor"
+import { RichContent } from "@/components/ui/rich-content"
 import {
   type Severity,
   type ContextItem,
@@ -116,14 +118,12 @@ export function ContextDetailClient({
             <label className="text-xs text-muted-foreground">
               Description
             </label>
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              rows={3}
-              className={cn(
-                "w-full resize-none rounded-sm border bg-transparent px-3 py-2 text-sm",
-                "focus-visible:border-clarity-amber/40 focus-visible:outline-none",
-              )}
+            <RichEditor
+              content={editDescription}
+              onChange={setEditDescription}
+              placeholder="Describe this context item..."
+              minHeight="120px"
+              autofocus={false}
             />
           </div>
           <div className="space-y-1.5">
@@ -227,9 +227,10 @@ export function ContextDetailClient({
             </div>
           </div>
           {displayDescription && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {displayDescription}
-            </p>
+            <RichContent
+              content={displayDescription}
+              className="text-muted-foreground"
+            />
           )}
           <p className="text-xs text-muted-foreground">
             Created {formatTimestamp(item.createdAt)}
@@ -321,9 +322,10 @@ export function ContextDetailClient({
                       </span>
                     )}
                   </div>
-                  <p className={cn("text-sm leading-relaxed", isAi && "italic text-muted-foreground")}>
-                    {update.content}
-                  </p>
+                  <RichContent
+                    content={update.content}
+                    className={cn(isAi && "italic text-muted-foreground")}
+                  />
                   <p className="text-[11px] text-muted-foreground/60">
                     {formatTimestamp(update.createdAt)}
                   </p>
@@ -368,6 +370,11 @@ function severityDotColor(severity: Severity): string {
   return map[severity]
 }
 
+function isEditorEmpty(html: string): boolean {
+  const stripped = html.replace(/<[^>]*>/g, "").trim()
+  return stripped.length === 0
+}
+
 function UpdateForm({
   itemId,
   currentSeverity,
@@ -386,7 +393,7 @@ function UpdateForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!content.trim()) return
+    if (isEditorEmpty(content)) return
     setSaving(true)
     setError(null)
 
@@ -394,7 +401,7 @@ function UpdateForm({
       const res = await fetch(`/api/life-context/${itemId}/updates`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: content.trim(), severity }),
+        body: JSON.stringify({ content, severity }),
       })
       if (!res.ok) {
         setError("Failed to save update.")
@@ -414,15 +421,11 @@ function UpdateForm({
       onSubmit={handleSubmit}
       className="rounded-lg border bg-card p-4 space-y-3"
     >
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
+      <RichEditor
+        onChange={setContent}
         placeholder="What's changed? How is this situation progressing?"
-        rows={3}
-        className={cn(
-          "w-full resize-none rounded-sm border bg-transparent px-3 py-2 text-sm",
-          "focus-visible:border-clarity-amber/40 focus-visible:outline-none",
-        )}
+        minHeight="200px"
+        autofocus
       />
 
       <div className="space-y-1.5">
@@ -461,7 +464,7 @@ function UpdateForm({
         </button>
         <button
           type="submit"
-          disabled={saving || !content.trim()}
+          disabled={saving || isEditorEmpty(content)}
           className={cn(
             "flex items-center gap-1.5 rounded-md px-3 py-1.5",
             "text-xs font-medium",
