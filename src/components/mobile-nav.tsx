@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import {
   Calendar,
   CheckSquare,
+  HelpCircle,
   LayoutDashboard,
   Mail,
   MapPin,
@@ -33,6 +34,7 @@ const PRIMARY_TABS = [
 ]
 
 const MORE_ITEMS = [
+  { href: "/getting-started", label: "Getting Started", icon: HelpCircle },
   { href: "/spending", label: "Spending", icon: Wallet },
   { href: "/routines", label: "Routines", icon: RotateCcw },
   { href: "/calendar", label: "Calendar", icon: Calendar },

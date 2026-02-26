@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Calendar, CheckSquare, InboxIcon, LayoutDashboard, Mail, MapPin, MessageSquare, RotateCcw, Settings, User, Wallet } from "lucide-react"
+import { Calendar, CheckSquare, HelpCircle, InboxIcon, LayoutDashboard, Mail, MapPin, MessageSquare, RotateCcw, Settings, User, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0"
@@ -17,6 +17,7 @@ interface NavItem {
 }
 
 const STATIC_NAV: NavItem[] = [
+  { href: "/getting-started", label: "Getting Started", icon: HelpCircle },
   { href: "/", label: "Today", icon: LayoutDashboard },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/email", label: "Email", icon: Mail },
@@ -39,11 +40,12 @@ export function Sidebar() {
   }, [pathname])
 
   const navItems: NavItem[] = [
-    STATIC_NAV[0],
+    STATIC_NAV[0], // Getting Started
+    STATIC_NAV[1], // Today
     { href: "/triage", label: "Triage", icon: InboxIcon, badge: triageCount },
     { href: "/tasks", label: "Tasks", icon: CheckSquare },
     { href: "/spending", label: "Spending", icon: Wallet },
-    ...STATIC_NAV.slice(1),
+    ...STATIC_NAV.slice(2),
   ]
 
   return (
