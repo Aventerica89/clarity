@@ -287,52 +287,22 @@ export function ContextDetailClient({
           {/* Vertical timeline line */}
           <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
 
-          {updates.map((update, i) => {
-            const isAi = update.source === "ai"
-            return (
-              <div key={update.id} className="relative flex gap-4 pb-6 last:pb-0">
-                {/* Timeline dot */}
-                <div
-                  className={cn(
-                    "relative z-10 mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-background",
-                    isAi ? "bg-blue-400" : severityDotColor(update.severity),
-                  )}
-                />
-
-                {/* Update content */}
-                <div
-                  className={cn(
-                    "flex-1 min-w-0 space-y-1",
-                    isAi && "rounded-md bg-blue-500/5 px-3 py-2 -ml-1",
-                  )}
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SeverityBadge severity={update.severity} size="sm" />
-                    {isAi && (
-                      <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
-                        AI note
-                      </span>
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(update.createdAt)}
-                    </span>
-                    {i === 0 && !isAi && (
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-clarity-amber">
-                        Latest
-                      </span>
-                    )}
-                  </div>
-                  <RichContent
-                    content={update.content}
-                    className={cn(isAi && "italic text-muted-foreground")}
-                  />
-                  <p className="text-[11px] text-muted-foreground/60">
-                    {formatTimestamp(update.createdAt)}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
+          {updates.map((update, i) => (
+            <TimelineEntry
+              key={update.id}
+              itemId={item.id}
+              update={update}
+              isLatest={i === 0}
+              onUpdated={(updated) => {
+                setUpdates((prev) =>
+                  prev.map((u) => (u.id === updated.id ? updated : u)),
+                )
+              }}
+              onDeleted={(id) => {
+                setUpdates((prev) => prev.filter((u) => u.id !== id))
+              }}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -368,6 +338,236 @@ function severityDotColor(severity: Severity): string {
     resolved: "bg-green-500",
   }
   return map[severity]
+}
+
+function TimelineEntry({
+  itemId,
+  update,
+  isLatest,
+  onUpdated,
+  onDeleted,
+}: {
+  itemId: string
+  update: ContextUpdate
+  isLatest: boolean
+  onUpdated: (u: ContextUpdate) => void
+  onDeleted: (id: string) => void
+}) {
+  const isAi = update.source === "ai"
+  const [editing, setEditing] = useState(false)
+  const [editContent, setEditContent] = useState(update.content)
+  const [editSeverity, setEditSeverity] = useState<Severity>(update.severity)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [confirmDel, setConfirmDel] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleSave() {
+    if (isEditorEmpty(editContent)) return
+    setSaving(true)
+    setError(null)
+    try {
+      const res = await fetch(
+        `/api/life-context/${itemId}/updates/${update.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: editContent,
+            severity: editSeverity,
+          }),
+        },
+      )
+      if (!res.ok) {
+        setError("Failed to save.")
+        return
+      }
+      const data = (await res.json()) as { update: ContextUpdate }
+      onUpdated(data.update)
+      setEditing(false)
+    } catch {
+      setError("Network error.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(
+        `/api/life-context/${itemId}/updates/${update.id}`,
+        { method: "DELETE" },
+      )
+      if (!res.ok) {
+        setConfirmDel(false)
+        setDeleting(false)
+        return
+      }
+      onDeleted(update.id)
+    } catch {
+      setConfirmDel(false)
+      setDeleting(false)
+    }
+  }
+
+  if (editing) {
+    return (
+      <div className="relative flex gap-4 pb-6 last:pb-0">
+        <div
+          className={cn(
+            "relative z-10 mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-background",
+            isAi ? "bg-blue-400" : severityDotColor(update.severity),
+          )}
+        />
+        <div className="flex-1 min-w-0 space-y-3 rounded-lg border bg-card p-3">
+          <RichEditor
+            content={editContent}
+            onChange={setEditContent}
+            placeholder="Update content..."
+            minHeight="120px"
+            autofocus
+          />
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">Severity</label>
+            <div className="flex flex-wrap gap-2">
+              {SEVERITY_LIST.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setEditSeverity(s)}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                    editSeverity === s
+                      ? cn("ring-1 ring-inset", SEVERITY_CLASSES[s])
+                      : "border text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {SEVERITY_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              disabled={saving}
+              className="rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || isEditorEmpty(editContent)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5",
+                "text-xs font-medium",
+                "bg-clarity-amber text-clarity-amber-foreground hover:bg-clarity-amber/90",
+                "disabled:opacity-50",
+              )}
+            >
+              {saving && <Loader2 className="size-3 animate-spin" />}
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="group relative flex gap-4 pb-6 last:pb-0">
+      {/* Timeline dot */}
+      <div
+        className={cn(
+          "relative z-10 mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-background",
+          isAi ? "bg-blue-400" : severityDotColor(update.severity),
+        )}
+      />
+
+      {/* Update content */}
+      <div
+        className={cn(
+          "flex-1 min-w-0 space-y-1",
+          isAi && "rounded-md bg-blue-500/5 px-3 py-2 -ml-1",
+        )}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <SeverityBadge severity={update.severity} size="sm" />
+          {isAi && (
+            <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
+              AI note
+            </span>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {formatRelativeTime(update.createdAt)}
+          </span>
+          {isLatest && !isAi && (
+            <span className="text-[10px] font-medium uppercase tracking-wider text-clarity-amber">
+              Latest
+            </span>
+          )}
+          {/* Edit / Delete — visible on hover (always visible on touch) */}
+          {!isAi && (
+            <div className="ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 md:opacity-0 max-md:opacity-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditContent(update.content)
+                  setEditSeverity(update.severity)
+                  setError(null)
+                  setEditing(true)
+                }}
+                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                title="Edit update"
+              >
+                <Pencil className="size-3" />
+              </button>
+              {confirmDel ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="rounded bg-destructive px-2 py-0.5 text-[10px] font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                  >
+                    {deleting ? "..." : "Delete"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDel(false)}
+                    disabled={deleting}
+                    className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDel(true)}
+                  className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  title="Delete update"
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <RichContent
+          content={update.content}
+          className={cn(isAi && "italic text-muted-foreground")}
+        />
+        <p className="text-[11px] text-muted-foreground/60">
+          {formatTimestamp(update.createdAt)}
+        </p>
+      </div>
+    </div>
+  )
 }
 
 function isEditorEmpty(html: string): boolean {

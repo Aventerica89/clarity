@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { Calendar, CheckSquare, InboxIcon, LayoutDashboard, Mail, MapPin, MessageSquare, RotateCcw, Settings, User, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const APP_VERSION = "0.1.0"
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0"
 
 interface NavItem {
   href: string

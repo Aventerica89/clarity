@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs"
 import type { NextConfig } from "next"
+
+const { version } = JSON.parse(readFileSync("./package.json", "utf-8")) as { version: string }
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -23,6 +26,9 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: version,
+  },
   async headers() {
     return [
       {
