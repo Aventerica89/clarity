@@ -6,7 +6,7 @@ import { decryptToken } from "@/lib/crypto"
 // User timezone — America/Phoenix has no DST (UTC-7 year-round)
 const TIMEZONE = process.env.CLARITY_TIMEZONE ?? "America/Phoenix"
 
-type LifeContextItem = { title: string; description: string; urgency: "active" | "critical" }
+type LifeContextItem = { title: string; description: string; urgency: "monitoring" | "active" | "escalated" | "critical" | "resolved" }
 type FinancialSnap = { bankBalanceCents: number; monthlyBurnCents: number; notes: string | null } | null
 type UserProfileData = typeof userProfile.$inferSelect
 type RoutineCostRow = typeof routineCosts.$inferSelect

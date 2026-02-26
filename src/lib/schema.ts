@@ -142,10 +142,20 @@ export const lifeContextItems = sqliteTable("life_context_items", {
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
-  urgency: text("urgency", { enum: ["active", "critical"] }).notNull().default("active"),
+  urgency: text("urgency", { enum: ["monitoring", "active", "escalated", "critical", "resolved"] }).notNull().default("active"),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+})
+
+// Life context updates — timestamped progress entries per context item
+export const lifeContextUpdates = sqliteTable("life_context_updates", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  contextItemId: text("context_item_id").notNull().references(() => lifeContextItems.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  severity: text("severity", { enum: ["monitoring", "active", "escalated", "critical", "resolved"] }).notNull().default("active"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
 // User profile — biographical background for AI personalization

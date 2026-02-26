@@ -3,34 +3,26 @@
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-type Urgency = "active" | "critical"
+import {
+  type Severity,
+  SEVERITY_LIST,
+  SEVERITY_LABELS,
+  SEVERITY_CLASSES,
+} from "@/types/life-context"
 
 type FormValues = {
   title: string
   description: string
-  urgency: Urgency
+  urgency: Severity
 }
 
 type SavedItem = {
   id: string
   title: string
   description: string
-  urgency: Urgency
+  urgency: Severity
   createdAt: Date
   updatedAt: Date
-}
-
-const URGENCY_OPTIONS: { value: Urgency; label: string }[] = [
-  { value: "active", label: "Active" },
-  { value: "critical", label: "Critical" },
-]
-
-const URGENCY_ACTIVE_CLASSES: Record<Urgency, string> = {
-  active:
-    "bg-clarity-amber/10 text-clarity-amber ring-1 ring-inset ring-clarity-amber/20",
-  critical:
-    "bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/20",
 }
 
 export function LifeContextForm({
@@ -48,7 +40,7 @@ export function LifeContextForm({
   const [description, setDescription] = useState(
     initialValues?.description ?? "",
   )
-  const [urgency, setUrgency] = useState<Urgency>(
+  const [urgency, setUrgency] = useState<Severity>(
     initialValues?.urgency ?? "active",
   )
   const [saving, setSaving] = useState(false)
@@ -85,7 +77,7 @@ export function LifeContextForm({
           id: string
           title: string
           description: string
-          urgency: Urgency
+          urgency: Severity
           createdAt: string
           updatedAt: string
         }
@@ -143,20 +135,20 @@ export function LifeContextForm({
 
       <div className="space-y-2">
         <label className="text-xs text-muted-foreground">Urgency</label>
-        <div className="flex gap-2">
-          {URGENCY_OPTIONS.map((option) => (
+        <div className="flex flex-wrap gap-2">
+          {SEVERITY_LIST.map((s) => (
             <button
-              key={option.value}
+              key={s}
               type="button"
-              onClick={() => setUrgency(option.value)}
+              onClick={() => setUrgency(s)}
               className={cn(
-                "min-h-[44px] rounded-full px-4 py-2.5 text-xs font-medium transition-colors",
-                urgency === option.value
-                  ? URGENCY_ACTIVE_CLASSES[option.value]
+                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                urgency === s
+                  ? cn("ring-1 ring-inset", SEVERITY_CLASSES[s])
                   : "border text-muted-foreground hover:text-foreground",
               )}
             >
-              {option.label}
+              {SEVERITY_LABELS[s]}
             </button>
           ))}
         </div>

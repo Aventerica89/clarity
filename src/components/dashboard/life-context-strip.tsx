@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 interface LifeContextItem {
   id: string
   title: string
-  urgency: "active" | "critical"
+  urgency: "monitoring" | "active" | "escalated" | "critical" | "resolved"
 }
 
 interface FinancialSnap {

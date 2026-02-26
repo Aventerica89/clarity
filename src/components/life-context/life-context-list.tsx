@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Pencil, Trash2, Plus } from "lucide-react"
+import Link from "next/link"
+import { ChevronRight, Pencil, Trash2, Plus } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -10,26 +11,20 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { LifeContextForm } from "./life-context-form"
-
-type Urgency = "active" | "critical"
+import {
+  type Severity,
+  SEVERITY_LABELS,
+  SEVERITY_CLASSES,
+  formatRelativeTime,
+} from "@/types/life-context"
 
 type ContextItem = {
   id: string
   title: string
   description: string
-  urgency: Urgency
+  urgency: Severity
   createdAt: Date
   updatedAt: Date
-}
-
-const URGENCY_BADGE_CLASSES: Record<Urgency, string> = {
-  active: "bg-muted text-foreground ring-border",
-  critical: "bg-destructive/10 text-destructive ring-destructive/20",
-}
-
-const URGENCY_LABEL: Record<Urgency, string> = {
-  active: "Active",
-  critical: "Critical",
 }
 
 export function LifeContextList({
@@ -110,26 +105,34 @@ export function LifeContextList({
       {items.length > 0 && (
         <div className="rounded-lg border bg-card divide-y">
           {items.map((item) => (
-            <div key={item.id} className="flex items-start justify-between gap-3 p-4">
-              <div className="min-w-0 flex-1">
+            <div key={item.id} className="flex items-center gap-3 p-4">
+              <Link
+                href={`/life-context/${item.id}`}
+                className="min-w-0 flex-1 group"
+              >
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[13px] font-medium">{item.title}</p>
+                  <p className="text-[13px] font-medium group-hover:text-clarity-amber transition-colors">
+                    {item.title}
+                  </p>
                   <span
                     className={cn(
                       "inline-flex items-center rounded-full px-2 py-0.5",
                       "text-[11px] font-medium ring-1 ring-inset",
-                      URGENCY_BADGE_CLASSES[item.urgency],
+                      SEVERITY_CLASSES[item.urgency],
                     )}
                   >
-                    {URGENCY_LABEL[item.urgency]}
+                    {SEVERITY_LABELS[item.urgency]}
                   </span>
                 </div>
                 {item.description && (
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground line-clamp-1">
                     {item.description}
                   </p>
                 )}
-              </div>
+                <p className="mt-1 text-[11px] text-muted-foreground/60">
+                  Updated {formatRelativeTime(item.updatedAt)}
+                </p>
+              </Link>
               <div className="flex flex-shrink-0 gap-1">
                 <button
                   type="button"
@@ -157,6 +160,16 @@ export function LifeContextList({
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
                 </button>
+                <Link
+                  href={`/life-context/${item.id}`}
+                  className={cn(
+                    "relative flex size-9 items-center justify-center rounded-md",
+                    "text-muted-foreground transition-colors hover:text-foreground",
+                  )}
+                  aria-label={`View ${item.title}`}
+                >
+                  <ChevronRight className="size-4" aria-hidden="true" />
+                </Link>
               </div>
             </div>
           ))}
