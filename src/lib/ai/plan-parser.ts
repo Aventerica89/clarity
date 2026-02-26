@@ -35,23 +35,55 @@ const PERIODS: { period: TimeBlock["period"]; label: string; range: string }[] =
   { period: "evening", label: "Evening", range: "6 PM \u2013 10 PM" },
 ]
 
+/** Split "Title — description" or "Title - description" into [title, meta] */
+function splitTitleMeta(raw: string): { title: string; meta: string } {
+  const dashIdx = raw.search(/\s[—–-]\s/)
+  if (dashIdx === -1) return { title: raw.trim(), meta: "" }
+  return {
+    title: raw.slice(0, dashIdx).trim(),
+    meta: raw.slice(dashIdx).replace(/^\s[—–-]\s/, "").trim(),
+  }
+}
+
+const KNOWN_SOURCES = new Set([
+  "priority", "calendar", "todoist", "routine", "gmail", "manual",
+])
+
 function parsePlanItem(line: string): PlanItem | null {
   const cleaned = line.replace(/^-\s*/, "").trim()
   if (cleaned.toLowerCase().includes("no items scheduled")) return null
   if (cleaned.length === 0) return null
 
-  // Parse: **8:00 AM** | Title | Meta | SOURCE
-  const pipeMatch = cleaned.match(
+  // Format A: **8:00 AM** | Title | Meta | SOURCE (3 pipes)
+  const threeMatch = cleaned.match(
     /\*\*([^*]+)\*\*\s*\|\s*([^|]+)\|\s*([^|]*)\|\s*(\w+)/,
   )
-  if (pipeMatch) {
-    const src = pipeMatch[4].trim().toLowerCase()
+  if (threeMatch) {
+    const src = threeMatch[4].trim().toLowerCase()
     return {
-      time: pipeMatch[1].trim(),
-      title: pipeMatch[2].trim(),
-      meta: pipeMatch[3].trim(),
-      source: src,
+      time: threeMatch[1].trim(),
+      title: threeMatch[2].trim(),
+      meta: threeMatch[3].trim(),
+      source: KNOWN_SOURCES.has(src) ? src : "manual",
       isPriority: src === "priority",
+    }
+  }
+
+  // Format B: **8:00 AM** | Title — desc | SOURCE (2 pipes)
+  const twoMatch = cleaned.match(
+    /\*\*([^*]+)\*\*\s*\|\s*(.+?)\s*\|\s*(\w+)\s*$/,
+  )
+  if (twoMatch) {
+    const src = twoMatch[3].trim().toLowerCase()
+    if (KNOWN_SOURCES.has(src)) {
+      const { title, meta } = splitTitleMeta(twoMatch[2].trim())
+      return {
+        time: twoMatch[1].trim(),
+        title,
+        meta,
+        source: src,
+        isPriority: src === "priority",
+      }
     }
   }
 
@@ -60,10 +92,11 @@ function parsePlanItem(line: string): PlanItem | null {
     /\*\*([^*]+)\*\*\s*[-\u2014\u2013]\s*(.+)/,
   )
   if (dashMatch) {
+    const { title, meta } = splitTitleMeta(dashMatch[2].trim())
     return {
       time: dashMatch[1].trim(),
-      title: dashMatch[2].trim(),
-      meta: "",
+      title,
+      meta,
       source: "manual",
       isPriority: false,
     }

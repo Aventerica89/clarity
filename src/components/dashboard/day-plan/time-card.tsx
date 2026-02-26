@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { TimeBlock, PlanItem } from "@/lib/ai/plan-parser"
@@ -11,13 +12,13 @@ const PERIOD_COLORS = {
   evening: "bg-indigo-400",
 } as const
 
-const SOURCE_LABELS: Record<string, { label: string; accent: boolean }> = {
-  priority: { label: "Priority", accent: true },
-  calendar: { label: "Calendar", accent: false },
-  todoist: { label: "Todoist", accent: false },
-  routine: { label: "Routine", accent: false },
-  gmail: { label: "Gmail", accent: false },
-  manual: { label: "Manual", accent: false },
+const SOURCE_LABELS: Record<string, { label: string; accent: boolean; href: string }> = {
+  priority: { label: "Priority", accent: true, href: "/life-context" },
+  calendar: { label: "Calendar", accent: false, href: "/calendar" },
+  todoist: { label: "Todoist", accent: false, href: "/tasks" },
+  routine: { label: "Routine", accent: false, href: "/routines" },
+  gmail: { label: "Gmail", accent: false, href: "/email" },
+  manual: { label: "Manual", accent: false, href: "/life-context" },
 }
 
 function getCurrentPeriod(): "morning" | "afternoon" | "evening" {
@@ -56,18 +57,19 @@ function PlanItemRow({ item }: { item: PlanItem }) {
       <div className="min-w-0 flex-1">
         <div className="text-[13px] font-medium leading-snug">{item.title}</div>
         {(item.meta || item.source) && (
-          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
             {item.meta && <span>{item.meta}</span>}
-            <span
+            <Link
+              href={sourceInfo.href}
               className={cn(
-                "inline-flex items-center rounded-full px-1.5 py-px text-[10px] font-medium uppercase tracking-wider",
+                "inline-flex items-center rounded-full px-1.5 py-px text-[10px] font-medium uppercase tracking-wider transition-colors",
                 sourceInfo.accent
-                  ? "bg-clarity-amber/10 text-clarity-amber"
-                  : "bg-muted text-muted-foreground",
+                  ? "bg-clarity-amber/10 text-clarity-amber hover:bg-clarity-amber/20"
+                  : "bg-muted text-muted-foreground hover:text-foreground",
               )}
             >
               {sourceInfo.label}
-            </span>
+            </Link>
           </div>
         )}
       </div>
