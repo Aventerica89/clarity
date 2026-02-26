@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
   const dateRange = searchParams.get("dateRange") ?? "30d"
   const search = searchParams.get("search") ?? ""
   const recurring = searchParams.get("recurring")
+  const plaidItemId = searchParams.get("plaidItemId")
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "200", 10), 500)
   const offset = parseInt(searchParams.get("offset") ?? "0", 10)
 
@@ -43,6 +44,11 @@ export async function GET(request: NextRequest) {
     } else {
       conditions.push(eq(transactions.accountId, account))
     }
+  }
+
+  // Plaid item filter (all accounts under one institution)
+  if (plaidItemId) {
+    conditions.push(eq(transactions.plaidItemId, plaidItemId))
   }
 
   // Recurring filter

@@ -61,19 +61,6 @@ export function SpendingFilterBar({ filters, onChange }: SpendingFilterBarProps)
         </SelectContent>
       </Select>
 
-      <Select
-        value={filters.account}
-        onValueChange={(v) => onChange({ ...filters, account: v })}
-      >
-        <SelectTrigger className="w-[130px] h-8 text-xs">
-          <SelectValue placeholder="Account" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All accounts</SelectItem>
-          <SelectItem value="personal">Personal</SelectItem>
-          <SelectItem value="business">Business</SelectItem>
-        </SelectContent>
-      </Select>
     </div>
   )
 }

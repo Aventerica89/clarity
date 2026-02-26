@@ -4,18 +4,39 @@ import { useState, useEffect, useCallback } from "react"
 import { SpendingFilterBar } from "@/components/spending/spending-filter-bar"
 import { TransactionRow } from "@/components/spending/transaction-row"
 import {
+  AccountSidebar,
+  type SpendingInstitution,
+} from "@/components/spending/account-sidebar"
+import {
   type TransactionItem,
   type TransactionFilters,
   DEFAULT_FILTERS,
   formatDate,
   groupTransactionsByDate,
 } from "@/types/transaction"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export function TransactionList() {
   const [txns, setTxns] = useState<TransactionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<TransactionFilters>(DEFAULT_FILTERS)
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [institutions, setInstitutions] = useState<SpendingInstitution[]>([])
+  const [selectedInstitution, setSelectedInstitution] = useState("all")
+
+  // Fetch institutions once on mount
+  useEffect(() => {
+    fetch("/api/spending/accounts")
+      .then((r) => r.json())
+      .then((d) => setInstitutions(d.institutions ?? []))
+      .catch(() => {})
+  }, [])
 
   // Debounce search input (300ms) to avoid firing on every keystroke
   useEffect(() => {
@@ -28,8 +49,13 @@ export function TransactionList() {
     const params = new URLSearchParams({
       dateRange: filters.dateRange,
       category: filters.category,
-      account: filters.account,
     })
+    if (filters.account !== "all") {
+      params.set("account", filters.account)
+    }
+    if (selectedInstitution !== "all") {
+      params.set("plaidItemId", selectedInstitution)
+    }
     if (debouncedSearch.trim()) {
       params.set("search", debouncedSearch)
     }
@@ -43,14 +69,19 @@ export function TransactionList() {
     } finally {
       setLoading(false)
     }
-  }, [filters.dateRange, filters.category, filters.account, debouncedSearch])
+  }, [
+    filters.dateRange,
+    filters.category,
+    filters.account,
+    selectedInstitution,
+    debouncedSearch,
+  ])
 
   useEffect(() => {
     fetchTransactions()
   }, [fetchTransactions])
 
   async function handleToggleRecurring(id: string) {
-    // Optimistic update
     setTxns((prev) =>
       prev.map((t) =>
         t.id === id ? { ...t, isRecurring: !t.isRecurring } : t,
@@ -62,7 +93,6 @@ export function TransactionList() {
         method: "PATCH",
       })
       if (!res.ok) {
-        // Revert on failure
         setTxns((prev) =>
           prev.map((t) =>
             t.id === id ? { ...t, isRecurring: !t.isRecurring } : t,
@@ -70,7 +100,6 @@ export function TransactionList() {
         )
       }
     } catch {
-      // Revert on error
       setTxns((prev) =>
         prev.map((t) =>
           t.id === id ? { ...t, isRecurring: !t.isRecurring } : t,
@@ -83,38 +112,72 @@ export function TransactionList() {
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
 
   return (
-    <div className="space-y-4">
-      <SpendingFilterBar filters={filters} onChange={setFilters} />
-
-      {loading ? (
-        <TransactionsLoadingSkeleton />
-      ) : txns.length === 0 ? (
-        <TransactionsEmptyState />
-      ) : (
-        <div className="space-y-4">
-          {sortedDates.map((date) => (
-            <div key={date}>
-              <div className="flex items-center justify-between px-3 mb-1">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {formatDate(date)}
-                </span>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {dailyTotal(grouped[date])}
-                </span>
-              </div>
-              <div className="rounded-lg border bg-card divide-y">
-                {grouped[date].map((txn) => (
-                  <TransactionRow
-                    key={txn.id}
-                    transaction={txn}
-                    onToggleRecurring={handleToggleRecurring}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="flex gap-6">
+      {/* Desktop: vertical sidebar */}
+      {institutions.length > 0 && (
+        <AccountSidebar
+          institutions={institutions}
+          selected={selectedInstitution}
+          onSelect={setSelectedInstitution}
+        />
       )}
+
+      {/* Main content */}
+      <div className="flex-1 min-w-0 space-y-4">
+        {/* Mobile: institution dropdown */}
+        {institutions.length > 0 && (
+          <div className="md:hidden">
+            <Select
+              value={selectedInstitution}
+              onValueChange={setSelectedInstitution}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All Accounts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Accounts</SelectItem>
+                {institutions.map((inst) => (
+                  <SelectItem key={inst.id} value={inst.id}>
+                    {inst.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <SpendingFilterBar filters={filters} onChange={setFilters} />
+
+        {loading ? (
+          <TransactionsLoadingSkeleton />
+        ) : txns.length === 0 ? (
+          <TransactionsEmptyState />
+        ) : (
+          <div className="space-y-4">
+            {sortedDates.map((date) => (
+              <div key={date}>
+                <div className="flex items-center justify-between px-3 mb-1">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {formatDate(date)}
+                  </span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {dailyTotal(grouped[date])}
+                  </span>
+                </div>
+                <div className="rounded-lg border bg-card divide-y">
+                  {grouped[date].map((txn) => (
+                    <TransactionRow
+                      key={txn.id}
+                      transaction={txn}
+                      onToggleRecurring={handleToggleRecurring}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
