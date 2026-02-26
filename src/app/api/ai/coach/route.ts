@@ -195,20 +195,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build messages array: context injected fresh on the first user turn
-    const contextPrefix = `Here is my current context:\n\n${context}\n\n`
+    // Build messages array: fresh context injected on EVERY user turn
+    const contextPrefix = `[Current context — refreshed just now]\n\n${context}\n\n---\n\n`
     const history = (historyRows.reverse()) as ChatMessage[]
 
-    let messages: ChatMessage[]
-    if (history.length === 0) {
-      messages = [{ role: "user", content: `${contextPrefix}${question}` }]
-    } else {
-      const [firstMsg, ...rest] = history
-      const firstWithContext: ChatMessage = firstMsg.role === "user"
-        ? { role: "user", content: `${contextPrefix}${firstMsg.content}` }
-        : firstMsg
-      messages = [...[firstWithContext, ...rest], { role: "user", content: question }]
-    }
+    const messages: ChatMessage[] = [
+      ...history,
+      { role: "user", content: `${contextPrefix}${question}` },
+    ]
 
     let text: string | undefined
 

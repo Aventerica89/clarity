@@ -7,8 +7,12 @@ import { decryptToken } from "@/lib/crypto"
 const TIMEZONE = process.env.CLARITY_TIMEZONE ?? "America/Phoenix"
 
 type LifeContextItem = { id: string; title: string; description: string; urgency: "monitoring" | "active" | "escalated" | "critical" | "resolved" }
-type LifeContextUpdateRow = { contextItemId: string; content: string; severity: string; createdAt: Date }
+type LifeContextUpdateRow = { contextItemId: string; content: string; severity: string; source: string; createdAt: Date }
 type FinancialSnap = { bankBalanceCents: number; monthlyBurnCents: number; notes: string | null } | null
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").trim()
+}
 
 const SEVERITY_WEIGHT: Record<string, number> = {
   critical: 0,
@@ -101,13 +105,15 @@ export function formatLifeContext(
 
   for (const item of sorted) {
     const label = SEVERITY_LABEL[item.urgency] ?? "ACTIVE"
-    lines.push(`${label}: ${item.title}${item.description ? ` — ${item.description}` : ""}`)
+    const desc = item.description ? ` — ${stripHtml(item.description)}` : ""
+    lines.push(`${label}: ${item.title}${desc}`)
 
     const updates = updatesByItem.get(item.id)
     if (updates && updates.length > 0) {
       for (const u of updates) {
         const dateStr = u.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        lines.push(`  ${dateStr}: ${u.content} [${SEVERITY_LABEL[u.severity] ?? u.severity}]`)
+        const sourceTag = u.source === "ai" ? " (AI note)" : ""
+        lines.push(`  ${dateStr}: ${stripHtml(u.content)} [${SEVERITY_LABEL[u.severity] ?? u.severity}]${sourceTag}`)
       }
     }
   }
@@ -341,6 +347,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
         contextItemId: lifeContextUpdates.contextItemId,
         content: lifeContextUpdates.content,
         severity: lifeContextUpdates.severity,
+        source: lifeContextUpdates.source,
         createdAt: lifeContextUpdates.createdAt,
       })
       .from(lifeContextUpdates)
