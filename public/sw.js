@@ -34,13 +34,16 @@ self.addEventListener("activate", (event) => {
   )
 })
 
-// Fetch: network-first for navigation, cache-first for static assets.
+// Fetch: network-first for navigation and Next.js assets, cache-first
+// only for explicitly pre-cached app shell resources.
 self.addEventListener("fetch", (event) => {
   const { request } = event
 
   // Only handle same-origin GET requests.
   if (request.method !== "GET") return
   if (!request.url.startsWith(self.location.origin)) return
+
+  const url = new URL(request.url)
 
   // Navigation requests: always go to network (ensures fresh HTML).
   if (request.mode === "navigate") {
@@ -50,9 +53,28 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  // Static assets: try cache first, fallback to network.
+  // Next.js build assets (_next/*) and API routes: network-only.
+  // Vercel CDN handles caching — the SW should never interfere.
+  if (url.pathname.startsWith("/_next/") || url.pathname.startsWith("/api/")) {
+    return // Let the browser handle it directly.
+  }
+
+  // Everything else (app shell, manifest, icons): stale-while-revalidate.
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    caches.match(request).then((cached) => {
+      const networkFetch = fetch(request)
+        .then((response) => {
+          // Update the cache with the fresh response.
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => cached) // Network failed — return stale cache or undefined.
+
+      return cached || networkFetch
+    })
   )
 })
 
