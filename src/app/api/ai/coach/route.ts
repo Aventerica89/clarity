@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { asc, desc, eq, and } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { aiRatelimit } from "@/lib/ratelimit"
 import { chatSessions, coachMessages, lifeContextItems, lifeContextUpdates } from "@/lib/schema"
 import { buildContext, getAnthropicToken, getGeminiToken, getDeepSeekToken, getGroqToken } from "@/lib/ai/coach"
 import { createAnthropicClient, createGeminiClient, callDeepSeek, callGroq, type ChatMessage } from "@/lib/ai/client"
@@ -130,6 +131,11 @@ export async function POST(request: NextRequest) {
     const session = await auth.api.getSession({ headers: request.headers })
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { success } = await aiRatelimit.limit(session.user.id)
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests. Try again shortly." }, { status: 429 })
     }
 
     const body = await request.json().catch(() => ({})) as {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { and, asc, eq, gte, lte } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { aiRatelimit } from "@/lib/ratelimit"
 import { dayPlans, events, lifeContextItems, lifeContextUpdates } from "@/lib/schema"
 import {
   buildContext,
@@ -187,6 +188,11 @@ export async function POST(request: NextRequest) {
     const session = await auth.api.getSession({ headers: request.headers })
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { success } = await aiRatelimit.limit(session.user.id)
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests. Try again shortly." }, { status: 429 })
     }
 
     const body = (await request.json().catch(() => ({}))) as {

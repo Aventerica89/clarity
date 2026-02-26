@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 import { and, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { integrations, tasks } from "@/lib/schema"
@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
     .update(rawBody)
     .digest("base64")
 
-  if (signature !== expectedHmac) {
+  const sigBuf = Buffer.from(signature, "base64")
+  const expectedBuf = Buffer.from(expectedHmac, "base64")
+  if (sigBuf.length !== expectedBuf.length || !timingSafeEqual(sigBuf, expectedBuf)) {
     return ack()
   }
 

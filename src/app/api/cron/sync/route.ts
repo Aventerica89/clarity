@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { db } from "@/lib/db"
 import { account } from "@/lib/schema"
 import { syncAllUsers } from "@/lib/sync/orchestrator"
@@ -8,7 +9,11 @@ export async function POST(request: NextRequest) {
   if (!cronSecret) {
     return NextResponse.json({ error: "Cron not configured" }, { status: 503 })
   }
-  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  const provided = request.headers.get("authorization") ?? ""
+  const expected = `Bearer ${cronSecret}`
+  const providedBuf = Buffer.from(provided)
+  const expectedBuf = Buffer.from(expected)
+  if (providedBuf.length !== expectedBuf.length || !timingSafeEqual(providedBuf, expectedBuf)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
