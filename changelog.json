@@ -1,5 +1,38 @@
 [
   {
+    "version": "0.5.0",
+    "date": "2026-02-26",
+    "entries": [
+      { "type": "added", "text": "AI day plan — structured morning/afternoon/evening time blocks generated from your full context" },
+      { "type": "added", "text": "3-day horizon outlook — upcoming events, deadlines, and clear days at a glance" },
+      { "type": "added", "text": "Widget sidebar — weather, finance chart, runway gauge, streaks, triage, and week progress" },
+      { "type": "added", "text": "Suggestion chips under the day plan for quick coach questions" },
+      { "type": "added", "text": "Edit and delete buttons on life context items" },
+      { "type": "added", "text": "Rich text editor for life context updates — bullet lists, checklists, headings, bold/italic" },
+      { "type": "added", "text": "AI coach can post addendum notes to life context items during conversation" },
+      { "type": "changed", "text": "Day plan model defaults to Sonnet for higher quality output" },
+      { "type": "changed", "text": "Life context AI notes now display with blue \"AI note\" badge in timeline" },
+      { "type": "fixed", "text": "Life context update source field now passed correctly for AI note styling" }
+    ]
+  },
+  {
+    "version": "0.4.0",
+    "date": "2026-02-25",
+    "entries": [
+      { "type": "added", "text": "Spending page with transaction history and recurring expense tracking" },
+      { "type": "added", "text": "Transactions table — Plaid transactions persisted and synced in batches" },
+      { "type": "added", "text": "Life context detail pages with timestamped severity updates and timeline" },
+      { "type": "added", "text": "Life context update history wired into AI coach prompt for better advice" },
+      { "type": "added", "text": "AI day plan with 3-day horizon and automatic life context addendums" },
+      { "type": "added", "text": "Account sidebar navigation on spending page" },
+      { "type": "added", "text": "Reusable PageTabs component with amber accent styling" },
+      { "type": "changed", "text": "Removed max-width centering from all dashboard pages for wider layouts" },
+      { "type": "fixed", "text": "Plaid OAuth redirect flow — correct callback URL for settings page" },
+      { "type": "fixed", "text": "Plaid environment variable formatting issues resolved" },
+      { "type": "fixed", "text": "Transactions dedup index removed to allow same-day duplicate purchases" }
+    ]
+  },
+  {
     "version": "0.3.0",
     "date": "2026-02-24",
     "entries": [
