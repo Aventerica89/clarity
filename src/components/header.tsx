@@ -60,7 +60,7 @@ export function Header() {
       fetch("/api/ai/day-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: localStorage.getItem("clarity-day-plan-model") ?? "haiku" }),
+        body: JSON.stringify({ model: localStorage.getItem("clarity-day-plan-model") ?? "sonnet" }),
       }).catch(() => {
         // Silent — plan card will show stale plan which is fine
       })

@@ -25,9 +25,9 @@ interface DayPlan {
 const MODEL_STORAGE_KEY = "clarity-day-plan-model"
 
 function getStoredModel(): ModelChoice {
-  if (typeof window === "undefined") return "haiku"
+  if (typeof window === "undefined") return "sonnet"
   const stored = localStorage.getItem(MODEL_STORAGE_KEY)
-  return stored === "sonnet" ? "sonnet" : "haiku"
+  return stored === "haiku" ? "haiku" : "sonnet"
 }
 
 function formatGeneratedAt(date: string | Date): string {

@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
       model?: string
     }
     const model: ModelChoice =
-      body.model === "sonnet" ? "sonnet" : "haiku"
+      body.model === "haiku" ? "haiku" : "sonnet"
 
     const userId = session.user.id
     const now = new Date()
