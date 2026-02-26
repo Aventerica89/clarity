@@ -67,6 +67,7 @@ export default async function ContextItemPage({
           contextItemId: u.contextItemId,
           content: u.content,
           severity: u.severity,
+          source: (u.source ?? "user") as "user" | "ai",
           createdAt: u.createdAt.toISOString(),
         }))}
       />

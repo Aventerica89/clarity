@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   type Severity,
@@ -23,9 +24,23 @@ export function ContextDetailClient({
   item,
   initialUpdates,
 }: ContextDetailClientProps) {
+  const router = useRouter()
   const [updates, setUpdates] = useState<ContextUpdate[]>(initialUpdates)
   const [currentSeverity, setCurrentSeverity] = useState<Severity>(item.urgency)
   const [showForm, setShowForm] = useState(false)
+
+  const [editing, setEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(item.title)
+  const [editDescription, setEditDescription] = useState(item.description)
+  const [editSeverity, setEditSeverity] = useState<Severity>(item.urgency)
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const [displayTitle, setDisplayTitle] = useState(item.title)
+  const [displayDescription, setDisplayDescription] = useState(item.description)
 
   function handleUpdateAdded(update: ContextUpdate) {
     setUpdates((prev) => [update, ...prev])
@@ -33,23 +48,194 @@ export function ContextDetailClient({
     setShowForm(false)
   }
 
+  async function handleEditSave() {
+    if (!editTitle.trim()) return
+    setEditSaving(true)
+    setEditError(null)
+
+    try {
+      const res = await fetch(`/api/life-context/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          description: editDescription.trim(),
+          urgency: editSeverity,
+        }),
+      })
+      if (!res.ok) {
+        setEditError("Failed to save changes.")
+        return
+      }
+      setDisplayTitle(editTitle.trim())
+      setDisplayDescription(editDescription.trim())
+      setCurrentSeverity(editSeverity)
+      setEditing(false)
+    } catch {
+      setEditError("Network error. Please try again.")
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/life-context/${item.id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) {
+        setConfirmDelete(false)
+        setDeleting(false)
+        return
+      }
+      router.push("/life-context")
+    } catch {
+      setConfirmDelete(false)
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Item header */}
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold">{item.title}</h1>
-          <SeverityBadge severity={currentSeverity} />
+      {editing ? (
+        <div className="space-y-3 rounded-lg border bg-card p-4">
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Title</label>
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className={cn(
+                "w-full rounded-sm border bg-transparent px-3 py-2 text-sm",
+                "focus-visible:border-clarity-amber/40 focus-visible:outline-none",
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">
+              Description
+            </label>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              rows={3}
+              className={cn(
+                "w-full resize-none rounded-sm border bg-transparent px-3 py-2 text-sm",
+                "focus-visible:border-clarity-amber/40 focus-visible:outline-none",
+              )}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">Severity</label>
+            <div className="flex flex-wrap gap-2">
+              {SEVERITY_LIST.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setEditSeverity(s)}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                    editSeverity === s
+                      ? cn("ring-1 ring-inset", SEVERITY_CLASSES[s])
+                      : "border text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {SEVERITY_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          </div>
+          {editError && (
+            <p className="text-xs text-destructive">{editError}</p>
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              disabled={editSaving}
+              className="rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleEditSave}
+              disabled={editSaving || !editTitle.trim()}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5",
+                "text-xs font-medium",
+                "bg-clarity-amber text-clarity-amber-foreground hover:bg-clarity-amber/90",
+                "disabled:opacity-50",
+              )}
+            >
+              {editSaving && <Loader2 className="size-3 animate-spin" />}
+              {editSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
         </div>
-        {item.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {item.description}
+      ) : (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold">{displayTitle}</h1>
+            <SeverityBadge severity={currentSeverity} />
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditTitle(displayTitle)
+                  setEditDescription(displayDescription)
+                  setEditSeverity(currentSeverity)
+                  setEditError(null)
+                  setEditing(true)
+                }}
+                className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                title="Edit item"
+              >
+                <Pencil className="size-4" />
+              </button>
+              {confirmDelete ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-destructive">Delete?</span>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="rounded-md bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                  >
+                    {deleting ? "..." : "Yes"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={deleting}
+                    className="rounded-md p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  title="Delete item"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              )}
+            </div>
+          </div>
+          {displayDescription && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {displayDescription}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Created {formatTimestamp(item.createdAt)}
           </p>
-        )}
-        <p className="text-xs text-muted-foreground">
-          Created {formatTimestamp(item.createdAt)}
-        </p>
-      </div>
+        </div>
+      )}
 
       {/* Add update button / form */}
       <div className="space-y-3">

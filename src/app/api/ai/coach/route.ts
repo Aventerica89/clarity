@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { asc, desc, eq, and } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { chatSessions, coachMessages } from "@/lib/schema"
+import { chatSessions, coachMessages, lifeContextItems, lifeContextUpdates } from "@/lib/schema"
 import { buildContext, getAnthropicToken, getGeminiToken, getDeepSeekToken, getGroqToken } from "@/lib/ai/coach"
 import { createAnthropicClient, createGeminiClient, callDeepSeek, callGroq, type ChatMessage } from "@/lib/ai/client"
 import { COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts"
@@ -17,6 +17,50 @@ function isRateLimited(err: unknown): boolean {
   if (e.status === 429) return true
   const msg = (e.message ?? "").toLowerCase()
   return msg.includes("quota") || msg.includes("rate limit") || msg.includes("too many requests")
+}
+
+const ADDENDUM_RE = /<<ADDENDUM item="([^"]+)">>([^]*?)<<END_ADDENDUM>>/g
+
+interface ParsedAddendum {
+  itemTitle: string
+  content: string
+}
+
+function parseAddendums(text: string): { cleaned: string; addendums: ParsedAddendum[] } {
+  const addendums: ParsedAddendum[] = []
+  const cleaned = text.replace(ADDENDUM_RE, (_match, title: string, content: string) => {
+    addendums.push({ itemTitle: title.trim(), content: content.trim() })
+    return ""
+  }).trim()
+  return { cleaned, addendums }
+}
+
+async function postAddendums(userId: string, addendums: ParsedAddendum[]): Promise<void> {
+  if (addendums.length === 0) return
+
+  for (const { itemTitle, content } of addendums) {
+    if (!content) continue
+
+    const [target] = await db
+      .select({ id: lifeContextItems.id, urgency: lifeContextItems.urgency })
+      .from(lifeContextItems)
+      .where(and(
+        eq(lifeContextItems.userId, userId),
+        eq(lifeContextItems.isActive, true),
+        eq(lifeContextItems.title, itemTitle),
+      ))
+      .limit(1)
+
+    if (!target) continue
+
+    await db.insert(lifeContextUpdates).values({
+      contextItemId: target.id,
+      userId,
+      content,
+      severity: target.urgency,
+      source: "ai",
+    })
+  }
 }
 
 async function callProvider(
@@ -200,6 +244,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "All AI providers returned no content." }, { status: 500 })
     }
 
+    // Parse and post any addendums the AI included
+    const { cleaned: cleanedText, addendums } = parseAddendums(text)
+    if (addendums.length > 0) {
+      postAddendums(session.user.id, addendums).catch((err) => {
+        console.error("[coach] addendum post failed:", err)
+      })
+    }
+    const responseText = cleanedText || text
+
     // Persist both turns to DB
     const isFirstMessage = historyRows.length === 0
     await db.insert(coachMessages).values([
@@ -213,7 +266,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         sessionId: activeSessionId,
         role: "assistant",
-        content: text,
+        content: responseText,
       },
     ])
 
@@ -236,7 +289,7 @@ export async function POST(request: NextRequest) {
 
     const readable = new ReadableStream({
       start(controller) {
-        controller.enqueue(new TextEncoder().encode(text))
+        controller.enqueue(new TextEncoder().encode(responseText))
         controller.close()
       },
     })
