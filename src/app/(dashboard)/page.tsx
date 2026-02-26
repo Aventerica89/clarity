@@ -8,17 +8,15 @@ import { EventCard } from "@/components/dashboard/event-card"
 import { TaskList } from "@/components/dashboard/task-list"
 import { CoachPanel } from "@/components/dashboard/coach-panel"
 import { LifeContextStrip } from "@/components/dashboard/life-context-strip"
-import { DayPlanCard } from "@/components/dashboard/day-plan-card"
 import { LiveClock } from "@/components/dashboard/live-clock"
+import { TodayClientLayout } from "@/components/dashboard/today-client-layout"
 
 const TIMEZONE = "America/Phoenix"
 
 function todayRange() {
-  // Compute midnight-to-midnight in Phoenix time, expressed as UTC Date objects
   const nowStr = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
   const start = new Date(`${nowStr}T00:00:00`)
   const end = new Date(`${nowStr}T23:59:59.999`)
-  // Adjust for Phoenix offset (UTC-7, no DST)
   const offsetMs = 7 * 60 * 60 * 1000
   return { start: new Date(start.getTime() + offsetMs), end: new Date(end.getTime() + offsetMs) }
 }
@@ -84,9 +82,10 @@ export default async function TodayPage() {
         <LiveClock />
       </div>
 
-      <DayPlanCard />
-
       <CoachPanel />
+
+      {/* Two-column layout: Day Plan (left) + Widgets (right) */}
+      <TodayClientLayout />
 
       <LifeContextStrip
         items={lifeContextRows}
