@@ -28,9 +28,13 @@ function PageTabsInner({ tabs }: { tabs: PageTab[] }) {
 
   return (
     <Tabs value={currentTab} onValueChange={handleTabChange}>
-      <TabsList variant="line" className="w-full justify-start">
+      <TabsList variant="line" className="w-full justify-start border-b border-border pb-0">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
+            className="after:bg-clarity-amber data-[state=active]:text-clarity-amber"
+          >
             {tab.label}
           </TabsTrigger>
         ))}
