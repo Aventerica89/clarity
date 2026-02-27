@@ -81,7 +81,7 @@ export function Header() {
     .slice(0, 2)
 
   return (
-    <header className="flex min-h-14 items-center justify-between border-b px-4 pt-[env(safe-area-inset-top)]">
+    <header className="flex min-h-top-bar items-center justify-between border-b px-4 pt-[env(safe-area-inset-top)]">
       <LiveClock />
       <div className="flex items-center gap-2">
         <Button

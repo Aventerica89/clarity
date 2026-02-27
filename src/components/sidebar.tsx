@@ -24,7 +24,7 @@ export function Sidebar() {
   }, [pathname])
 
   return (
-    <aside className="hidden md:flex w-56 flex-col border-r px-3 py-4">
+    <aside className="hidden md:flex w-sidebar flex-col border-r px-3 py-4">
       <div className="mb-6 flex items-center gap-2 px-2">
         <Image src="/pwa/manifest-icon-192.maskable.png" alt="Clarity" width={28} height={28} className="rounded-md" />
         <span className="font-semibold text-lg">Clarity</span>
