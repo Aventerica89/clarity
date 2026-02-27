@@ -122,6 +122,7 @@ Key vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `GOOGL
 | Turso schema drift | Use Turso HTTP API for targeted DDL when `drizzle-kit push` has conflicts |
 | AI context freshness | Coach must inject fresh context on every turn (not cache from first message) |
 | `stripHtml()` for AI | Always strip Tiptap HTML to plain text before sending to AI models |
+| Double browser scrollbar | Fixed-viewport layout needs `overflow: hidden` on `html, body` — `overscroll-behavior: none` only prevents bounce, not the body scrollbar track |
 
 ## Database Tables
 
