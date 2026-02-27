@@ -8,7 +8,10 @@ import {
   Star,
   Loader2,
   MapPin,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
+import { sanitizeEmailHtml } from "@/lib/sanitize-html"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { PinToContextDialog } from "@/components/life-context/pin-to-context-dialog"
@@ -63,7 +66,38 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
   const [loading, setLoading] = useState<string | null>(null)
   const [favorited, setFavorited] = useState(message.isFavorited ?? false)
   const [pinOpen, setPinOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [bodyHtml, setBodyHtml] = useState<string | null>(null)
+  const [bodyPlain, setBodyPlain] = useState<string | null>(null)
+  const [bodyLoading, setBodyLoading] = useState(false)
+  const [bodyError, setBodyError] = useState<string | null>(null)
   const sender = parseSender(message.from)
+
+  async function handleExpand() {
+    if (expanded) {
+      setExpanded(false)
+      return
+    }
+    setExpanded(true)
+    if (bodyHtml !== null || bodyPlain !== null) return
+    setBodyLoading(true)
+    setBodyError(null)
+    try {
+      const res = await fetch(`/api/emails/${message.id}/body`)
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        setBodyError(data.error ?? "Failed to load email")
+        return
+      }
+      const data = (await res.json()) as { html: string | null; plain: string | null }
+      setBodyHtml(data.html)
+      setBodyPlain(data.plain)
+    } catch {
+      setBodyError("Failed to load email")
+    } finally {
+      setBodyLoading(false)
+    }
+  }
 
   async function handleAction(action: "add_to_todoist" | "push_to_context") {
     const key = action === "add_to_todoist" ? "todoist" : "context"
@@ -170,7 +204,48 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
             {message.snippet}
           </p>
         )}
+
+        <button
+          onClick={handleExpand}
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+        >
+          {expanded
+            ? <ChevronUp className="size-3" />
+            : <ChevronDown className="size-3" />
+          }
+          {expanded ? "Collapse" : "Read more"}
+        </button>
       </div>
+
+      {expanded && (
+        <div className="border-t pt-3">
+          {bodyLoading && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="size-3.5 animate-spin" />
+              Loading…
+            </div>
+          )}
+          {bodyError && (
+            <p className="text-xs text-destructive">{bodyError}</p>
+          )}
+          {!bodyLoading && !bodyError && bodyHtml && (
+            <iframe
+              srcDoc={sanitizeEmailHtml(bodyHtml)}
+              sandbox="allow-same-origin"
+              className="w-full min-h-48 border-0"
+              title="Email body"
+            />
+          )}
+          {!bodyLoading && !bodyError && !bodyHtml && bodyPlain && (
+            <pre className="text-xs whitespace-pre-wrap text-foreground font-sans">
+              {bodyPlain}
+            </pre>
+          )}
+          {!bodyLoading && !bodyError && bodyHtml === null && bodyPlain === null && (
+            <p className="text-xs text-muted-foreground">No body content available.</p>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button

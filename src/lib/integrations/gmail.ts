@@ -72,18 +72,9 @@ export async function scoreGmailMessage(msg: GmailMessage): Promise<TriageScore>
 
 const DEFAULT_GMAIL_QUERY = "in:inbox -category:promotions -category:social -category:updates"
 
-export async function fetchGmailMessages(
-  userId: string,
-  maxResults = 100,
-  query = DEFAULT_GMAIL_QUERY,
-): Promise<{
-  messages: GmailMessage[]
-  error?: string
-}> {
+export async function getAuthenticatedGmailClient(userId: string) {
   const googleAccount = await getGoogleAccount(userId)
-  if (!googleAccount?.accessToken) {
-    return { messages: [], error: "google_not_connected" }
-  }
+  if (!googleAccount?.accessToken) return null
 
   const oauth2Client = createOAuth2Client()
   oauth2Client.setCredentials({
@@ -92,7 +83,6 @@ export async function fetchGmailMessages(
     expiry_date: googleAccount.accessTokenExpiresAt?.getTime(),
   })
 
-  // Persist refreshed tokens
   oauth2Client.on("tokens", async (tokens) => {
     const updates: Record<string, unknown> = {}
     if (tokens.access_token) updates.accessToken = tokens.access_token
@@ -104,7 +94,21 @@ export async function fetchGmailMessages(
     }
   })
 
-  const gmail = google.gmail({ version: "v1", auth: oauth2Client })
+  return google.gmail({ version: "v1", auth: oauth2Client })
+}
+
+export async function fetchGmailMessages(
+  userId: string,
+  maxResults = 100,
+  query = DEFAULT_GMAIL_QUERY,
+): Promise<{
+  messages: GmailMessage[]
+  error?: string
+}> {
+  const gmail = await getAuthenticatedGmailClient(userId)
+  if (!gmail) {
+    return { messages: [], error: "google_not_connected" }
+  }
 
   let listRes
   try {
@@ -167,30 +171,10 @@ export async function archiveGmailMessage(
   userId: string,
   gmailId: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const googleAccount = await getGoogleAccount(userId)
-  if (!googleAccount?.accessToken) {
+  const gmail = await getAuthenticatedGmailClient(userId)
+  if (!gmail) {
     return { ok: false, error: "Google not connected" }
   }
-
-  const oauth2Client = createOAuth2Client()
-  oauth2Client.setCredentials({
-    access_token: googleAccount.accessToken,
-    refresh_token: googleAccount.refreshToken ?? undefined,
-    expiry_date: googleAccount.accessTokenExpiresAt?.getTime(),
-  })
-
-  oauth2Client.on("tokens", async (tokens) => {
-    const updates: Record<string, unknown> = {}
-    if (tokens.access_token) updates.accessToken = tokens.access_token
-    if (tokens.expiry_date) updates.accessTokenExpiresAt = new Date(tokens.expiry_date)
-    if (Object.keys(updates).length > 0) {
-      await db.update(account).set(updates).where(
-        and(eq(account.userId, userId), eq(account.providerId, "google"))
-      )
-    }
-  })
-
-  const gmail = google.gmail({ version: "v1", auth: oauth2Client })
 
   try {
     await gmail.users.messages.modify({
