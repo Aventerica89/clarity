@@ -30,11 +30,12 @@ export async function GET(
   const { id } = await params
   const q = request.nextUrl.searchParams.get("q")?.trim()
 
-  if (!q || q.length < 1) {
+  if (!q || q.length < 1 || q.length > 200) {
     return NextResponse.json({ results: [] })
   }
 
-  const pattern = `%${q}%`
+  const escaped = q.replace(/%/g, "\\%").replace(/_/g, "\\_")
+  const pattern = `%${escaped}%`
 
   // Get already-pinned IDs to exclude them
   const existingPins = await db
