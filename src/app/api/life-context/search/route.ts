@@ -12,12 +12,17 @@ export async function GET(request: NextRequest) {
   }
 
   const q = request.nextUrl.searchParams.get("q")?.trim()
-  const pinnedType = request.nextUrl.searchParams.get("pinned_type")
+  const pinnedTypeRaw = request.nextUrl.searchParams.get("pinned_type")
   const pinnedId = request.nextUrl.searchParams.get("pinned_id")
 
-  if (!q || q.length < 1) {
+  if (!q || q.length < 1 || q.length > 200) {
     return NextResponse.json({ results: [] })
   }
+
+  const VALID_PINNED_TYPES = ["task", "email", "event", "context"] as const
+  const pinnedType = VALID_PINNED_TYPES.includes(pinnedTypeRaw as typeof VALID_PINNED_TYPES[number])
+    ? (pinnedTypeRaw as typeof VALID_PINNED_TYPES[number])
+    : null
 
   // If pinned_type + pinned_id provided, exclude context items that already have this item pinned
   const excludeIds: string[] = []
@@ -65,7 +70,7 @@ export async function GET(request: NextRequest) {
       and(
         eq(lifeContextItems.userId, session.user.id),
         eq(lifeContextItems.isActive, true),
-        like(lifeContextItems.title, `%${q}%`),
+        like(lifeContextItems.title, `%${q.replace(/%/g, "\\%").replace(/_/g, "\\_")}%`),
         ...(excludeIds.length > 0 ? [notInArray(lifeContextItems.id, excludeIds)] : []),
       ),
     )
