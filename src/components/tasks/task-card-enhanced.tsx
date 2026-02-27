@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Check, ChevronDown, ChevronRight } from "lucide-react"
+import { Check, ChevronDown, ChevronRight, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SourceBadge } from "./source-badge"
 import { ReschedulePopover } from "./reschedule-popover"
+import { PinToContextDialog } from "@/components/life-context/pin-to-context-dialog"
 import { cn } from "@/lib/utils"
 import {
   type TaskItem,
@@ -31,6 +32,7 @@ export function TaskCardEnhanced({
   const [done, setDone] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [pinOpen, setPinOpen] = useState(false)
   const labels = parseLabels(task.labels)
   const priority = task.priorityManual ?? 1
   const overdue = isOverdue(task.dueDate)
@@ -107,21 +109,32 @@ export function TaskCardEnhanced({
           </div>
         </div>
 
-        {renderSubtasks && (
+        <div className="flex items-center gap-1 flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 flex-shrink-0"
-            onClick={() => setExpanded(!expanded)}
-            aria-label={expanded ? "Collapse subtasks" : "Expand subtasks"}
+            className="h-7 w-7 text-muted-foreground hover:text-violet-500"
+            onClick={() => setPinOpen(true)}
+            aria-label="Pin to context"
           >
-            {expanded ? (
-              <ChevronDown className="size-3.5" />
-            ) : (
-              <ChevronRight className="size-3.5" />
-            )}
+            <MapPin className="size-3.5" />
           </Button>
-        )}
+          {renderSubtasks && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 flex-shrink-0"
+              onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? "Collapse subtasks" : "Expand subtasks"}
+            >
+              {expanded ? (
+                <ChevronDown className="size-3.5" />
+              ) : (
+                <ChevronRight className="size-3.5" />
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {expanded && renderSubtasks && (
@@ -129,6 +142,14 @@ export function TaskCardEnhanced({
           {renderSubtasks(task.id, task.sourceId, task.source)}
         </div>
       )}
+
+      <PinToContextDialog
+        sourceType="task"
+        sourceId={task.id}
+        sourceTitle={task.title}
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+      />
     </div>
   )
 }

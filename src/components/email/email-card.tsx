@@ -7,9 +7,11 @@ import {
   Archive,
   Star,
   Loader2,
+  MapPin,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { PinToContextDialog } from "@/components/life-context/pin-to-context-dialog"
 
 interface GmailMessage {
   id: string
@@ -60,6 +62,7 @@ function formatDate(dateStr: string): string {
 export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardProps) {
   const [loading, setLoading] = useState<string | null>(null)
   const [favorited, setFavorited] = useState(message.isFavorited ?? false)
+  const [pinOpen, setPinOpen] = useState(false)
   const sender = parseSender(message.from)
 
   async function handleAction(action: "add_to_todoist" | "push_to_context") {
@@ -206,7 +209,25 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
           }
           Archive
         </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-muted-foreground hover:text-violet-500"
+          onClick={() => setPinOpen(true)}
+          disabled={loading !== null}
+        >
+          <MapPin className="size-3.5 mr-1.5" />
+          Pin
+        </Button>
       </div>
+
+      <PinToContextDialog
+        sourceType="email"
+        sourceId={message.id}
+        sourceTitle={message.subject}
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+      />
     </div>
   )
 }

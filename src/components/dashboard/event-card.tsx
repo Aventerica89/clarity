@@ -1,4 +1,9 @@
+"use client"
+
+import { useState } from "react"
 import { Clock, MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { PinToContextDialog } from "@/components/life-context/pin-to-context-dialog"
 
 interface EventItem {
   id: string
@@ -23,8 +28,10 @@ function formatTime(date: Date): string {
 }
 
 export function EventCard({ event }: EventCardProps) {
+  const [pinOpen, setPinOpen] = useState(false)
+
   return (
-    <div className="flex gap-3 py-3 border-b last:border-b-0 items-start">
+    <div className="flex gap-3 py-3 border-b last:border-b-0 items-start group">
       <div className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-muted-foreground/40 mt-1.5" />
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-medium truncate">{event.title}</p>
@@ -46,6 +53,23 @@ export function EventCard({ event }: EventCardProps) {
           )}
         </div>
       </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-violet-500"
+        onClick={() => setPinOpen(true)}
+        aria-label="Pin to context"
+      >
+        <MapPin className="size-3.5" />
+      </Button>
+
+      <PinToContextDialog
+        sourceType="event"
+        sourceId={event.id}
+        sourceTitle={event.title}
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+      />
     </div>
   )
 }
