@@ -70,6 +70,7 @@ export interface TaskItem {
   priorityScore: number | null
   priorityManual: number | null
   isCompleted: boolean
+  isHidden: boolean
   labels: string
   metadata: string
   createdAt: string

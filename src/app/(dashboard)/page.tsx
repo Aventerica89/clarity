@@ -66,6 +66,7 @@ export default async function TodayPage() {
           and(
             eq(tasks.userId, userId),
             eq(tasks.isCompleted, false),
+            eq(tasks.isHidden, false),
             or(isNull(tasks.dueDate), lte(tasks.dueDate, today)),
           ),
         )

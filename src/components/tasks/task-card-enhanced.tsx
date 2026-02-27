@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Check, ChevronDown, ChevronRight, MapPin } from "lucide-react"
+import { Check, ChevronDown, ChevronRight, EyeOff, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SourceBadge } from "./source-badge"
@@ -19,6 +19,7 @@ import {
 interface TaskCardEnhancedProps {
   task: TaskItem
   onComplete?: (id: string) => Promise<void>
+  onHide?: (id: string) => Promise<void>
   onReschedule?: (id: string, newDate: string) => Promise<void>
   renderSubtasks?: (taskId: string, sourceId: string | null, source: string) => React.ReactNode
 }
@@ -26,6 +27,7 @@ interface TaskCardEnhancedProps {
 export function TaskCardEnhanced({
   task,
   onComplete,
+  onHide,
   onReschedule,
   renderSubtasks,
 }: TaskCardEnhancedProps) {
@@ -123,6 +125,17 @@ export function TaskCardEnhanced({
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">
+          {onHide && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              onClick={() => onHide(task.id)}
+              aria-label="Hide task"
+            >
+              <EyeOff className="size-3.5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"

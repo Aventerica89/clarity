@@ -5,6 +5,7 @@ interface TaskGroupProps {
   group: DateGroup
   tasks: TaskItem[]
   onComplete?: (id: string) => Promise<void>
+  onHide?: (id: string) => Promise<void>
   onReschedule?: (id: string, currentDate: string) => Promise<void>
   renderSubtasks?: (taskId: string, sourceId: string | null, source: string) => React.ReactNode
 }
@@ -13,6 +14,7 @@ export function TaskGroup({
   group,
   tasks,
   onComplete,
+  onHide,
   onReschedule,
   renderSubtasks,
 }: TaskGroupProps) {
@@ -30,6 +32,7 @@ export function TaskGroup({
             key={task.id}
             task={task}
             onComplete={onComplete}
+            onHide={onHide}
             onReschedule={onReschedule}
             renderSubtasks={renderSubtasks}
           />

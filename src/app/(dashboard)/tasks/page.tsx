@@ -30,7 +30,7 @@ export default function TasksPage() {
   const fetchTasks = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams({
-      status: tab === "active" ? "active" : "completed",
+      status: tab === "active" ? "active" : tab === "hidden" ? "hidden" : "completed",
       source: filters.source,
       priority: filters.priority,
     })
@@ -52,6 +52,11 @@ export default function TasksPage() {
 
   async function handleComplete(id: string) {
     await fetch(`/api/tasks/${id}/complete`, { method: "POST" })
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  async function handleHide(id: string) {
+    await fetch(`/api/tasks/${id}/hide`, { method: "POST" })
     setTasks((prev) => prev.filter((t) => t.id !== id))
   }
 
@@ -81,9 +86,10 @@ export default function TasksPage() {
         <TasksFilterBar filters={filters} onChange={setFilters} />
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="hidden">Hidden</TabsTrigger>
           </TabsList>
 
           <TabsContent value={tab} className="mt-4 space-y-6">
@@ -97,8 +103,9 @@ export default function TasksPage() {
                   key={group}
                   group={group as DateGroup}
                   tasks={grouped[group as DateGroup]}
-                  onComplete={handleComplete}
-                  onReschedule={handleReschedule}
+                  onComplete={tab === "active" ? handleComplete : undefined}
+                  onHide={tab === "active" ? handleHide : undefined}
+                  onReschedule={tab === "active" ? handleReschedule : undefined}
                   renderSubtasks={(taskId, sourceId, source) => (
                     <SubtaskList
                       taskId={taskId}
@@ -145,7 +152,9 @@ function TasksEmptyState({ tab }: { tab: string }) {
       <p className="text-sm">
         {tab === "active"
           ? "No active tasks. Create one or connect Todoist in Settings."
-          : "No completed tasks yet."}
+          : tab === "hidden"
+            ? "No hidden tasks."
+            : "No completed tasks yet."}
       </p>
     </div>
   )

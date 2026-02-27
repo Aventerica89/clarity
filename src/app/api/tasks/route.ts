@@ -25,8 +25,12 @@ export async function GET(request: NextRequest) {
 
   if (status === "active") {
     conditions.push(eq(tasks.isCompleted, false))
+    conditions.push(eq(tasks.isHidden, false))
   } else if (status === "completed") {
     conditions.push(eq(tasks.isCompleted, true))
+  } else if (status === "hidden") {
+    conditions.push(eq(tasks.isHidden, true))
+    conditions.push(eq(tasks.isCompleted, false))
   }
 
   if (source !== "all") {
@@ -52,6 +56,7 @@ export async function GET(request: NextRequest) {
       priorityScore: tasks.priorityScore,
       priorityManual: tasks.priorityManual,
       isCompleted: tasks.isCompleted,
+      isHidden: tasks.isHidden,
       labels: tasks.labels,
       metadata: tasks.metadata,
       createdAt: tasks.createdAt,
