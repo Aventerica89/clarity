@@ -4,9 +4,10 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { aiRatelimit } from "@/lib/ratelimit"
 import { chatSessions, coachMessages, lifeContextItems, lifeContextUpdates } from "@/lib/schema"
-import { buildContext, getAnthropicToken, getGeminiToken, getDeepSeekToken, getGroqToken } from "@/lib/ai/coach"
+import { buildContext, getAnthropicToken, getGeminiToken, getDeepSeekToken, getGroqToken, getTodoistToken } from "@/lib/ai/coach"
 import { createAnthropicClient, createGeminiClient, callDeepSeek, callGroq, type ChatMessage } from "@/lib/ai/client"
 import { COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts"
+import { callAnthropicWithTodoistTools } from "@/lib/ai/todoist-tools"
 
 type ProviderId = "anthropic" | "gemini" | "deepseek" | "groq"
 
@@ -68,10 +69,14 @@ async function callProvider(
   provider: ProviderId,
   token: string,
   messages: ChatMessage[],
+  todoistToken?: string,
 ): Promise<string> {
   switch (provider) {
     case "anthropic": {
       const client = createAnthropicClient(token)
+      if (todoistToken) {
+        return callAnthropicWithTodoistTools(client, COACH_SYSTEM_PROMPT, messages, todoistToken)
+      }
       const msg = await client.messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 1500,
@@ -177,11 +182,12 @@ export async function POST(request: NextRequest) {
         .limit(20)
 
     // Load tokens, context, and chat history in parallel
-    const [anthropicToken, geminiToken, deepseekToken, groqToken, context, historyRows] = await Promise.all([
+    const [anthropicToken, geminiToken, deepseekToken, groqToken, todoistToken, context, historyRows] = await Promise.all([
       getAnthropicToken(session.user.id),
       getGeminiToken(session.user.id),
       getDeepSeekToken(session.user.id),
       getGroqToken(session.user.id),
+      getTodoistToken(session.user.id),
       buildContext(session.user.id, new Date()),
       historyQuery,
     ])
@@ -220,14 +226,14 @@ export async function POST(request: NextRequest) {
           { status: 422 },
         )
       }
-      text = await callProvider(requestedProvider as ProviderId, token, messages)
+      text = await callProvider(requestedProvider as ProviderId, token, messages, todoistToken ?? undefined)
     } else {
       const errors: string[] = []
       for (const pid of FALLBACK_ORDER) {
         const token = tokens[pid]
         if (!token) continue
         try {
-          text = await callProvider(pid, token, messages)
+          text = await callProvider(pid, token, messages, todoistToken ?? undefined)
           break
         } catch (err) {
           const hasMore = FALLBACK_ORDER.slice(FALLBACK_ORDER.indexOf(pid) + 1).some(p => tokens[p])
