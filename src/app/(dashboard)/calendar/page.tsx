@@ -10,12 +10,13 @@ export default async function CalendarPage() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) redirect("/login")
 
-  const now = new Date()
+  const startOfToday = new Date()
+  startOfToday.setHours(0, 0, 0, 0)
 
   const upcomingEvents = await db
     .select()
     .from(events)
-    .where(and(eq(events.userId, session.user.id), gte(events.startAt, now)))
+    .where(and(eq(events.userId, session.user.id), gte(events.startAt, startOfToday)))
     .orderBy(asc(events.startAt))
     .limit(50)
 

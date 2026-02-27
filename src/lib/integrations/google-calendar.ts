@@ -19,10 +19,11 @@ async function getGoogleAccount(userId: string) {
   return rows[0] ?? null
 }
 
-function todayRange() {
+function syncRange() {
   const start = new Date()
   start.setHours(0, 0, 0, 0)
   const end = new Date()
+  end.setDate(end.getDate() + 14)
   end.setHours(23, 59, 59, 999)
   return { start, end }
 }
@@ -72,7 +73,7 @@ export async function syncGoogleCalendarEvents(userId: string): Promise<{
   })
 
   const calendar = google.calendar({ version: "v3", auth: oauth2Client })
-  const { start, end } = todayRange()
+  const { start, end } = syncRange()
 
   let rawEvents
   try {

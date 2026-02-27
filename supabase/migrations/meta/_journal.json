@@ -22,6 +22,13 @@
       "when": 1771673655083,
       "tag": "0002_bored_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1772147663914,
+      "tag": "0003_stormy_bruce_banner",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,26 @@
         "serve"
       ],
       "env": {}
+    },
+    "todoist": {
+      "type": "http",
+      "url": "https://ai.todoist.net/mcp"
+    },
+    "apple-mail": {
+      "type": "stdio",
+      "command": "/Users/jb/apple-mail-mcp/venv/bin/python3.11",
+      "args": [
+        "/Users/jb/apple-mail-mcp/apple_mail_mcp.py"
+      ],
+      "env": {}
+    },
+    "gmail-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@gongrzhe/server-gmail-autoauth-mcp"
+      ],
+      "env": {}
     }
   }
 }

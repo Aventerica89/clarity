@@ -43,3 +43,6 @@ firebase-debug.log
 
 # git worktrees
 .worktrees/
+
+# serena MCP
+.serena/
