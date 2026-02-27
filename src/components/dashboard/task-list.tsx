@@ -5,6 +5,7 @@ import { TaskCard } from "./task-card"
 interface TaskItem {
   id: string
   title: string
+  description: string | null
   source: string
   sourceId: string | null
   dueDate: string | null

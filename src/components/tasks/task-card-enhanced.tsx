@@ -31,6 +31,7 @@ export function TaskCardEnhanced({
 }: TaskCardEnhancedProps) {
   const [done, setDone] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [descExpanded, setDescExpanded] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [pinOpen, setPinOpen] = useState(false)
   const labels = parseLabels(task.labels)
@@ -82,6 +83,18 @@ export function TaskCardEnhanced({
           </div>
 
           <p className="text-sm font-medium leading-snug">{task.title}</p>
+
+          {task.description && (
+            <p
+              className={cn(
+                "text-xs text-muted-foreground mt-1 cursor-pointer",
+                descExpanded ? "" : "line-clamp-2",
+              )}
+              onClick={() => setDescExpanded(!descExpanded)}
+            >
+              {task.description}
+            </p>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 mt-1.5">
             {task.dueDate && onReschedule ? (

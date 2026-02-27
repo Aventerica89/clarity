@@ -119,6 +119,7 @@ export default async function TodayPage() {
               tasks={pendingTasks.map((t) => ({
                 id: t.id,
                 title: t.title,
+                description: t.description,
                 source: t.source,
                 sourceId: t.sourceId,
                 dueDate: t.dueDate,

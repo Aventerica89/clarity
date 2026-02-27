@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 interface TaskItem {
   id: string
   title: string
+  description: string | null
   source: string
   sourceId: string | null
   dueDate: string | null
@@ -81,6 +82,11 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-1.5">
           <p className="text-[13px] font-medium leading-snug">{task.title}</p>
+          {task.description && (
+            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+              {task.description}
+            </p>
+          )}
           {task.source === "todoist" && task.sourceId && (
             <a
               href={`https://todoist.com/app/task/${task.sourceId}`}
