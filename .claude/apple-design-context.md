@@ -51,6 +51,9 @@
 - [x] Bottom tab bar for mobile — `src/components/mobile-nav.tsx` (Today, Chat, Routines, Settings; 4 items; 11px labels; amber active)
 - [x] `viewportFit: cover` — `layout.tsx` viewport export
 - [x] `display-mode: standalone` CSS override — `globals.css`
+- [x] `--pwa-nav-nudge` fixed — was `-12px` in standalone (clipping tab bar 12px below viewport), now `0px`
+- [x] CSS tokens added — `--top-bar-height: 3.5rem`, `--sidebar-width: 14rem` with `@theme inline` aliases (`min-h-top-bar`, `w-sidebar`)
+- [x] Token violations resolved — `sidebar.tsx` uses `w-sidebar`, `header.tsx` uses `min-h-top-bar`
 
 ## Accessibility
 - **Target Level**: Baseline
