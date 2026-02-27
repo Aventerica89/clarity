@@ -84,13 +84,17 @@ export async function getAuthenticatedGmailClient(userId: string) {
   })
 
   oauth2Client.on("tokens", async (tokens) => {
-    const updates: Record<string, unknown> = {}
-    if (tokens.access_token) updates.accessToken = tokens.access_token
-    if (tokens.expiry_date) updates.accessTokenExpiresAt = new Date(tokens.expiry_date)
-    if (Object.keys(updates).length > 0) {
-      await db.update(account).set(updates).where(
-        and(eq(account.userId, userId), eq(account.providerId, "google"))
-      )
+    try {
+      const updates: Record<string, unknown> = {}
+      if (tokens.access_token) updates.accessToken = tokens.access_token
+      if (tokens.expiry_date) updates.accessTokenExpiresAt = new Date(tokens.expiry_date)
+      if (Object.keys(updates).length > 0) {
+        await db.update(account).set(updates).where(
+          and(eq(account.userId, userId), eq(account.providerId, "google"))
+        )
+      }
+    } catch (err) {
+      console.error("[gmail] Failed to persist refreshed token:", err)
     }
   })
 

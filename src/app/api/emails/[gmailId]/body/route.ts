@@ -44,6 +44,11 @@ export async function GET(
 
   const { gmailId } = await params
 
+  const GMAIL_ID_RE = /^[a-zA-Z0-9_-]{6,32}$/
+  if (!GMAIL_ID_RE.test(gmailId)) {
+    return NextResponse.json({ error: "Invalid message ID" }, { status: 400 })
+  }
+
   const gmail = await getAuthenticatedGmailClient(session.user.id)
   if (!gmail) {
     return NextResponse.json({ error: "Google not connected" }, { status: 400 })
@@ -58,8 +63,8 @@ export async function GET(
     })
     msg = res.data
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error("[body] Gmail fetch error:", err)
+    return NextResponse.json({ error: "Failed to fetch email body" }, { status: 500 })
   }
 
   if (!msg.payload) {

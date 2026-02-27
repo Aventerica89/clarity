@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import {
   CheckSquare,
   ArrowUpCircle,
@@ -71,7 +71,13 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
   const [bodyPlain, setBodyPlain] = useState<string | null>(null)
   const [bodyLoading, setBodyLoading] = useState(false)
   const [bodyError, setBodyError] = useState<string | null>(null)
+  const [bodyFetched, setBodyFetched] = useState(false)
   const sender = parseSender(message.from)
+
+  const sanitizedHtml = useMemo(
+    () => (bodyHtml ? sanitizeEmailHtml(bodyHtml) : ""),
+    [bodyHtml],
+  )
 
   async function handleExpand() {
     if (expanded) {
@@ -79,11 +85,13 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
       return
     }
     setExpanded(true)
-    if (bodyHtml !== null || bodyPlain !== null) return
+    if (bodyFetched) return
     setBodyLoading(true)
     setBodyError(null)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15_000)
     try {
-      const res = await fetch(`/api/emails/${message.id}/body`)
+      const res = await fetch(`/api/emails/${message.id}/body`, { signal: controller.signal })
       if (!res.ok) {
         const data = (await res.json()) as { error?: string }
         setBodyError(data.error ?? "Failed to load email")
@@ -92,10 +100,16 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
       const data = (await res.json()) as { html: string | null; plain: string | null }
       setBodyHtml(data.html)
       setBodyPlain(data.plain)
-    } catch {
-      setBodyError("Failed to load email")
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        setBodyError("Request timed out")
+      } else {
+        setBodyError("Failed to load email")
+      }
     } finally {
+      clearTimeout(timeout)
       setBodyLoading(false)
+      setBodyFetched(true)
     }
   }
 
@@ -230,9 +244,9 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
           )}
           {!bodyLoading && !bodyError && bodyHtml && (
             <iframe
-              srcDoc={sanitizeEmailHtml(bodyHtml)}
+              srcDoc={sanitizedHtml}
               sandbox="allow-same-origin"
-              className="w-full min-h-48 border-0"
+              className="w-full h-96 max-h-[500px] border-0"
               title="Email body"
             />
           )}
