@@ -1,25 +1,10 @@
+import { TodoistApi, type Task } from "@doist/todoist-api-typescript"
 import { and, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { integrations, tasks } from "@/lib/schema"
 import { decryptToken, encryptToken } from "@/lib/crypto"
 
-const TODOIST_BASE = "https://api.todoist.com/api/v1"
 const TODOIST_SYNC = "https://api.todoist.com/sync/v9"
-
-interface TodoistTask {
-  id: string
-  content: string
-  description?: string
-  project_id?: string
-  due?: {
-    date: string
-    datetime?: string
-    timezone?: string
-  }
-  priority: number // 1=normal, 2=high, 3=very high, 4=urgent
-  labels: string[]
-  is_completed: boolean
-}
 
 interface SaveTokenOptions {
   providerAccountId?: string
@@ -30,6 +15,10 @@ interface SaveTokenOptions {
 function mapPriority(todoistPriority: number): number {
   const map: Record<number, number> = { 4: 5, 3: 4, 2: 3, 1: 1 }
   return map[todoistPriority] ?? 1
+}
+
+function makeApi(token: string): TodoistApi {
+  return new TodoistApi(token)
 }
 
 async function getTodoistRow(userId: string) {
@@ -49,42 +38,50 @@ async function getTodoistToken(userId: string): Promise<string | null> {
   return decryptToken(row.accessTokenEncrypted)
 }
 
-async function fetchTodoistTasks(token: string): Promise<TodoistTask[]> {
-  const res = await fetch(`${TODOIST_BASE}/tasks`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
-    throw new Error(`Todoist API error: ${res.status} ${res.statusText}`)
-  }
-  // API v1 returns paginated shape: { results: TodoistTask[], next_cursor: string | null }
-  const data = (await res.json()) as { results: TodoistTask[] } | TodoistTask[]
-  return Array.isArray(data) ? data : data.results
+async function fetchAllTasks(api: TodoistApi): Promise<Task[]> {
+  const all: Task[] = []
+  let cursor: string | null = null
+
+  do {
+    const response = await api.getTasks({ cursor, limit: 200 })
+    all.push(...response.results)
+    cursor = response.nextCursor
+  } while (cursor !== null)
+
+  return all
 }
 
 export async function fetchTodoistTaskById(
   token: string,
   taskId: string,
-): Promise<TodoistTask | null> {
-  const res = await fetch(`${TODOIST_BASE}/tasks/${taskId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (res.status === 404) return null
-  if (!res.ok) {
-    throw new Error(`Todoist API error: ${res.status} ${res.statusText}`)
+): Promise<Task | null> {
+  try {
+    return await makeApi(token).getTask(taskId)
+  } catch {
+    return null
   }
-  return (await res.json()) as TodoistTask
 }
 
 export async function upsertTodoistTask(
   userId: string,
-  t: TodoistTask,
+  t: Task,
 ): Promise<void> {
-  if (t.is_completed) return
+  if (t.checked) return
 
   const dueDate = t.due?.date ?? null
-  const dueTime = t.due?.datetime
-    ? t.due.datetime.substring(11, 19) // HH:MM:SS
-    : null
+  const dueTime = t.due?.datetime ? t.due.datetime.substring(11, 19) : null
+
+  const metadata = JSON.stringify({
+    todoistPriority: t.priority,
+    projectId: t.projectId,
+    ...(t.sectionId ? { sectionId: t.sectionId } : {}),
+    ...(t.parentId ? { parentId: t.parentId } : {}),
+    url: t.url,
+    isRecurring: t.due?.isRecurring ?? false,
+    ...(t.duration ? { duration: t.duration } : {}),
+    ...(t.deadline ? { deadline: t.deadline.date } : {}),
+    ...(t.addedAt ? { addedAt: t.addedAt } : {}),
+  })
 
   await db
     .insert(tasks)
@@ -93,29 +90,23 @@ export async function upsertTodoistTask(
       source: "todoist",
       sourceId: t.id,
       title: t.content,
-      description: t.description ?? null,
+      description: t.description || null,
       dueDate,
       dueTime,
       priorityManual: mapPriority(t.priority),
       labels: JSON.stringify(t.labels),
-      metadata: JSON.stringify({
-        todoistPriority: t.priority,
-        ...(t.project_id ? { projectId: t.project_id } : {}),
-      }),
+      metadata,
     })
     .onConflictDoUpdate({
       target: [tasks.userId, tasks.source, tasks.sourceId],
       set: {
         title: t.content,
-        description: t.description ?? null,
+        description: t.description || null,
         dueDate,
         dueTime,
         priorityManual: mapPriority(t.priority),
         labels: JSON.stringify(t.labels),
-        metadata: JSON.stringify({
-          todoistPriority: t.priority,
-          ...(t.project_id ? { projectId: t.project_id } : {}),
-        }),
+        metadata,
         updatedAt: new Date(),
       },
     })
@@ -130,9 +121,9 @@ export async function syncTodoistTasks(userId: string): Promise<{
     return { synced: 0, error: "Todoist not connected" }
   }
 
-  let rawTasks: TodoistTask[]
+  let rawTasks: Task[]
   try {
-    rawTasks = await fetchTodoistTasks(token)
+    rawTasks = await fetchAllTasks(makeApi(token))
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Unknown error"
     await db
@@ -218,12 +209,10 @@ export async function deleteTodoistToken(userId: string): Promise<void> {
     // Revocation failure is non-fatal — always proceed with local cleanup
   }
 
-  // Delete all synced Todoist tasks for this user
   await db
     .delete(tasks)
     .where(and(eq(tasks.userId, userId), eq(tasks.source, "todoist")))
 
-  // Delete the integration row
   await db
     .delete(integrations)
     .where(
@@ -240,21 +229,14 @@ export async function completeTodoistTask(
 ): Promise<void> {
   const token = await getTodoistToken(userId)
   if (!token) throw new Error("Todoist not connected")
-
-  const res = await fetch(`${TODOIST_BASE}/tasks/${taskId}/close`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
-    throw new Error(`Todoist close error: ${res.status}`)
-  }
+  await makeApi(token).closeTask(taskId)
 }
 
 export async function getTodoistIntegrationRow(userId: string) {
   return getTodoistRow(userId)
 }
 
-// Fetch Todoist user profile for OAuth connect flow
+// Fetch Todoist user profile — uses Sync API v9 (not covered by SDK)
 export async function fetchTodoistUserProfile(token: string): Promise<{
   id: string
   email: string
@@ -266,8 +248,7 @@ export async function fetchTodoistUserProfile(token: string): Promise<{
   if (!res.ok) {
     throw new Error(`Todoist profile error: ${res.status} ${res.statusText}`)
   }
-  const data = (await res.json()) as { id: string; email: string; full_name: string }
-  return data
+  return (await res.json()) as { id: string; email: string; full_name: string }
 }
 
 // ── Task mutations ───────────────────────────────────────────────────────────
@@ -275,41 +256,33 @@ export async function fetchTodoistUserProfile(token: string): Promise<{
 export async function updateTodoistTask(
   userId: string,
   taskId: string,
-  updates: { due_date?: string; content?: string; priority?: number },
+  updates: {
+    dueString?: string
+    content?: string
+    priority?: number
+    labels?: string[]
+    description?: string
+    deadlineDate?: string | null
+  },
 ): Promise<void> {
   const token = await getTodoistToken(userId)
   if (!token) throw new Error("Todoist not connected")
-
-  const res = await fetch(`${TODOIST_BASE}/tasks/${taskId}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(updates),
-  })
-  if (!res.ok) {
-    throw new Error(`Todoist update error: ${res.status}`)
-  }
+  await makeApi(token).updateTask(taskId, updates)
 }
 
 export async function fetchTodoistSubtasks(
   userId: string,
   parentId: string,
-): Promise<TodoistTask[]> {
+): Promise<Task[]> {
   const token = await getTodoistToken(userId)
   if (!token) return []
 
-  const url = new URL(`${TODOIST_BASE}/tasks`)
-  url.searchParams.set("parent_id", parentId)
-
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) return []
-
-  const data = (await res.json()) as { results: TodoistTask[] } | TodoistTask[]
-  return Array.isArray(data) ? data : data.results
+  try {
+    const response = await makeApi(token).getTasks({ parentId })
+    return response.results
+  } catch {
+    return []
+  }
 }
 
 export async function addTodoistSubtask(
@@ -321,21 +294,16 @@ export async function addTodoistSubtask(
   const token = await getTodoistToken(userId)
   if (!token) return null
 
-  const res = await fetch(`${TODOIST_BASE}/tasks`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  try {
+    const task = await makeApi(token).addTask({
       content,
-      parent_id: parentId,
-      ...(projectId ? { project_id: projectId } : {}),
-    }),
-  })
-  if (!res.ok) return null
-
-  return (await res.json()) as { id: string }
+      parentId,
+      ...(projectId ? { projectId } : {}),
+    })
+    return { id: task.id }
+  } catch {
+    return null
+  }
 }
 
 // ── Triage: Projects + Task creation with subtasks ───────────────────────────
@@ -353,14 +321,18 @@ export async function fetchTodoistProjects(userId: string): Promise<{
   const token = await getTodoistToken(userId)
   if (!token) return { projects: [], error: "Todoist not connected" }
 
-  const res = await fetch(`${TODOIST_BASE}/projects`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
-  if (!res.ok) return { projects: [], error: `Todoist error: ${res.status}` }
-
-  const data = (await res.json()) as TodoistProject[]
-  return { projects: data }
+  try {
+    const response = await makeApi(token).getProjects()
+    const projects: TodoistProject[] = response.results.map((p) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+    }))
+    return { projects }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Unknown error"
+    return { projects: [], error: msg }
+  }
 }
 
 export async function createTodoistTaskWithSubtasks(
@@ -370,45 +342,35 @@ export async function createTodoistTaskWithSubtasks(
     projectId: string
     dueDate?: string
     subtasks: string[]
-  }
+  },
 ): Promise<{ taskId: string; error?: string }> {
   const token = await getTodoistToken(userId)
   if (!token) return { taskId: "", error: "Todoist not connected" }
 
-  // Create parent task
-  const parentRes = await fetch(`${TODOIST_BASE}/tasks`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      content: input.title,
-      ...(input.projectId ? { project_id: input.projectId } : {}),
-      ...(input.dueDate ? { due_date: input.dueDate } : {}),
-    }),
-  })
+  const api = makeApi(token)
 
-  if (!parentRes.ok) {
-    return { taskId: "", error: `Failed to create task: ${parentRes.status}` }
+  let parent: Task
+  try {
+    parent = await api.addTask({
+      content: input.title,
+      projectId: input.projectId,
+      ...(input.dueDate ? { dueString: input.dueDate } : {}),
+    })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to create task"
+    return { taskId: "", error: msg }
   }
 
-  const parent = (await parentRes.json()) as { id: string }
-
-  // Create subtasks in sequence (Todoist requires parent_id)
   for (const subtask of input.subtasks) {
-    await fetch(`${TODOIST_BASE}/tasks`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    try {
+      await api.addTask({
         content: subtask,
-        ...(input.projectId ? { project_id: input.projectId } : {}),
-        parent_id: parent.id,
-      }),
-    })
+        projectId: input.projectId,
+        parentId: parent.id,
+      })
+    } catch {
+      // Best-effort — continue creating remaining subtasks
+    }
   }
 
   return { taskId: parent.id }

@@ -45,7 +45,7 @@ export async function POST(
   if (task.source === "todoist" && task.sourceId) {
     try {
       await updateTodoistTask(session.user.id, task.sourceId, {
-        due_date: body.dueDate,
+        dueString: body.dueDate,
       })
     } catch {
       // Best-effort — DB is already updated

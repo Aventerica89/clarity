@@ -4,10 +4,7 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { tasks } from "@/lib/schema"
-import { getTodoistIntegrationRow } from "@/lib/integrations/todoist"
-import { decryptToken } from "@/lib/crypto"
-
-const TODOIST_REST = "https://api.todoist.com/rest/v2"
+import { completeTodoistTask } from "@/lib/integrations/todoist"
 
 export async function POST(
   _request: NextRequest,
@@ -40,14 +37,7 @@ export async function POST(
   // If Todoist task, close it in Todoist too
   if (task.source === "todoist" && task.sourceId) {
     try {
-      const row = await getTodoistIntegrationRow(session.user.id)
-      if (row?.accessTokenEncrypted) {
-        const token = decryptToken(row.accessTokenEncrypted)
-        await fetch(`${TODOIST_REST}/tasks/${task.sourceId}/close`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      }
+      await completeTodoistTask(session.user.id, task.sourceId)
     } catch {
       // Best-effort — task is already marked done locally
     }

@@ -45,7 +45,7 @@ export async function GET(
     const subtasks = todoistSubtasks.map((t) => ({
       id: t.id,
       content: t.content,
-      isCompleted: t.is_completed,
+      isCompleted: t.checked,
       source: "todoist" as const,
     }))
 
