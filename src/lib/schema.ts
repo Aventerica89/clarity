@@ -303,6 +303,7 @@ export const emails = sqliteTable("emails", {
   date: text("date").notNull(),
   isStarred: integer("is_starred", { mode: "boolean" }).notNull().default(false),
   isFavorited: integer("is_favorited", { mode: "boolean" }).notNull().default(false),
+  isArchived: integer("is_archived", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (t) => [

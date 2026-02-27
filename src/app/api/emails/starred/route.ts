@@ -12,7 +12,7 @@ export async function GET() {
   const result = await client.execute({
     sql: `SELECT gmail_id, thread_id, subject, from_raw, snippet, date, is_favorited
           FROM emails
-          WHERE user_id = ? AND is_starred = 1
+          WHERE user_id = ? AND is_starred = 1 AND is_archived = 0
           ORDER BY is_favorited DESC, created_at DESC
           LIMIT 25`,
     args: [session.user.id],

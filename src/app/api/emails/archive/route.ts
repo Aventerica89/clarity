@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 500 })
   }
 
-  // Remove from local cache
+  // Mark as archived in local cache (preserve for hidden view)
   await client.execute({
-    sql: "DELETE FROM emails WHERE user_id = ? AND gmail_id = ?",
+    sql: "UPDATE emails SET is_archived = 1, updated_at = unixepoch() WHERE user_id = ? AND gmail_id = ?",
     args: [session.user.id, body.gmailId],
   })
 
