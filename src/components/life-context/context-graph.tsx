@@ -21,9 +21,9 @@ import type { GraphNode, GraphEdge } from "@/app/api/life-context/graph/route"
 function getLayoutedElements(nodes: Node[], edges: Edge[]) {
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
-  g.setGraph({ rankdir: "LR", nodesep: 60, ranksep: 80 })
+  g.setGraph({ rankdir: "LR", nodesep: 50, ranksep: 100 })
 
-  nodes.forEach((node) => g.setNode(node.id, { width: 180, height: 40 }))
+  nodes.forEach((node) => g.setNode(node.id, { width: 180, height: 36 }))
   edges.forEach((edge) => g.setEdge(edge.source, edge.target))
 
   dagre.layout(g)
@@ -31,7 +31,7 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
   return {
     nodes: nodes.map((node) => {
       const { x, y } = g.node(node.id)
-      return { ...node, position: { x: x - 90, y: y - 20 } }
+      return { ...node, position: { x: x - 90, y: y - 18 } }
     }),
     edges,
   }
@@ -39,28 +39,37 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
 
 // ─── Node styling by type + severity ─────────────────────────────────────────
 
+const BASE_NODE_STYLE: React.CSSProperties = {
+  color: "#111827",
+  fontSize: 12,
+  fontWeight: 500,
+  padding: "6px 12px",
+  minWidth: 160,
+  borderRadius: 6,
+}
+
 function getNodeStyle(type: string, severity?: string): React.CSSProperties {
   if (type === "context") {
     switch (severity) {
       case "critical":
-        return { background: "#fee2e2", border: "2px solid #ef4444", borderRadius: 6 }
+        return { ...BASE_NODE_STYLE, background: "#fee2e2", border: "2px solid #ef4444" }
       case "escalated":
-        return { background: "#ffedd5", border: "2px solid #fb923c", borderRadius: 6 }
+        return { ...BASE_NODE_STYLE, background: "#ffedd5", border: "2px solid #fb923c" }
       case "active":
-        return { background: "#fefce8", border: "2px solid #facc15", borderRadius: 6 }
+        return { ...BASE_NODE_STYLE, background: "#fefce8", border: "2px solid #facc15" }
       default:
-        return { background: "#f0fdf4", border: "2px solid #4ade80", borderRadius: 6 }
+        return { ...BASE_NODE_STYLE, background: "#f0fdf4", border: "2px solid #4ade80" }
     }
   }
   switch (type) {
     case "task":
-      return { background: "#eff6ff", border: "2px solid #60a5fa", borderRadius: 6 }
+      return { ...BASE_NODE_STYLE, background: "#eff6ff", border: "2px solid #60a5fa" }
     case "email":
-      return { background: "#faf5ff", border: "2px solid #c084fc", borderRadius: 6 }
+      return { ...BASE_NODE_STYLE, background: "#faf5ff", border: "2px solid #c084fc" }
     case "event":
-      return { background: "#eef2ff", border: "2px solid #818cf8", borderRadius: 6 }
+      return { ...BASE_NODE_STYLE, background: "#eef2ff", border: "2px solid #818cf8" }
     default:
-      return { background: "#f9fafb", border: "2px solid #9ca3af", borderRadius: 6 }
+      return { ...BASE_NODE_STYLE, background: "#f9fafb", border: "2px solid #9ca3af" }
   }
 }
 
