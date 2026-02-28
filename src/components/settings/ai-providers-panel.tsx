@@ -48,7 +48,7 @@ const PROVIDERS: ProviderConfig[] = [
   {
     id: "gemini-pro",
     label: "Gemini Pro",
-    model: "gemini-2.5-pro-preview-03-25",
+    model: "gemini-3.1-pro-preview",
     description: "Google AI — paid (Gemini CLI / API key)",
     placeholder: "AIza...",
     docsUrl: "https://aistudio.google.com/app/apikey",

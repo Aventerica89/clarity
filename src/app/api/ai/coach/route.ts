@@ -87,7 +87,7 @@ async function callProvider(
     }
     case "gemini":
     case "gemini-pro": {
-      const geminiModel = provider === "gemini-pro" ? "gemini-2.5-pro-preview-03-25" : "gemini-2.0-flash"
+      const geminiModel = provider === "gemini-pro" ? "gemini-3.1-pro-preview" : "gemini-2.0-flash"
       const model = createGeminiClient(token, geminiModel)
       const result = await model.generateContent({
         contents: messages.map(m => ({
