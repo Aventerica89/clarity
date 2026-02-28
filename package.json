@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:auth": "op run --env-file=.env.dev-auth.tpl -- next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
