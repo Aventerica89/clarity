@@ -251,19 +251,28 @@ export async function POST(request: NextRequest) {
       { role: "user", content: `${contextPrefix}${question}` },
     ]
 
+    // Auto-route to Anthropic when the user's message implies Todoist tool use
+    // and the selected provider doesn't support tool calling
+    const TASK_INTENT_RE = /\b(add|create|make|schedule|remove|delete|complete|finish|check off|update|rename|move)\b.*\b(task|todo|reminder|todoist)\b/i
+    const needsToolUse = todoistToken && tokens.anthropic && TASK_INTENT_RE.test(question)
+    const effectiveProvider = needsToolUse && requestedProvider !== "anthropic"
+      ? "anthropic" as ProviderId
+      : (requestedProvider as ProviderId | "auto" | undefined)
+    const effectiveAuto = !effectiveProvider || effectiveProvider === "auto"
+
     let text: string | undefined
     let usedProvider: ProviderId | undefined
 
-    if (!useAuto) {
-      const token = tokens[requestedProvider as ProviderId]
+    if (!effectiveAuto) {
+      const token = tokens[effectiveProvider as ProviderId]
       if (!token) {
         return NextResponse.json(
-          { error: `No API key saved for ${requestedProvider}. Add it in Settings.` },
+          { error: `No API key saved for ${effectiveProvider}. Add it in Settings.` },
           { status: 422 },
         )
       }
-      text = await callProvider(requestedProvider as ProviderId, token, messages, todoistToken ?? undefined)
-      usedProvider = requestedProvider as ProviderId
+      text = await callProvider(effectiveProvider as ProviderId, token, messages, todoistToken ?? undefined)
+      usedProvider = effectiveProvider as ProviderId
     } else {
       const errors: string[] = []
       for (const pid of FALLBACK_ORDER) {
