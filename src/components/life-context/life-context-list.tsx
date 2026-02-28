@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { ChevronRight, Pencil, Trash2, Plus } from "lucide-react"
 import {
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { LifeContextForm } from "./life-context-form"
 import {
   type Severity,
+  SEVERITY_LIST,
   SEVERITY_LABELS,
   SEVERITY_CLASSES,
   formatRelativeTime,
@@ -37,6 +38,7 @@ export function LifeContextList({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [archiving, setArchiving] = useState<string | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
+  const [filter, setFilter] = useState<"all" | Severity>("all")
 
   const handleCreated = useCallback((item: ContextItem) => {
     setItems((prev) => [item, ...prev])
@@ -67,9 +69,17 @@ export function LifeContextList({
     }
   }, [])
 
-  const editingItem = editingId
-    ? items.find((it) => it.id === editingId)
-    : null
+  const presentLevels = useMemo(
+    () => SEVERITY_LIST.filter((s) => items.some((it) => it.urgency === s)),
+    [items],
+  )
+
+  const displayItems = useMemo(
+    () => (filter === "all" ? items : items.filter((it) => it.urgency === filter)),
+    [items, filter],
+  )
+
+  const editingItem = editingId ? items.find((it) => it.id === editingId) : null
 
   return (
     <div className="space-y-4">
@@ -78,7 +88,7 @@ export function LifeContextList({
           Context Items
           {items.length > 0 && (
             <span className="ml-2 normal-case tabular-nums">
-              ({items.length})
+              ({displayItems.length}{filter !== "all" ? ` / ${items.length}` : ""})
             </span>
           )}
         </h2>
@@ -96,80 +106,121 @@ export function LifeContextList({
         </button>
       </div>
 
+      {presentLevels.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            onClick={() => setFilter("all")}
+            className={cn(
+              "rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+              filter === "all"
+                ? "bg-foreground text-background"
+                : "bg-muted text-muted-foreground hover:text-foreground",
+            )}
+          >
+            All
+          </button>
+          {presentLevels.map((level) => (
+            <button
+              key={level}
+              onClick={() => setFilter(level)}
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize transition-colors",
+                filter === level
+                  ? cn("ring-1 ring-inset", SEVERITY_CLASSES[level])
+                  : "border-transparent bg-muted text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {SEVERITY_LABELS[level]}
+            </button>
+          ))}
+        </div>
+      )}
+
       {items.length === 0 && (
         <p className="text-sm text-muted-foreground text-pretty">
           No context yet. Add items to help the coach understand your situation.
         </p>
       )}
 
-      {items.length > 0 && (
-        <div className="rounded-lg border bg-card divide-y">
-          {items.map((item) => (
-            <div key={item.id} className="flex items-center gap-3 p-4">
-              <Link
-                href={`/life-context/${item.id}`}
-                className="min-w-0 flex-1 group"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[13px] font-medium group-hover:text-clarity-amber transition-colors">
-                    {item.title}
-                  </p>
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-full px-2 py-0.5",
-                      "text-[11px] font-medium ring-1 ring-inset",
-                      SEVERITY_CLASSES[item.urgency],
-                    )}
-                  >
-                    {SEVERITY_LABELS[item.urgency]}
-                  </span>
-                </div>
-                {item.description && (
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground line-clamp-1">
-                    {item.description}
-                  </p>
-                )}
-                <p className="mt-1 text-[11px] text-muted-foreground/60">
-                  Updated {formatRelativeTime(item.updatedAt)}
-                </p>
-              </Link>
-              <div className="flex flex-shrink-0 gap-1">
-                <button
-                  type="button"
-                  className={cn(
-                    "relative flex size-9 items-center justify-center rounded-md",
-                    "text-muted-foreground transition-colors hover:text-foreground",
-                    "before:absolute before:inset-[-4px] before:content-['']",
-                  )}
-                  onClick={() => setEditingId(item.id)}
-                  aria-label={`Edit ${item.title}`}
-                >
-                  <Pencil className="size-4" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "relative flex size-9 items-center justify-center rounded-md",
-                    "text-muted-foreground transition-colors hover:text-destructive",
-                    "before:absolute before:inset-[-4px] before:content-['']",
-                    "disabled:opacity-50",
-                  )}
-                  onClick={() => handleArchive(item.id)}
-                  disabled={archiving === item.id}
-                  aria-label={`Archive ${item.title}`}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                </button>
+      {displayItems.length === 0 && items.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          No {SEVERITY_LABELS[filter as Severity]} items.
+        </p>
+      )}
+
+      {displayItems.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {displayItems.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-lg border bg-card p-4 flex flex-col gap-2"
+            >
+              <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/life-context/${item.id}`}
-                  className={cn(
-                    "relative flex size-9 items-center justify-center rounded-md",
-                    "text-muted-foreground transition-colors hover:text-foreground",
-                  )}
-                  aria-label={`View ${item.title}`}
+                  className="min-w-0 flex-1 group"
                 >
-                  <ChevronRight className="size-4" aria-hidden="true" />
+                  <p className="text-[13px] font-medium group-hover:text-clarity-amber transition-colors leading-snug">
+                    {item.title}
+                  </p>
                 </Link>
+                <span
+                  className={cn(
+                    "shrink-0 inline-flex items-center rounded-full px-2 py-0.5",
+                    "text-[11px] font-medium ring-1 ring-inset",
+                    SEVERITY_CLASSES[item.urgency],
+                  )}
+                >
+                  {SEVERITY_LABELS[item.urgency]}
+                </span>
+              </div>
+
+              {item.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {item.description}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between mt-auto pt-1">
+                <p className="text-[11px] text-muted-foreground/60">
+                  Updated {formatRelativeTime(item.updatedAt)}
+                </p>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    className={cn(
+                      "relative flex size-8 items-center justify-center rounded-md",
+                      "text-muted-foreground transition-colors hover:text-foreground",
+                    )}
+                    onClick={() => setEditingId(item.id)}
+                    aria-label={`Edit ${item.title}`}
+                  >
+                    <Pencil className="size-3.5" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      "relative flex size-8 items-center justify-center rounded-md",
+                      "text-muted-foreground transition-colors hover:text-destructive",
+                      "disabled:opacity-50",
+                    )}
+                    onClick={() => handleArchive(item.id)}
+                    disabled={archiving === item.id}
+                    aria-label={`Archive ${item.title}`}
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                  </button>
+                  <Link
+                    href={`/life-context/${item.id}`}
+                    className={cn(
+                      "relative flex size-8 items-center justify-center rounded-md",
+                      "text-muted-foreground transition-colors hover:text-foreground",
+                    )}
+                    aria-label={`View ${item.title}`}
+                  >
+                    <ChevronRight className="size-3.5" aria-hidden="true" />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
@@ -183,7 +234,7 @@ export function LifeContextList({
       )}
 
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add context item</DialogTitle>
           </DialogHeader>
@@ -202,7 +253,7 @@ export function LifeContextList({
           if (!open) setEditingId(null)
         }}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit context item</DialogTitle>
           </DialogHeader>

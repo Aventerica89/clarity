@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
-import { RefreshCw, Loader2, CheckCircle2 } from "lucide-react"
+import { RefreshCw, Loader2, CheckCircle2, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { TriageCard, type TriageItem } from "@/components/triage/triage-card"
 import { ApproveModal } from "@/components/triage/approve-modal"
 import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle"
@@ -39,6 +40,7 @@ export function TriagePageContent() {
   const [scanning, setScanning] = useState(false)
   const [approveTarget, setApproveTarget] = useState<TriageItem | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>("compact")
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     const saved = localStorage.getItem("triage-view") as ViewMode | null
@@ -106,13 +108,23 @@ export function TriagePageContent() {
 
   const cardVariant = viewMode === "compact" ? "compact" : "comfortable"
 
+  const displayItems = useMemo(() => {
+    if (!search) return items
+    const q = search.toLowerCase()
+    return items.filter(
+      (i) =>
+        i.title.toLowerCase().includes(q) ||
+        i.snippet.toLowerCase().includes(q),
+    )
+  }, [items, search])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Triage</h1>
           <p className="text-muted-foreground text-sm">
-            {items.length} item{items.length !== 1 ? "s" : ""} need your attention
+            {displayItems.length} item{displayItems.length !== 1 ? "s" : ""} need your attention
           </p>
         </div>
         <Button
@@ -129,29 +141,44 @@ export function TriagePageContent() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap">
-        <FilterBar filters={SOURCE_FILTERS} />
-        <ViewToggle pageKey="triage" value={viewMode} onChange={handleViewChange} />
+      <div className="space-y-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search triage items..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-8 text-xs"
+          />
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <FilterBar filters={SOURCE_FILTERS} />
+          <ViewToggle pageKey="triage" value={viewMode} onChange={handleViewChange} />
+        </div>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </div>
-      ) : items.length === 0 ? (
+      ) : displayItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <CheckCircle2 className="size-10 text-muted-foreground/40 mb-3" />
-          <p className="font-medium">All clear</p>
+          <p className="font-medium">{search ? "No matches" : "All clear"}</p>
           <p className="text-sm text-muted-foreground">
-            No items need your attention right now.
+            {search
+              ? "No triage items match your search."
+              : "No items need your attention right now."}
           </p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={handleScan}>
-            Scan for new items
-          </Button>
+          {!search && (
+            <Button variant="outline" size="sm" className="mt-4" onClick={handleScan}>
+              Scan for new items
+            </Button>
+          )}
         </div>
       ) : (
         <div className={GRID_CLASS[viewMode]}>
-          {items.map((item) => (
+          {displayItems.map((item) => (
             <TriageCard
               key={item.id}
               item={item}
