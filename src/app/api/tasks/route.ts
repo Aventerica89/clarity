@@ -20,12 +20,15 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get("status") ?? "active"
   const source = searchParams.get("source") ?? "all"
   const priority = searchParams.get("priority") ?? "all"
+  const dateFilter = searchParams.get("dateFilter") ?? "all"
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix" }).format(new Date())
 
   const conditions = [eq(tasks.userId, session.user.id)]
 
   if (status === "active") {
     conditions.push(eq(tasks.isCompleted, false))
     conditions.push(eq(tasks.isHidden, false))
+    conditions.push(eq(tasks.triaged, true))
   } else if (status === "completed") {
     conditions.push(eq(tasks.isCompleted, true))
   } else if (status === "hidden") {
@@ -44,6 +47,22 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  if (dateFilter === "today") {
+    conditions.push(eq(tasks.dueDate, today))
+  } else if (dateFilter === "week") {
+    const d = new Date()
+    const dayOfWeek = d.getDay()
+    const daysUntilSunday = 7 - dayOfWeek
+    const endOfWeek = new Date(d)
+    endOfWeek.setDate(d.getDate() + daysUntilSunday)
+    const endOfWeekStr = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix" }).format(endOfWeek)
+    conditions.push(sql`${tasks.dueDate} <= ${endOfWeekStr}`)
+    conditions.push(sql`${tasks.dueDate} IS NOT NULL`)
+  } else if (dateFilter === "overdue") {
+    conditions.push(sql`${tasks.dueDate} < ${today}`)
+    conditions.push(sql`${tasks.dueDate} IS NOT NULL`)
+  }
+
   const rows = await db
     .select({
       id: tasks.id,
@@ -57,6 +76,7 @@ export async function GET(request: NextRequest) {
       priorityManual: tasks.priorityManual,
       isCompleted: tasks.isCompleted,
       isHidden: tasks.isHidden,
+      triaged: tasks.triaged,
       labels: tasks.labels,
       metadata: tasks.metadata,
       createdAt: tasks.createdAt,

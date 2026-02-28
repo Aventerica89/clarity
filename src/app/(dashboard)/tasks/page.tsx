@@ -25,6 +25,7 @@ export default function TasksPage() {
     source: "all",
     priority: "all",
     project: "all",
+    dateFilter: "all",
   })
 
   const fetchTasks = useCallback(async () => {
@@ -33,6 +34,7 @@ export default function TasksPage() {
       status: tab === "active" ? "active" : tab === "hidden" ? "hidden" : "completed",
       source: filters.source,
       priority: filters.priority,
+      dateFilter: filters.dateFilter ?? "all",
     })
 
     try {

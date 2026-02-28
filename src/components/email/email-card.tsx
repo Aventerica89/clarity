@@ -30,6 +30,7 @@ interface EmailCardProps {
   message: GmailMessage
   onArchived?: (gmailId: string) => void
   onFavoriteToggled?: (gmailId: string, favorited: boolean) => void
+  variant?: "compact" | "comfortable"
 }
 
 function parseSender(from: string): { name: string; email: string } {
@@ -62,7 +63,8 @@ function formatDate(dateStr: string): string {
   }
 }
 
-export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardProps) {
+export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "comfortable" }: EmailCardProps) {
+  const isCompact = variant === "compact"
   const [loading, setLoading] = useState<string | null>(null)
   const [favorited, setFavorited] = useState(message.isFavorited ?? false)
   const [pinOpen, setPinOpen] = useState(false)
@@ -191,7 +193,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
   }
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className={`rounded-lg border bg-card space-y-3 ${isCompact ? "p-2.5" : "p-4"}`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2 min-w-0">
@@ -214,14 +216,14 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
         </div>
         <p className="font-medium text-sm leading-snug">{message.subject}</p>
         {message.snippet && (
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+          <p className={`text-xs text-muted-foreground mt-1 ${isCompact ? "line-clamp-1" : "line-clamp-2"}`}>
             {message.snippet}
           </p>
         )}
 
         <button
           onClick={handleExpand}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+          className={`flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1 ${isCompact ? "hidden" : ""}`}
         >
           {expanded
             ? <ChevronUp className="size-3" />
@@ -261,7 +263,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled }: EmailCardP
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className={`flex gap-2 ${isCompact ? "hidden" : ""}`}>
         <Button
           size="sm"
           variant="outline"

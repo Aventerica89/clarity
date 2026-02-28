@@ -48,6 +48,21 @@ export function TasksFilterBar({ filters, onChange }: TasksFilterBarProps) {
           <SelectItem value="3">Medium</SelectItem>
         </SelectContent>
       </Select>
+
+      <Select
+        value={filters.dateFilter ?? "all"}
+        onValueChange={(v) => onChange({ ...filters, dateFilter: v as TaskFilters["dateFilter"] })}
+      >
+        <SelectTrigger className="w-[130px] h-8 text-xs">
+          <SelectValue placeholder="Due date" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All dates</SelectItem>
+          <SelectItem value="today">Today</SelectItem>
+          <SelectItem value="week">This Week</SelectItem>
+          <SelectItem value="overdue">Overdue</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   )
 }

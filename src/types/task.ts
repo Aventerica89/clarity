@@ -97,6 +97,7 @@ export interface TaskFilters {
   source: string // "all" | TaskSource
   priority: string // "all" | "5" | "4" | "3"
   project: string // "all" | projectId
+  dateFilter: "all" | "today" | "week" | "overdue"
 }
 
 // ─── Date grouping ───────────────────────────────────────────────────────────

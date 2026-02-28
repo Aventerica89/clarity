@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { db } from "@/lib/db"
-import { triageQueue, lifeContextItems } from "@/lib/schema"
+import { triageQueue, tasks, lifeContextItems } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
 import { getTodoistIntegrationRow } from "@/lib/integrations/todoist"
 import { decryptToken } from "@/lib/crypto"
 
-type Action = "dismiss" | "push_to_context" | "complete"
+type Action = "approve" | "dismiss" | "push_to_context" | "complete"
 
 const TODOIST_REST = "https://api.todoist.com/rest/v2"
 
@@ -31,6 +31,23 @@ export async function POST(
 
   const item = rows[0]
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  if (body.action === "approve") {
+    await db
+      .update(tasks)
+      .set({ triaged: true })
+      .where(
+        and(
+          eq(tasks.source, item.source),
+          eq(tasks.sourceId, item.sourceId),
+          eq(tasks.userId, session.user.id)
+        )
+      )
+
+    await db.delete(triageQueue).where(eq(triageQueue.id, id))
+
+    return NextResponse.json({ ok: true })
+  }
 
   if (body.action === "dismiss") {
     await db.update(triageQueue)

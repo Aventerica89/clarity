@@ -66,6 +66,7 @@ export const tasks = sqliteTable("tasks", {
   isCompleted: integer("is_completed", { mode: "boolean" }).notNull().default(false),
   completedAt: integer("completed_at", { mode: "timestamp" }),
   isHidden: integer("is_hidden", { mode: "boolean" }).notNull().default(false),
+  triaged: integer("triaged", { mode: "boolean" }).notNull().default(false),
   labels: text("labels").notNull().default("[]"),     // JSON string[]
   metadata: text("metadata").notNull().default("{}"), // JSON object
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { db } from "@/lib/db"
-import { triageQueue } from "@/lib/schema"
+import { triageQueue, tasks } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
 import {
   createTodoistTaskWithSubtasks,
@@ -41,6 +41,30 @@ export async function POST(
   const item = rows[0]
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
+  // Todoist items already exist in the tasks table — just mark them triaged.
+  // Do NOT call createTodoistTaskWithSubtasks or upsertTodoistTask for these,
+  // as that would trigger a redundant webhook loop.
+  if (item.source === "todoist") {
+    await db
+      .update(tasks)
+      .set({ triaged: true })
+      .where(
+        and(
+          eq(tasks.source, "todoist"),
+          eq(tasks.sourceId, item.sourceId),
+          eq(tasks.userId, session.user.id)
+        )
+      )
+
+    await db
+      .update(triageQueue)
+      .set({ status: "approved", reviewedAt: new Date() })
+      .where(eq(triageQueue.id, id))
+
+    return NextResponse.json({ ok: true })
+  }
+
+  // Non-Todoist source (e.g. gmail) — create a new task in Todoist, then mark triaged.
   const { taskId, error } = await createTodoistTaskWithSubtasks(session.user.id, {
     title: body.title,
     projectId: body.projectId,
@@ -60,11 +84,23 @@ export async function POST(
         await upsertTodoistTask(session.user.id, todoistTask)
       }
     }
+    // Mark the newly-created task as triaged so it surfaces immediately
+    await db
+      .update(tasks)
+      .set({ triaged: true })
+      .where(
+        and(
+          eq(tasks.source, "todoist"),
+          eq(tasks.sourceId, taskId),
+          eq(tasks.userId, session.user.id)
+        )
+      )
   } catch {
     // Best-effort — task exists in Todoist, will sync on next cron
   }
 
-  await db.update(triageQueue)
+  await db
+    .update(triageQueue)
     .set({ status: "approved", reviewedAt: new Date(), todoistTaskId: taskId })
     .where(eq(triageQueue.id, id))
 

@@ -14,14 +14,21 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const status = (searchParams.get("status") ?? "pending") as
     "pending" | "approved" | "dismissed" | "pushed_to_context"
+  const source = searchParams.get("source")
+
+  const conditions = [
+    eq(triageQueue.userId, session.user.id),
+    eq(triageQueue.status, status),
+  ] as Parameters<typeof and>
+
+  if (source !== null && source !== "all") {
+    conditions.push(eq(triageQueue.source, source))
+  }
 
   const items = await db
     .select()
     .from(triageQueue)
-    .where(and(
-      eq(triageQueue.userId, session.user.id),
-      eq(triageQueue.status, status),
-    ))
+    .where(and(...conditions))
     .orderBy(desc(triageQueue.aiScore), desc(triageQueue.createdAt))
     .limit(50)
 

@@ -7,6 +7,7 @@ import { lifeContextItems, financialSnapshot } from "@/lib/schema"
 import { LifeContextList } from "@/components/life-context/life-context-list"
 import { FinancialSnapshotCard } from "@/components/life-context/financial-snapshot-card"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
+import { ContextGraphLoader } from "@/components/life-context/context-graph-loader"
 
 export default async function LifeContextPage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -47,6 +48,11 @@ export default async function LifeContextPage() {
             value: "finances",
             label: "Finances",
             content: <FinancialSnapshotCard snapshot={snapshotRows[0] ?? null} />,
+          },
+          {
+            value: "graph",
+            label: "Graph",
+            content: <ContextGraphLoader />,
           },
         ]}
       />

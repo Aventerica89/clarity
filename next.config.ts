@@ -29,6 +29,9 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: version,
   },
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {

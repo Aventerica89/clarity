@@ -33,16 +33,25 @@ export interface TriageItem {
 
 interface TriageCardProps {
   item: TriageItem
+  variant?: "compact" | "comfortable"
   onApprove: (item: TriageItem) => void
   onDismiss: (id: string) => void
   onPushToContext: (id: string) => void
   onComplete: (id: string) => void
 }
 
-export function TriageCard({ item, onApprove, onDismiss, onPushToContext, onComplete }: TriageCardProps) {
+export function TriageCard({
+  item,
+  variant = "comfortable",
+  onApprove,
+  onDismiss,
+  onPushToContext,
+  onComplete,
+}: TriageCardProps) {
   const [loading, setLoading] = useState<"approve" | "dismiss" | "context" | "complete" | null>(null)
   const SourceIcon = SOURCE_ICONS[item.source] ?? Mail
   const isTodoist = item.source === "todoist"
+  const isCompact = variant === "compact"
 
   async function handleDismiss() {
     setLoading("dismiss")
@@ -77,6 +86,17 @@ export function TriageCard({ item, onApprove, onDismiss, onPushToContext, onComp
     setLoading(null)
   }
 
+  async function handleApprove() {
+    setLoading("approve")
+    await fetch(`/api/triage/${item.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "approve" }),
+    })
+    onComplete(item.id)
+    setLoading(null)
+  }
+
   const scoreColor = item.aiScore >= 80
     ? "text-destructive"
     : item.aiScore >= 60
@@ -84,7 +104,7 @@ export function TriageCard({ item, onApprove, onDismiss, onPushToContext, onComp
     : "text-muted-foreground"
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className={cn("rounded-lg border bg-card space-y-3", isCompact ? "p-3" : "p-4")}>
       <div className="flex items-start gap-3">
         <div className="mt-0.5 text-muted-foreground">
           <SourceIcon className="size-4" />
@@ -100,11 +120,11 @@ export function TriageCard({ item, onApprove, onDismiss, onPushToContext, onComp
           </div>
           <p className="font-medium text-sm leading-snug">{item.title}</p>
           {item.snippet && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+            <p className={cn("text-xs text-muted-foreground mt-1", isCompact ? "line-clamp-1" : "line-clamp-2")}>
               {item.snippet}
             </p>
           )}
-          <p className="text-xs text-muted-foreground/70 mt-1 italic">
+          <p className={cn("text-xs text-muted-foreground/70 mt-1 italic", isCompact && "hidden")}>
             {item.aiReasoning}
           </p>
         </div>
@@ -112,15 +132,25 @@ export function TriageCard({ item, onApprove, onDismiss, onPushToContext, onComp
 
       <div className="flex gap-2">
         {isTodoist ? (
-          <Button
-            size="sm"
-            className="flex-1"
-            onClick={handleComplete}
-            disabled={loading !== null}
-          >
-            <CheckCircle2 className="size-3.5 mr-1.5" />
-            {loading === "complete" ? "Completing..." : "Complete"}
-          </Button>
+          <>
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={handleComplete}
+              disabled={loading !== null}
+            >
+              <CheckCircle2 className="size-3.5 mr-1.5" />
+              {loading === "complete" ? "Completing..." : "Complete"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleApprove}
+              disabled={loading !== null}
+            >
+              {loading === "approve" ? "Approving..." : "Approve"}
+            </Button>
+          </>
         ) : (
           <Button
             size="sm"
