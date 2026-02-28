@@ -171,6 +171,91 @@ export async function fetchGmailMessages(
   return { messages }
 }
 
+export async function getGmailProfileHistoryId(userId: string): Promise<string | null> {
+  const gmail = await getAuthenticatedGmailClient(userId)
+  if (!gmail) return null
+  try {
+    const res = await gmail.users.getProfile({ userId: "me" })
+    return res.data.historyId ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function fetchGmailMessagesSince(
+  userId: string,
+  startHistoryId: string,
+): Promise<{
+  messages: GmailMessage[]
+  newHistoryId: string | null
+  error?: string
+}> {
+  const gmail = await getAuthenticatedGmailClient(userId)
+  if (!gmail) return { messages: [], newHistoryId: null, error: "google_not_connected" }
+
+  let historyRes
+  try {
+    historyRes = await gmail.users.history.list({
+      userId: "me",
+      startHistoryId,
+      historyTypes: ["messageAdded"],
+      labelId: "INBOX",
+    })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes("410") || msg.includes("startHistoryId")) {
+      return { messages: [], newHistoryId: null, error: "history_expired" }
+    }
+    return { messages: [], newHistoryId: null, error: msg }
+  }
+
+  const newHistoryId = historyRes.data.historyId ?? null
+  const historyRecords = historyRes.data.history ?? []
+
+  const messageIds = new Set<string>()
+  for (const record of historyRecords) {
+    for (const added of record.messagesAdded ?? []) {
+      if (added.message?.id) messageIds.add(added.message.id)
+    }
+  }
+
+  if (messageIds.size === 0) return { messages: [], newHistoryId }
+
+  const ids = [...messageIds]
+  const messages: GmailMessage[] = []
+  const chunks: string[][] = []
+  for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10))
+
+  for (const chunk of chunks) {
+    const results = await Promise.allSettled(
+      chunk.map((msgId) =>
+        gmail.users.messages.get({
+          userId: "me",
+          id: msgId,
+          format: "metadata",
+          metadataHeaders: ["Subject", "From", "Date"],
+        })
+      )
+    )
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue
+      const msg = result.value.data
+      const hdrs = msg.payload?.headers ?? []
+      const get = (name: string) => hdrs.find((h) => h.name === name)?.value ?? ""
+      messages.push({
+        id: msg.id!,
+        threadId: msg.threadId!,
+        subject: get("Subject") || "(no subject)",
+        from: get("From"),
+        snippet: (msg.snippet ?? "").slice(0, 300),
+        date: get("Date"),
+      })
+    }
+  }
+
+  return { messages, newHistoryId }
+}
+
 export async function archiveGmailMessage(
   userId: string,
   gmailId: string,
