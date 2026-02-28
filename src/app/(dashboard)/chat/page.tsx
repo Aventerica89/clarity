@@ -348,6 +348,19 @@ function ChatPageInner() {
                 <PromptInputTextarea placeholder="Ask anything..." />
                 <PromptInputActions>
                   <CoachContextModal />
+                  <select
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value)}
+                    className="h-7 rounded-md border border-input bg-transparent px-2 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                    title="AI provider"
+                  >
+                    <option value="auto">Auto</option>
+                    <option value="anthropic">Claude</option>
+                    <option value="gemini-pro">Gemini Pro</option>
+                    <option value="gemini">Gemini Flash</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="groq">Groq</option>
+                  </select>
                   <PromptInputAction
                     tooltip="Send"
                     onClick={sendMessage}
