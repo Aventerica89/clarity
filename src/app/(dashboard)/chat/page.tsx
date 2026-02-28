@@ -73,6 +73,7 @@ function ChatPageInner() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
+  const [provider, setProvider] = useState("auto")
   const [isStreaming, setIsStreaming] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -185,7 +186,7 @@ function ChatPageInner() {
           question,
           sessionId,
           namedSession: true,
-          provider: "auto",
+          provider,
         }),
         signal: abortRef.current.signal,
       })
@@ -414,6 +415,19 @@ function ChatPageInner() {
                   <PromptInputTextarea placeholder="Ask anything..." />
                   <PromptInputActions>
                     <CoachContextModal />
+                    <select
+                      value={provider}
+                      onChange={(e) => setProvider(e.target.value)}
+                      className="h-7 rounded-md border border-input bg-transparent px-2 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                      title="AI provider"
+                    >
+                      <option value="auto">Auto</option>
+                      <option value="anthropic">Claude</option>
+                      <option value="gemini-pro">Gemini Pro</option>
+                      <option value="gemini">Gemini Flash</option>
+                      <option value="deepseek">DeepSeek</option>
+                      <option value="groq">Groq</option>
+                    </select>
                     <PromptInputAction
                       tooltip="Send"
                       onClick={sendMessage}
