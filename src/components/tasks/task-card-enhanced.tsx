@@ -12,7 +12,6 @@ import {
   type TaskItem,
   PRIORITY_COLORS,
   PRIORITY_LABELS,
-  parseLabels,
   isOverdue,
 } from "@/types/task"
 
@@ -36,9 +35,10 @@ export function TaskCardEnhanced({
   const [descExpanded, setDescExpanded] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [pinOpen, setPinOpen] = useState(false)
-  const labels = parseLabels(task.labels)
   const priority = task.priorityManual ?? 1
   const overdue = isOverdue(task.dueDate)
+  const meta = (() => { try { return JSON.parse(task.metadata) as Record<string, unknown> } catch { return {} } })()
+  const projectName = typeof meta.projectName === "string" ? meta.projectName : null
 
   function handleComplete() {
     if (!onComplete) return
@@ -116,11 +116,9 @@ export function TaskCardEnhanced({
                 {overdue ? "Overdue" : task.dueDate}
               </span>
             ) : null}
-            {labels.slice(0, 3).map((label) => (
-              <Badge key={label} variant="secondary" className="text-xs px-2 py-0">
-                {label}
-              </Badge>
-            ))}
+            {projectName && (
+              <span className="text-[11px] text-muted-foreground/70">{projectName}</span>
+            )}
           </div>
         </div>
 

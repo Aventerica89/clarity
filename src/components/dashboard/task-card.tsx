@@ -14,6 +14,7 @@ interface TaskItem {
   dueDate: string | null
   priorityManual: number | null
   labels: string
+  metadata: string
 }
 
 interface TaskCardProps {
@@ -34,14 +35,6 @@ const PRIORITY_LABELS: Record<number, string> = {
   1: "Normal",
 }
 
-function parseLabels(labelsJson: string): string[] {
-  try {
-    return JSON.parse(labelsJson) as string[]
-  } catch {
-    return []
-  }
-}
-
 function isOverdue(dueDate: string | null): boolean {
   if (!dueDate) return false
   const today = new Date()
@@ -52,9 +45,10 @@ function isOverdue(dueDate: string | null): boolean {
 export function TaskCard({ task, onComplete }: TaskCardProps) {
   const [done, setDone] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const labels = parseLabels(task.labels)
   const priority = task.priorityManual ?? 1
   const overdue = isOverdue(task.dueDate)
+  const meta = (() => { try { return JSON.parse(task.metadata) as Record<string, unknown> } catch { return {} } })()
+  const projectName = typeof meta.projectName === "string" ? meta.projectName : null
 
   function handleComplete() {
     if (!onComplete) return
@@ -118,11 +112,9 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
               {overdue ? "Overdue" : task.dueDate}
             </span>
           )}
-          {labels.slice(0, 3).map((label) => (
-            <Badge key={label} variant="secondary" className="text-xs px-2 py-0">
-              {label}
-            </Badge>
-          ))}
+          {projectName && (
+            <span className="text-[11px] text-muted-foreground/70">{projectName}</span>
+          )}
         </div>
       </div>
     </div>

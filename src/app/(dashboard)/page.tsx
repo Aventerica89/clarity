@@ -126,6 +126,7 @@ export default async function TodayPage() {
                 dueDate: t.dueDate,
                 priorityManual: t.priorityManual,
                 labels: t.labels,
+                metadata: t.metadata,
               }))}
             />
           )

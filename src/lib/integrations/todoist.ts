@@ -65,15 +65,18 @@ export async function fetchTodoistTaskById(
 export async function upsertTodoistTask(
   userId: string,
   t: Task,
+  projectNames?: Record<string, string>,
 ): Promise<void> {
   if (t.checked) return
 
   const dueDate = t.due?.date ?? null
   const dueTime = t.due?.datetime ? t.due.datetime.substring(11, 19) : null
+  const projectName = projectNames?.[t.projectId] ?? undefined
 
   const metadata = JSON.stringify({
     todoistPriority: t.priority,
     projectId: t.projectId,
+    ...(projectName ? { projectName } : {}),
     ...(t.sectionId ? { sectionId: t.sectionId } : {}),
     ...(t.parentId ? { parentId: t.parentId } : {}),
     url: t.url,
@@ -138,9 +141,20 @@ export async function syncTodoistTasks(userId: string): Promise<{
     return { synced: 0, error: msg }
   }
 
+  // Fetch projects to store project names in task metadata
+  const projectNames: Record<string, string> = {}
+  try {
+    const projectsResponse = await makeApi(token).getProjects()
+    for (const p of projectsResponse.results) {
+      projectNames[p.id] = p.name
+    }
+  } catch {
+    // Non-fatal — tasks sync without project names
+  }
+
   let synced = 0
   for (const t of rawTasks) {
-    await upsertTodoistTask(userId, t)
+    await upsertTodoistTask(userId, t, projectNames)
     synced++
   }
 

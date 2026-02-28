@@ -11,6 +11,7 @@ interface TaskItem {
   dueDate: string | null
   priorityManual: number | null
   labels: string
+  metadata: string
 }
 
 interface TaskListProps {
