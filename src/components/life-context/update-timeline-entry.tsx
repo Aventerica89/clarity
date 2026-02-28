@@ -44,7 +44,7 @@ export function UpdateTimelineEntry({
   const [deleting, setDeleting] = useState(false)
   const [approving, setApproving] = useState(false)
 
-  const isPendingApproval = isAi && update.approvalStatus === "pending" && update.proposedUrgency
+  const isPendingApproval = isAi && update.approvalStatus === "pending"
 
   async function handleApproval(action: "approve" | "dismiss") {
     setApproving(true)
@@ -270,10 +270,16 @@ export function UpdateTimelineEntry({
         {isPendingApproval && (
           <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md border border-blue-500/20 bg-blue-500/5 px-3 py-2">
             <span className="text-[11px] text-blue-500 flex-1">
-              Proposed status change to{" "}
-              <span className={cn("font-medium", SEVERITY_CLASSES[update.proposedUrgency!])}>
-                {SEVERITY_LABELS[update.proposedUrgency!]}
-              </span>
+              {update.proposedUrgency ? (
+                <>
+                  Proposed status change to{" "}
+                  <span className={cn("font-medium", SEVERITY_CLASSES[update.proposedUrgency])}>
+                    {SEVERITY_LABELS[update.proposedUrgency]}
+                  </span>
+                </>
+              ) : (
+                "AI note — keep or dismiss"
+              )}
             </span>
             <div className="flex items-center gap-1.5">
               <button

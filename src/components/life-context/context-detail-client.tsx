@@ -330,11 +330,16 @@ export function ContextDetailClient({
                     update={entry.data}
                     isLatest={i === firstUpdateIdx}
                     onUpdated={(updated) => {
-                      setUpdates((prev) =>
-                        prev.map((u) => (u.id === updated.id ? updated : u)),
-                      )
-                      if (updated.approvalStatus === "approved" && updated.proposedUrgency) {
-                        setCurrentSeverity(updated.proposedUrgency)
+                      if (updated.approvalStatus === "dismissed" && !updated.proposedUrgency) {
+                        // Plain AI note dismissed — remove from timeline
+                        setUpdates((prev) => prev.filter((u) => u.id !== updated.id))
+                      } else {
+                        setUpdates((prev) =>
+                          prev.map((u) => (u.id === updated.id ? updated : u)),
+                        )
+                        if (updated.approvalStatus === "approved" && updated.proposedUrgency) {
+                          setCurrentSeverity(updated.proposedUrgency)
+                        }
                       }
                     }}
                     onDeleted={(id) => {

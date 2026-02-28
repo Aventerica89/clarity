@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
 import { redirect, notFound } from "next/navigation"
-import { and, desc, eq } from "drizzle-orm"
+import { and, desc, eq, isNull, isNotNull, ne, or } from "drizzle-orm"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { auth } from "@/lib/auth"
@@ -40,6 +40,13 @@ export default async function ContextItemPage({
         and(
           eq(lifeContextUpdates.contextItemId, id),
           eq(lifeContextUpdates.userId, session.user.id),
+          // Exclude dismissed plain AI notes (approved/dismissed urgency proposals stay for history)
+          or(
+            ne(lifeContextUpdates.source, "ai"),
+            isNull(lifeContextUpdates.approvalStatus),
+            ne(lifeContextUpdates.approvalStatus, "dismissed"),
+            isNotNull(lifeContextUpdates.proposedUrgency),
+          ),
         ),
       )
       .orderBy(desc(lifeContextUpdates.createdAt)),

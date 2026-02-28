@@ -43,7 +43,15 @@ export async function PATCH(
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
 
-    if (actionParsed.data.action === "approve" && current.proposedUrgency) {
+    if (actionParsed.data.action === "approve") {
+      if (current.proposedUrgency) {
+        // Apply the proposed urgency change to the parent item
+        await db
+          .update(lifeContextItems)
+          .set({ urgency: current.proposedUrgency })
+          .where(eq(lifeContextItems.id, current.contextItemId))
+      }
+
       const [updated] = await db
         .update(lifeContextUpdates)
         .set({ approvalStatus: "approved" })
@@ -52,11 +60,6 @@ export async function PATCH(
           eq(lifeContextUpdates.userId, session.user.id),
         ))
         .returning()
-
-      await db
-        .update(lifeContextItems)
-        .set({ urgency: current.proposedUrgency })
-        .where(eq(lifeContextItems.id, current.contextItemId))
 
       return NextResponse.json({ update: updated })
     }

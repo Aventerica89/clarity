@@ -90,7 +90,7 @@ async function postAddendums(userId: string, addendums: ParsedAddendum[], model?
       severity: target.urgency,
       source: "ai",
       proposedUrgency: checkedProposed ?? null,
-      approvalStatus: checkedProposed ? "pending" : null,
+      approvalStatus: "pending",
       model: model ?? null,
     })
   }
