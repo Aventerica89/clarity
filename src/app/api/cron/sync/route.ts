@@ -35,8 +35,6 @@ export async function POST(request: NextRequest) {
     todoistError: r.todoist?.error ?? null,
     gmailSynced: r.gmail?.synced ?? 0,
     gmailError: r.gmail?.error ?? null,
-    plaidSynced: r.plaid?.synced ?? 0,
-    plaidError: r.plaid?.error ?? null,
     triageAdded: r.triage?.added ?? 0,
     triageSkipped: r.triage?.skipped ?? 0,
     triageErrors: r.triage?.errors ?? [],
