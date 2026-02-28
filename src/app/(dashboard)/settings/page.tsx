@@ -146,8 +146,7 @@ export default async function SettingsPage() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2 text-base">
-                        <Image src="/logos/google-signin-light.svg" alt="" width={20} height={20} className="dark:hidden" />
-                        <Image src="/logos/google-signin-dark.svg" alt="" width={20} height={20} className="hidden dark:block" />
+                        <Image src="/logos/google-logo.svg" alt="" width={20} height={20} />
                         Google Calendar
                       </CardTitle>
                       <Badge
