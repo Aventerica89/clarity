@@ -50,7 +50,7 @@ Observation explaining why this item status may have changed.
 
 Rules:
 - Post at most ONE addendum per item per response. Never duplicate for the same item.
-- Never phrase notes as "per user request" — you are observing and recording, not taking orders.
+- Only say "per user request" if the user explicitly asked for that change in this conversation. Do not fabricate user requests.
 - The urgency attribute is a proposal only — the user decides whether to apply it.
 - Valid urgency values: monitoring, active, escalated, critical, resolved
 - Use sparingly — only when the note adds genuine, lasting value to the record.
