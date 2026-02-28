@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -93,7 +94,8 @@ export function TodoistConnectForm({ connected, displayName, connectionMethod }:
       {message && (
         <p className="text-xs text-muted-foreground">{message}</p>
       )}
-      <Button size="sm" onClick={handleOAuthConnect} disabled={isPending}>
+      <Button size="sm" onClick={handleOAuthConnect} disabled={isPending} className="gap-2">
+        <Image src="/logos/todoist-icon.svg" alt="" width={16} height={16} />
         Connect to Todoist
       </Button>
       <div className="relative flex items-center gap-2 text-xs text-muted-foreground">

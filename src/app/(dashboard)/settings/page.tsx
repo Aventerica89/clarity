@@ -2,6 +2,7 @@ import Link from "next/link"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { and, eq, inArray } from "drizzle-orm"
+import Image from "next/image"
 import { ChevronRight, Info } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
@@ -144,7 +145,11 @@ export default async function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Google Calendar</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Image src="/logos/google-signin-light.svg" alt="" width={20} height={20} className="dark:hidden" />
+                        <Image src="/logos/google-signin-dark.svg" alt="" width={20} height={20} className="hidden dark:block" />
+                        Google Calendar
+                      </CardTitle>
                       <Badge
                         variant="outline"
                         className={googleConnected
@@ -170,7 +175,10 @@ export default async function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Todoist</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Image src="/logos/todoist-icon.svg" alt="" width={20} height={20} />
+                        Todoist
+                      </CardTitle>
                       <Badge
                         variant="outline"
                         className={
