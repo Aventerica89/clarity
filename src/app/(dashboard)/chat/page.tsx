@@ -314,7 +314,7 @@ function ChatPageInner() {
         {/* No session selected / empty state */}
         {!activeSessionId && !hasMessages ? (
           <div className="relative z-[1] flex flex-1 flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center gap-6 p-6 text-center">
+            <div className="flex-1 overflow-y-auto flex flex-col items-center justify-end gap-4 px-6 pb-4 text-center">
               <Image
                 src="/pwa/manifest-icon-192.maskable.png"
                 alt="Clarity"

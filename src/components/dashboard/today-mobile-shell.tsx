@@ -133,7 +133,7 @@ export function TodayMobileShell({
         </CollapsibleSection>
 
         {/* Plan + Widgets: side-by-side on desktop */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px] items-start">
+        <div className="grid gap-3 lg:gap-6 lg:grid-cols-[1fr_320px] items-start">
           <CollapsibleSection
             id="plan"
             title="Plan"

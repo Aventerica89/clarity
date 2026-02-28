@@ -89,7 +89,7 @@ export function TaskCardEnhanced({
           {task.description && (
             <p
               className={cn(
-                "text-xs text-muted-foreground mt-1 cursor-pointer",
+                "text-xs text-muted-foreground mt-1 cursor-pointer break-words max-w-[72ch]",
                 descExpanded ? "" : "line-clamp-2",
               )}
               onClick={() => setDescExpanded(!descExpanded)}

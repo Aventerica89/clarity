@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Smartphone } from "lucide-react"
 import { useSession } from "@/lib/auth-client"
 import { getOnboardingStorageKey } from "@/components/onboarding/install-guide"
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 export function OnboardingReset() {
   const { data: session } = useSession()
@@ -27,24 +26,20 @@ export function OnboardingReset() {
   if (!dismissed) return null
 
   return (
-    <Card>
-      <CardHeader className="py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Smartphone className="size-4 text-muted-foreground" />
-            <CardTitle className="text-base">Install Guide</CardTitle>
-          </div>
-          <button
-            onClick={reset}
-            className="text-xs font-medium text-clarity-amber hover:opacity-80 transition-opacity"
-          >
-            Show again
-          </button>
+    <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center gap-3">
+        <Smartphone className="size-4 text-muted-foreground shrink-0" />
+        <div className="text-left">
+          <p className="text-sm font-medium">Install Guide</p>
+          <p className="text-xs text-muted-foreground">Re-enable the iPhone install walkthrough on next login.</p>
         </div>
-        <CardDescription>
-          Re-enable the iPhone install walkthrough on next login.
-        </CardDescription>
-      </CardHeader>
-    </Card>
+      </div>
+      <button
+        onClick={reset}
+        className="text-xs font-medium text-clarity-amber hover:opacity-80 transition-opacity shrink-0"
+      >
+        Show again
+      </button>
+    </div>
   )
 }

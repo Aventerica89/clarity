@@ -218,22 +218,19 @@ export default async function SettingsPage() {
             label: "Account",
             content: (
               <div className="space-y-4">
-                <Link href="/settings/about">
-                  <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-                    <CardHeader className="py-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Info className="size-4 text-muted-foreground" />
-                          <CardTitle className="text-base">About Clarity</CardTitle>
-                        </div>
-                        <ChevronRight className="size-4 text-muted-foreground" />
+                <div className="rounded-lg border divide-y overflow-hidden">
+                  <Link href="/settings/about" className="flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Info className="size-4 text-muted-foreground shrink-0" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">About Clarity</p>
+                        <p className="text-xs text-muted-foreground">Getting started guide, features, and changelog.</p>
                       </div>
-                      <CardDescription>Getting started guide, features, and changelog.</CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Link>
-
-                <OnboardingReset />
+                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                  </Link>
+                  <OnboardingReset />
+                </div>
 
                 <p className="text-center text-xs text-muted-foreground pt-2">
                   <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
