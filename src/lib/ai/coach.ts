@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gt, gte, isNull, lte, or } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { events, financialSnapshot, integrations, lifeContextItems, lifeContextUpdates, routineCompletions, routines, routineCosts, tasks, triageQueue, userProfile } from "@/lib/schema"
 import { decryptToken } from "@/lib/crypto"
+import { fetchContacts, type Contact } from "@/lib/integrations/contacts"
 
 // User timezone — America/Phoenix has no DST (UTC-7 year-round)
 const TIMEZONE = process.env.CLARITY_TIMEZONE ?? "America/Phoenix"
@@ -134,6 +135,17 @@ export function formatLifeContext(
   return lines.join("\n")
 }
 
+function formatContactsBlock(contacts: Contact[]): string {
+  if (contacts.length === 0) return ""
+  const lines: string[] = [`[Contacts — ${contacts.length} in Google Contacts]`]
+  for (const c of contacts) {
+    const emailStr = c.emails[0] ?? ""
+    const orgStr = c.organization ? ` — ${c.organization}` : ""
+    lines.push(`  - ${c.name} (${emailStr})${orgStr}`)
+  }
+  return lines.join("\n")
+}
+
 function todayString(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date())
 }
@@ -247,6 +259,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
     costsRows,
     triageRows,
     contextUpdateRows,
+    contactsResult,
   ] = await Promise.all([
     // Next 3 hours of events
     db
@@ -364,6 +377,9 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
       .where(eq(lifeContextUpdates.userId, userId))
       .orderBy(desc(lifeContextUpdates.createdAt))
       .limit(30),
+
+    // Google Contacts (best-effort — silently omitted if scope not granted)
+    fetchContacts(userId, 50),
   ])
 
   // Deduplicate: overdue query may include today's tasks if lte boundary is inclusive
@@ -391,6 +407,7 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
   const profileBlock = formatProfileBlock(profileRows[0] ?? null)
   const costsBlock = formatRoutineCostsBlock(costsRows)
   const lifeContextBlock = formatLifeContext(lifeContextRows, financialRows[0] ?? null, contextUpdateRows)
+  const contactsBlock = formatContactsBlock(contactsResult.contacts)
 
   const lines: string[] = []
 
@@ -406,6 +423,11 @@ export async function buildContext(userId: string, now: Date): Promise<string> {
 
   if (lifeContextBlock) {
     lines.push(lifeContextBlock)
+    lines.push("")
+  }
+
+  if (contactsBlock) {
+    lines.push(contactsBlock)
     lines.push("")
   }
 
