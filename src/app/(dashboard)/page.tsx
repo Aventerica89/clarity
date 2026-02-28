@@ -39,7 +39,6 @@ const WIDGETS = [
   { id: "runway", component: <RunwayWidget /> },
   { id: "streaks", component: <StreaksWidget /> },
   { id: "triage", component: <TriageWidget /> },
-  { id: "week", component: <WeekWidget /> },
 ]
 
 export default async function TodayPage() {
@@ -102,7 +101,14 @@ export default async function TodayPage() {
 
       <TodayMobileShell
         coachSlot={<CoachPanel />}
-        planSlot={<DayPlanV3 />}
+        planSlot={
+        <div className="space-y-4">
+          <DayPlanV3 />
+          <div className="rounded-lg border bg-card px-3.5 py-3">
+            <WeekWidget />
+          </div>
+        </div>
+      }
         widgetsSlot={<WidgetSidebar widgets={WIDGETS} />}
         contextSlot={
           <LifeContextStrip
