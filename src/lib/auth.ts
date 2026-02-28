@@ -29,6 +29,12 @@ export const auth = betterAuth({
         "https://www.googleapis.com/auth/calendar.readonly",
         "https://www.googleapis.com/auth/gmail.modify",
         "https://www.googleapis.com/auth/tasks.readonly",
+        // Drive: per-file access for Sheets, Docs, and Drive files (non-sensitive scope)
+        "https://www.googleapis.com/auth/drive.file",
+        // Drive appdata: hidden app folder for Clarity-specific data (non-sensitive scope)
+        "https://www.googleapis.com/auth/drive.appdata",
+        // Contacts: read-only contact info for email triage enrichment (sensitive scope)
+        "https://www.googleapis.com/auth/contacts.readonly",
       ],
     },
   },
