@@ -236,5 +236,6 @@ clarity/
 - Architecture: `docs/ARCHITECTURE.md`
 - Implementation Plan: `docs/PLAN.md`
 - Competitive Analysis & Roadmap: `~/.claude/plans/2026-02-26-clarity-competitive-analysis.md`
+- Google Workspace API Research: `~/.claude/plans/zazzy-exploring-mountain.md`
 - Design System: `.interface-design/system.md`
 - Shared docs: `~/.claude/docs/shadcn-ui.md`, `~/.claude/docs/better-auth.md`
