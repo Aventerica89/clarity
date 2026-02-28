@@ -9,6 +9,12 @@ import {
   Settings,
   Zap,
   BookOpen,
+  Users,
+  TrendingUp,
+  Mail,
+  Brain,
+  Repeat,
+  RefreshCw,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -122,6 +128,49 @@ const DATA_SOURCES = [
   },
 ]
 
+const COACH_CONTEXT = [
+  {
+    icon: CalendarDays,
+    label: "Upcoming events",
+    detail: "Next 3 hours from Google Calendar",
+  },
+  {
+    icon: CheckSquare,
+    label: "Tasks",
+    detail: "Overdue, due today, and due this week — from Todoist and Google Tasks",
+  },
+  {
+    icon: Repeat,
+    label: "Routines",
+    detail: "Active habits and today's completion status",
+  },
+  {
+    icon: BookOpen,
+    label: "Life context",
+    detail: "Active items ranked by urgency — critical, escalated, active, monitoring",
+  },
+  {
+    icon: Users,
+    label: "Contacts",
+    detail: "Up to 50 Google Contacts for name lookups and enrichment",
+  },
+  {
+    icon: Mail,
+    label: "Triage queue",
+    detail: "Top 15 pending AI-scored items needing attention",
+  },
+  {
+    icon: TrendingUp,
+    label: "Financial snapshot",
+    detail: "Bank balance and monthly burn rate (if Plaid is connected)",
+  },
+  {
+    icon: Brain,
+    label: "Your profile",
+    detail: "Preferences and personal context you've set",
+  },
+]
+
 export default function GettingStartedPage() {
   return (
     <div className="space-y-6">
@@ -229,6 +278,41 @@ export default function GettingStartedPage() {
                   >
                     Changelog
                   </Link>
+                </p>
+              </div>
+            ),
+          },
+          {
+            value: "ai-coach",
+            label: "AI Coach",
+            content: (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Every message reads fresh context from all your connected sources — nothing is cached between turns.
+                </p>
+                <Card className="py-0 gap-0 divide-y">
+                  {COACH_CONTEXT.map(({ icon: Icon, label, detail }) => (
+                    <div key={label} className="flex items-start gap-3 py-3 px-4">
+                      <Icon className="size-4 shrink-0 mt-0.5 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium leading-tight">{label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </Card>
+                <div className="flex items-start gap-2 rounded-lg border bg-muted/40 px-3 py-2.5">
+                  <RefreshCw className="size-3.5 shrink-0 mt-0.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground leading-snug">
+                    Ask follow-ups freely — the coach always sees your latest data, not a snapshot from the first message.
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Open{" "}
+                  <Link href="/chat" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                    Chat
+                  </Link>{" "}
+                  and tap the <span className="font-medium">?</span> icon in the input bar to see this at any time.
                 </p>
               </div>
             ),

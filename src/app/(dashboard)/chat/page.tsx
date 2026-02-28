@@ -12,6 +12,7 @@ import { PromptSuggestion, PromptSuggestionGroup } from "@/components/prompt-kit
 import { Loader } from "@/components/prompt-kit/loader"
 import { cn } from "@/lib/utils"
 import { ChatAtmosphere } from "@/components/chat/chat-atmosphere"
+import { CoachContextModal } from "@/components/chat/coach-context-modal"
 
 interface ChatSession {
   id: string
@@ -345,6 +346,7 @@ function ChatPageInner() {
               >
                 <PromptInputTextarea placeholder="Ask anything..." />
                 <PromptInputActions>
+                  <CoachContextModal />
                   <PromptInputAction
                     tooltip="Send"
                     onClick={sendMessage}
@@ -411,6 +413,7 @@ function ChatPageInner() {
                 >
                   <PromptInputTextarea placeholder="Ask anything..." />
                   <PromptInputActions>
+                    <CoachContextModal />
                     <PromptInputAction
                       tooltip="Send"
                       onClick={sendMessage}
