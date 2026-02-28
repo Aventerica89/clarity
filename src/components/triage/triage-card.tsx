@@ -177,7 +177,8 @@ export function TriageCard({
           onClick={handleDismiss}
           disabled={loading !== null}
         >
-          <X className="size-3.5" />
+          <X className="size-3.5 mr-1" />
+          {loading === "dismiss" ? "Dismissing..." : "Dismiss"}
         </Button>
       </div>
     </div>
