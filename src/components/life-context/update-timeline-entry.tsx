@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Pencil, Trash2, X } from "lucide-react"
+import { Check, Loader2, Pencil, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RichEditor } from "@/components/ui/rich-editor"
 import { RichContent } from "@/components/ui/rich-content"
@@ -42,6 +42,28 @@ export function UpdateTimelineEntry({
   const [error, setError] = useState<string | null>(null)
   const [confirmDel, setConfirmDel] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [approving, setApproving] = useState(false)
+
+  const isPendingApproval = isAi && update.approvalStatus === "pending" && update.proposedUrgency
+
+  async function handleApproval(action: "approve" | "dismiss") {
+    setApproving(true)
+    try {
+      const res = await fetch(
+        `/api/life-context/${itemId}/updates/${update.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        },
+      )
+      if (!res.ok) return
+      const data = (await res.json()) as { update: ContextUpdate }
+      onUpdated(data.update)
+    } finally {
+      setApproving(false)
+    }
+  }
 
   async function handleSave() {
     if (isEditorEmpty(editContent)) return
@@ -181,6 +203,11 @@ export function UpdateTimelineEntry({
               AI note
             </span>
           )}
+          {isAi && update.model && (
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {update.model}
+            </span>
+          )}
           <span className="text-xs text-muted-foreground">
             {formatRelativeTime(update.createdAt)}
           </span>
@@ -240,6 +267,36 @@ export function UpdateTimelineEntry({
           content={update.content}
           className={cn(isAi && "italic text-muted-foreground")}
         />
+        {isPendingApproval && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md border border-blue-500/20 bg-blue-500/5 px-3 py-2">
+            <span className="text-[11px] text-blue-500 flex-1">
+              Proposed status change to{" "}
+              <span className={cn("font-medium", SEVERITY_CLASSES[update.proposedUrgency!])}>
+                {SEVERITY_LABELS[update.proposedUrgency!]}
+              </span>
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleApproval("approve")}
+                disabled={approving}
+                className="flex items-center gap-1 rounded-md bg-green-500/10 px-2.5 py-1 text-[11px] font-medium text-green-600 hover:bg-green-500/20 disabled:opacity-50 dark:text-green-400"
+              >
+                {approving ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+                Apply
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApproval("dismiss")}
+                disabled={approving}
+                className="flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+              >
+                <X className="size-3" />
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
         <p className="text-[11px] text-muted-foreground/60">
           {formatTimestamp(update.createdAt)}
         </p>

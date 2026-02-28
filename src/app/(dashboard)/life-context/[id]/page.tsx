@@ -72,6 +72,9 @@ export default async function ContextItemPage({
           content: u.content,
           severity: u.severity,
           source: (u.source ?? "user") as "user" | "ai",
+          proposedUrgency: u.proposedUrgency ?? null,
+          approvalStatus: (u.approvalStatus ?? null) as "pending" | "approved" | "dismissed" | null,
+          model: u.model ?? null,
           createdAt: u.createdAt.toISOString(),
         }))}
         initialPins={pins}

@@ -14,6 +14,14 @@ type ProviderId = "anthropic" | "gemini" | "gemini-pro" | "deepseek" | "groq"
 // Auto fallback priority: best quality first, quota-prone last
 const FALLBACK_ORDER: ProviderId[] = ["anthropic", "deepseek", "gemini-pro", "gemini"]
 
+const PROVIDER_MODEL_NAMES: Record<ProviderId, string> = {
+  anthropic: "claude-sonnet-4-6",
+  gemini: "gemini-2.0-flash",
+  "gemini-pro": "gemini-3.1-pro-preview",
+  deepseek: "deepseek-chat",
+  groq: "llama-3.3-70b",
+}
+
 function isRateLimited(err: unknown): boolean {
   const e = err as { status?: number; message?: string }
   if (e.status === 429) return true
@@ -21,26 +29,40 @@ function isRateLimited(err: unknown): boolean {
   return msg.includes("quota") || msg.includes("rate limit") || msg.includes("too many requests")
 }
 
-const ADDENDUM_RE = /<<ADDENDUM item="([^"]+)">>([^]*?)<<END_ADDENDUM>>/g
+const ADDENDUM_RE = /<<ADDENDUM item="([^"]+)"(?:\s+urgency="([^"]+)")?>>([^]*?)<<END_ADDENDUM>>/g
 
 interface ParsedAddendum {
   itemTitle: string
   content: string
+  proposedUrgency?: string
 }
 
 function parseAddendums(text: string): { cleaned: string; addendums: ParsedAddendum[] } {
   const addendums: ParsedAddendum[] = []
-  const cleaned = text.replace(ADDENDUM_RE, (_match, title: string, content: string) => {
-    addendums.push({ itemTitle: title.trim(), content: content.trim() })
+  let cleaned = text.replace(ADDENDUM_RE, (_match, title: string, urgency: string | undefined, content: string) => {
+    addendums.push({ itemTitle: title.trim(), content: content.trim(), proposedUrgency: urgency?.trim() })
     return ""
   }).trim()
+  // Strip unclosed <<ADDENDUM...>> tags (model forgot <<END_ADDENDUM>>)
+  cleaned = cleaned.replace(/<<ADDENDUM[^>]*>>[\s\S]*/g, "").trim()
+  // Strip any stray <<END_ADDENDUM>> tags
+  cleaned = cleaned.replace(/<<END_ADDENDUM>>/g, "").trim()
   return { cleaned, addendums }
 }
 
-async function postAddendums(userId: string, addendums: ParsedAddendum[]): Promise<void> {
+
+async function postAddendums(userId: string, addendums: ParsedAddendum[], model?: string): Promise<void> {
   if (addendums.length === 0) return
 
-  for (const { itemTitle, content } of addendums) {
+  // Deduplicate: keep only the first addendum per item title
+  const seen = new Set<string>()
+  const deduped = addendums.filter(({ itemTitle }) => {
+    if (seen.has(itemTitle)) return false
+    seen.add(itemTitle)
+    return true
+  })
+
+  for (const { itemTitle, content, proposedUrgency } of deduped) {
     if (!content) continue
 
     const [target] = await db
@@ -55,12 +77,21 @@ async function postAddendums(userId: string, addendums: ParsedAddendum[]): Promi
 
     if (!target) continue
 
+    type UrgencyValue = "monitoring" | "active" | "escalated" | "critical" | "resolved"
+    const urgencyValues: UrgencyValue[] = ["monitoring", "active", "escalated", "critical", "resolved"]
+    const checkedProposed = urgencyValues.includes(proposedUrgency as UrgencyValue)
+      ? proposedUrgency as UrgencyValue
+      : undefined
+
     await db.insert(lifeContextUpdates).values({
       contextItemId: target.id,
       userId,
       content,
       severity: target.urgency,
       source: "ai",
+      proposedUrgency: checkedProposed ?? null,
+      approvalStatus: checkedProposed ? "pending" : null,
+      model: model ?? null,
     })
   }
 }
@@ -221,6 +252,7 @@ export async function POST(request: NextRequest) {
     ]
 
     let text: string | undefined
+    let usedProvider: ProviderId | undefined
 
     if (!useAuto) {
       const token = tokens[requestedProvider as ProviderId]
@@ -231,6 +263,7 @@ export async function POST(request: NextRequest) {
         )
       }
       text = await callProvider(requestedProvider as ProviderId, token, messages, todoistToken ?? undefined)
+      usedProvider = requestedProvider as ProviderId
     } else {
       const errors: string[] = []
       for (const pid of FALLBACK_ORDER) {
@@ -238,6 +271,7 @@ export async function POST(request: NextRequest) {
         if (!token) continue
         try {
           text = await callProvider(pid, token, messages, todoistToken ?? undefined)
+          usedProvider = pid
           break
         } catch (err) {
           const hasMore = FALLBACK_ORDER.slice(FALLBACK_ORDER.indexOf(pid) + 1).some(p => tokens[p])
@@ -257,7 +291,8 @@ export async function POST(request: NextRequest) {
     // Parse and post any addendums the AI included
     const { cleaned: cleanedText, addendums } = parseAddendums(text)
     if (addendums.length > 0) {
-      postAddendums(session.user.id, addendums).catch((err) => {
+      const modelName = usedProvider ? PROVIDER_MODEL_NAMES[usedProvider] : undefined
+      postAddendums(session.user.id, addendums, modelName).catch((err) => {
         console.error("[coach] addendum post failed:", err)
       })
     }

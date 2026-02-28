@@ -34,6 +34,9 @@ export interface ContextUpdate {
   content: string
   severity: Severity
   source?: "user" | "ai"
+  proposedUrgency?: Severity | null
+  approvalStatus?: "pending" | "approved" | "dismissed" | null
+  model?: string | null
   createdAt: string | Date
 }
 

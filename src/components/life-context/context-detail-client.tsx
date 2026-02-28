@@ -333,6 +333,9 @@ export function ContextDetailClient({
                       setUpdates((prev) =>
                         prev.map((u) => (u.id === updated.id ? updated : u)),
                       )
+                      if (updated.approvalStatus === "approved" && updated.proposedUrgency) {
+                        setCurrentSeverity(updated.proposedUrgency)
+                      }
                     }}
                     onDeleted={(id) => {
                       setUpdates((prev) => prev.filter((u) => u.id !== id))

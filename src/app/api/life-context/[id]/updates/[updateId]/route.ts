@@ -4,11 +4,15 @@ import { headers } from "next/headers"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { lifeContextUpdates } from "@/lib/schema"
+import { lifeContextItems, lifeContextUpdates } from "@/lib/schema"
 
-const updateSchema = z.object({
+const editSchema = z.object({
   content: z.string().min(1).max(20000),
   severity: z.enum(["monitoring", "active", "escalated", "critical", "resolved"]),
+})
+
+const actionSchema = z.object({
+  action: z.enum(["approve", "dismiss"]),
 })
 
 export async function PATCH(
@@ -22,7 +26,56 @@ export async function PATCH(
 
   const { updateId } = await params
   const body: unknown = await request.json()
-  const parsed = updateSchema.safeParse(body)
+
+  // Handle approve/dismiss of a proposed urgency change
+  const actionParsed = actionSchema.safeParse(body)
+  if (actionParsed.success) {
+    const [current] = await db
+      .select()
+      .from(lifeContextUpdates)
+      .where(and(
+        eq(lifeContextUpdates.id, updateId),
+        eq(lifeContextUpdates.userId, session.user.id),
+      ))
+      .limit(1)
+
+    if (!current) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
+
+    if (actionParsed.data.action === "approve" && current.proposedUrgency) {
+      const [updated] = await db
+        .update(lifeContextUpdates)
+        .set({ approvalStatus: "approved" })
+        .where(and(
+          eq(lifeContextUpdates.id, updateId),
+          eq(lifeContextUpdates.userId, session.user.id),
+        ))
+        .returning()
+
+      await db
+        .update(lifeContextItems)
+        .set({ urgency: current.proposedUrgency })
+        .where(eq(lifeContextItems.id, current.contextItemId))
+
+      return NextResponse.json({ update: updated })
+    }
+
+    // dismiss
+    const [updated] = await db
+      .update(lifeContextUpdates)
+      .set({ approvalStatus: "dismissed" })
+      .where(and(
+        eq(lifeContextUpdates.id, updateId),
+        eq(lifeContextUpdates.userId, session.user.id),
+      ))
+      .returning()
+
+    return NextResponse.json({ update: updated })
+  }
+
+  // Standard edit (content + severity)
+  const parsed = editSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }

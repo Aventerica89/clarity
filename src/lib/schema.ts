@@ -158,6 +158,9 @@ export const lifeContextUpdates = sqliteTable("life_context_updates", {
   content: text("content").notNull(),
   severity: text("severity", { enum: ["monitoring", "active", "escalated", "critical", "resolved"] }).notNull().default("active"),
   source: text("source").notNull().default("user"), // user | ai
+  proposedUrgency: text("proposed_urgency", { enum: ["monitoring", "active", "escalated", "critical", "resolved"] }),
+  approvalStatus: text("approval_status", { enum: ["pending", "approved", "dismissed"] }),
+  model: text("model"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 })
 
