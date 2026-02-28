@@ -5,6 +5,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Background,
+  BackgroundVariant,
   Controls,
   useNodesState,
   useEdgesState,
@@ -40,7 +41,9 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
 // ─── Node styling by type + severity ─────────────────────────────────────────
 
 const BASE_NODE_STYLE: React.CSSProperties = {
-  color: "#111827",
+  color: "var(--color-foreground)",
+  background: "var(--color-muted)",
+  border: "1.5px solid var(--color-border)",
   fontSize: 12,
   fontWeight: 500,
   padding: "6px 12px",
@@ -52,24 +55,30 @@ function getNodeStyle(type: string, severity?: string): React.CSSProperties {
   if (type === "context") {
     switch (severity) {
       case "critical":
-        return { ...BASE_NODE_STYLE, background: "#fee2e2", border: "2px solid #ef4444" }
+        return {
+          ...BASE_NODE_STYLE,
+          background: "color-mix(in oklch, var(--color-destructive) 12%, var(--color-background))",
+          border: "1.5px solid color-mix(in oklch, var(--color-destructive) 55%, transparent)",
+        }
       case "escalated":
-        return { ...BASE_NODE_STYLE, background: "#ffedd5", border: "2px solid #fb923c" }
-      case "active":
-        return { ...BASE_NODE_STYLE, background: "#fefce8", border: "2px solid #facc15" }
+        return {
+          ...BASE_NODE_STYLE,
+          background: "color-mix(in oklch, var(--clarity-amber) 12%, var(--color-background))",
+          border: "1.5px solid color-mix(in oklch, var(--clarity-amber) 55%, transparent)",
+        }
       default:
-        return { ...BASE_NODE_STYLE, background: "#f0fdf4", border: "2px solid #4ade80" }
+        return { ...BASE_NODE_STYLE }
     }
   }
   switch (type) {
     case "task":
-      return { ...BASE_NODE_STYLE, background: "#eff6ff", border: "2px solid #60a5fa" }
+      return { ...BASE_NODE_STYLE, border: "1.5px solid oklch(0.65 0.15 250)" }
     case "email":
-      return { ...BASE_NODE_STYLE, background: "#faf5ff", border: "2px solid #c084fc" }
+      return { ...BASE_NODE_STYLE, border: "1.5px solid oklch(0.65 0.18 300)" }
     case "event":
-      return { ...BASE_NODE_STYLE, background: "#eef2ff", border: "2px solid #818cf8" }
+      return { ...BASE_NODE_STYLE, border: "1.5px solid oklch(0.65 0.14 175)" }
     default:
-      return { ...BASE_NODE_STYLE, background: "#f9fafb", border: "2px solid #9ca3af" }
+      return { ...BASE_NODE_STYLE }
   }
 }
 
@@ -91,7 +100,7 @@ function buildFlowElements(apiNodes: GraphNode[], apiEdges: GraphEdge[]) {
     id: e.id,
     source: e.source,
     target: e.target,
-    style: { stroke: "#94a3b8" },
+    style: { stroke: "var(--color-border)" },
   }))
 
   return getLayoutedElements(nodes, edges)
@@ -200,7 +209,13 @@ function ContextGraphInner() {
         fitView
         fitViewOptions={{ padding: 0.2 }}
       >
-        <Background />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1.5}
+          color="#f59e0b"
+          style={{ opacity: 0.25 }}
+        />
         <Controls />
       </ReactFlow>
 
