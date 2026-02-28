@@ -21,7 +21,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows, geminiRows, deepseekRows, groqRows, plaidItemRows] = await Promise.all([
+  const [googleRows, todoistRows, anthropicRows, geminiRows, geminiProRows, deepseekRows, groqRows, plaidItemRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -46,6 +46,11 @@ export default async function SettingsPage() {
       .select({ id: integrations.id })
       .from(integrations)
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
+      .limit(1),
+    db
+      .select({ id: integrations.id })
+      .from(integrations)
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini-pro")))
       .limit(1),
     db
       .select({ id: integrations.id })
@@ -86,6 +91,7 @@ export default async function SettingsPage() {
   const aiConnected = {
     anthropic: anthropicRows.length > 0,
     gemini: geminiRows.length > 0,
+    "gemini-pro": geminiProRows.length > 0,
     deepseek: deepseekRows.length > 0,
     groq: groqRows.length > 0,
   }

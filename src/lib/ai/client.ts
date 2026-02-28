@@ -7,9 +7,9 @@ export function createAnthropicClient(token: string): Anthropic {
   return new Anthropic({ apiKey: token })
 }
 
-export function createGeminiClient(apiKey: string): GenerativeModel {
+export function createGeminiClient(apiKey: string, model = "gemini-2.0-flash"): GenerativeModel {
   const genAI = new GoogleGenerativeAI(apiKey)
-  return genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+  return genAI.getGenerativeModel({ model })
 }
 
 async function callOpenAICompatible(

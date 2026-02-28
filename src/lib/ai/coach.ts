@@ -208,6 +208,16 @@ export async function getGroqToken(userId: string): Promise<string | null> {
   return enc ? decryptToken(enc) : null
 }
 
+export async function getGeminiProToken(userId: string): Promise<string | null> {
+  const rows = await db
+    .select({ token: integrations.accessTokenEncrypted })
+    .from(integrations)
+    .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini-pro")))
+    .limit(1)
+  const enc = rows[0]?.token
+  return enc ? decryptToken(enc) : null
+}
+
 export async function getTodoistToken(userId: string): Promise<string | null> {
   const rows = await db
     .select({ token: integrations.accessTokenEncrypted })

@@ -4,15 +4,15 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { aiRatelimit } from "@/lib/ratelimit"
 import { chatSessions, coachMessages, lifeContextItems, lifeContextUpdates } from "@/lib/schema"
-import { buildContext, getAnthropicToken, getGeminiToken, getDeepSeekToken, getGroqToken, getTodoistToken } from "@/lib/ai/coach"
+import { buildContext, getAnthropicToken, getGeminiToken, getGeminiProToken, getDeepSeekToken, getGroqToken, getTodoistToken } from "@/lib/ai/coach"
 import { createAnthropicClient, createGeminiClient, callDeepSeek, callGroq, type ChatMessage } from "@/lib/ai/client"
 import { COACH_SYSTEM_PROMPT } from "@/lib/ai/prompts"
 import { callAnthropicWithTodoistTools } from "@/lib/ai/todoist-tools"
 
-type ProviderId = "anthropic" | "gemini" | "deepseek" | "groq"
+type ProviderId = "anthropic" | "gemini" | "gemini-pro" | "deepseek" | "groq"
 
 // Auto fallback priority: best quality first, quota-prone last
-const FALLBACK_ORDER: ProviderId[] = ["anthropic", "deepseek", "gemini"]
+const FALLBACK_ORDER: ProviderId[] = ["anthropic", "deepseek", "gemini-pro", "gemini"]
 
 function isRateLimited(err: unknown): boolean {
   const e = err as { status?: number; message?: string }
@@ -85,8 +85,10 @@ async function callProvider(
       })
       return msg.content[0]?.type === "text" ? msg.content[0].text : ""
     }
-    case "gemini": {
-      const model = createGeminiClient(token)
+    case "gemini":
+    case "gemini-pro": {
+      const geminiModel = provider === "gemini-pro" ? "gemini-2.5-pro-preview-03-25" : "gemini-2.0-flash"
+      const model = createGeminiClient(token, geminiModel)
       const result = await model.generateContent({
         contents: messages.map(m => ({
           role: m.role === "assistant" ? "model" : "user",
@@ -182,9 +184,10 @@ export async function POST(request: NextRequest) {
         .limit(20)
 
     // Load tokens, context, and chat history in parallel
-    const [anthropicToken, geminiToken, deepseekToken, groqToken, todoistToken, context, historyRows] = await Promise.all([
+    const [anthropicToken, geminiToken, geminiProToken, deepseekToken, groqToken, todoistToken, context, historyRows] = await Promise.all([
       getAnthropicToken(session.user.id),
       getGeminiToken(session.user.id),
+      getGeminiProToken(session.user.id),
       getDeepSeekToken(session.user.id),
       getGroqToken(session.user.id),
       getTodoistToken(session.user.id),
@@ -195,6 +198,7 @@ export async function POST(request: NextRequest) {
     const tokens: Record<ProviderId, string | null> = {
       anthropic: anthropicToken,
       gemini: geminiToken,
+      "gemini-pro": geminiProToken,
       deepseek: deepseekToken,
       groq: groqToken,
     }

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
-type ProviderId = "anthropic" | "gemini" | "deepseek" | "groq"
+type ProviderId = "anthropic" | "gemini" | "gemini-pro" | "deepseek" | "groq"
 
 interface ProviderConfig {
   id: ProviderId
@@ -36,13 +36,24 @@ const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: "gemini",
-    label: "Gemini",
+    label: "Gemini Flash",
     model: "gemini-2.0-flash",
-    description: "Google AI — free tier available",
+    description: "Google AI — free tier (AI Studio key)",
     placeholder: "AIza...",
     docsUrl: "https://aistudio.google.com/app/apikey",
     avatarColor: "bg-blue-500",
     initial: "G",
+    logoSrc: "/logos/google-logo.svg",
+  },
+  {
+    id: "gemini-pro",
+    label: "Gemini Pro",
+    model: "gemini-2.5-pro-preview-03-25",
+    description: "Google AI — paid (Gemini CLI / API key)",
+    placeholder: "AIza...",
+    docsUrl: "https://aistudio.google.com/app/apikey",
+    avatarColor: "bg-indigo-500",
+    initial: "G+",
     logoSrc: "/logos/google-logo.svg",
   },
   {
