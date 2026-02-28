@@ -243,11 +243,28 @@ When asked "What should I do right now?" or a similar question:
 
 ## Phase 4: Extended Integrations + Polish (Est. 10-14 hours)
 
-### 4.1 Gmail Integration (3h)
-- Extend Google OAuth scope to include `gmail.readonly`
-- `src/lib/integrations/gmail.ts` — fetch flagged/important emails
-- Email digest section on dashboard
-- "Promote to task" action on email
+### 4.1 Gmail Integration — Quick Wins (2h) ← NEXT
+
+**Bug fix — dismissed emails re-appearing after sync:**
+- Root cause: triage dismiss only removes from Clarity DB; next sync re-fetches from Gmail and re-adds
+- Fix: call `messages.trash` (Gmail API) when user dismisses a Gmail-sourced triage item
+  - `src/app/api/triage/[id]/route.ts` — on `action: "dismiss"` with `source === "gmail"`, call Gmail `messages.trash` for the `sourceId`
+  - Requires `gmail.modify` OAuth scope (already needed for trash; current scope is `gmail.readonly`)
+  - Update scope in `src/lib/auth.ts` Google provider config
+
+**Incremental sync (history.list):**
+- Store `gmailHistoryId` in `integrations` table (or `user_profile`) after each sync
+- Replace full inbox re-list with `history.list?startHistoryId=` — only fetch changes since last sync
+- Reduces API calls by ~90%, prevents already-processed items resurfacing
+  - `src/lib/integrations/gmail.ts` — add `syncIncremental(userId, historyId)` function
+  - `src/app/api/cron/sync/route.ts` — use incremental path when historyId exists, full sync as fallback
+
+**Deferred (think on these later):**
+- `messages.send` / `drafts.create` — reply from Clarity
+- `threads.get` — full conversation threading
+- `messages.attachments.get` — attachment AI analysis
+- `labels.modify` — apply Gmail labels from triage actions
+- `settings.getVacation` — surface OOO in coach context
 
 ### 4.2 Routine Sharing (2h)
 - Invite family member by email
