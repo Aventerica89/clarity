@@ -218,7 +218,7 @@ export default async function SettingsPage() {
             label: "Account",
             content: (
               <div className="space-y-4">
-                <div className="rounded-lg border divide-y overflow-hidden">
+                <div className="rounded-lg border bg-card divide-y overflow-hidden">
                   <Link href="/settings/about" className="flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Info className="size-4 text-muted-foreground shrink-0" />

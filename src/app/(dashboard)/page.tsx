@@ -95,7 +95,7 @@ export default async function TodayPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
+      <div className="hidden md:flex items-baseline justify-between">
         <h1 className="text-2xl font-bold">Today</h1>
         <LiveClock />
       </div>
