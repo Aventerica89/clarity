@@ -16,7 +16,7 @@
 | Hosting | Vercel |
 | Cron | GitHub Actions (`*/15 * * * *`) — free, replaces Vercel Cron |
 | UI | Tailwind CSS v4 + shadcn/ui + Lucide icons + Tiptap (rich text) |
-| AI | Multi-provider: Anthropic → DeepSeek → Gemini (fallback order) |
+| AI | Multi-provider: Anthropic → DeepSeek → Groq → Gemini (fallback order) |
 | Rate limiting | Upstash Redis (`@upstash/ratelimit`) |
 | Finance | Plaid Link + transactions sync |
 | Apple bridge | clarity-companion (local Node.js AppleScript process on each Mac) — planned |
@@ -48,6 +48,7 @@ Mac companion ---------> /api/* (Apple data push) — planned
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright E2E |
+| `npm run dev:auth` | Dev server with 1Password auth injection |
 | `npm run env:inject` | Populate `.env.local` from 1Password |
 
 ### Database Commands
@@ -101,7 +102,7 @@ Key vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `GOOGL
 
 ### AI Providers
 - Stored encrypted in `integrations` table, decrypted at runtime via `TOKEN_ENCRYPTION_KEY`
-- Fallback order: Anthropic → DeepSeek → Gemini (Gemini last, quota-prone)
+- Fallback order: Anthropic → DeepSeek → Groq → Gemini (Gemini last, quota-prone)
 - Coach uses streaming; triage scoring batches 5 at a time (avoids Anthropic 429s)
 
 ### Timezone
@@ -126,7 +127,7 @@ Key vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `GOOGL
 
 ## Database Tables
 
-22 tables in `src/lib/schema.ts`:
+23 tables in `src/lib/schema.ts`:
 
 | Table | Purpose |
 |-------|---------|
@@ -137,6 +138,7 @@ Key vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `GOOGL
 | `routine_costs` | Routine time/cost estimates |
 | `integrations` | Encrypted API keys per provider per user |
 | `life_context_items`, `life_context_updates` | Life context entries + timeline |
+| `context_pins` | Polymorphic links between context items and tasks/emails/events |
 | `user_profile` | User preferences |
 | `financial_snapshot` | Latest bank balance + monthly burn |
 | `plaid_items`, `plaid_accounts` | Plaid Link connections |
@@ -182,7 +184,9 @@ clarity/
         chat/              # Chat sessions
         cron/              # GH Actions sync endpoint
         emails/            # Gmail cache CRUD
-        integrations/      # Provider key management
+        integrations/      # Provider key management (anthropic, deepseek, groq, gemini, gemini-pro)
+        profile/           # User profile API
+        routine-costs/     # Routine cost estimates CRUD
         life-context/      # Life context CRUD
         plaid/             # Plaid Link + transactions
         spending/          # Spending analytics
@@ -209,16 +213,21 @@ clarity/
       auth.ts              # Better Auth config
       auth-client.ts       # Better Auth browser client
       db.ts                # Turso/LibSQL + Drizzle client
-      schema.ts            # Drizzle schema (22 tables)
+      schema.ts            # Drizzle schema (23 tables)
       crypto.ts            # Token encryption/decryption
+      pins.ts              # Shared context pin logic (polymorphic linking)
       ratelimit.ts         # Upstash rate limiter
+      sanitize-html.ts     # HTML sanitization utility
+      sun-position.ts      # Sun position calculation for time-of-day UI
       utils.ts             # cn() + misc utilities
       ai/                  # AI provider setup + prompts
+        todoist-tools.ts   # Todoist AI tool definitions
       integrations/        # Google, Todoist adapters
       plaid/               # Plaid client + sync
       sync/                # Sync orchestrator
       triage/              # Triage scoring logic
       use-active-section.ts  # IntersectionObserver hook (rooted on [data-scroll])
+      use-safari-toolbar.ts  # Safari mobile toolbar height hook
     types/                 # Shared TypeScript types
   supabase/
     migrations/            # Drizzle-generated SQL (dialect: turso)
