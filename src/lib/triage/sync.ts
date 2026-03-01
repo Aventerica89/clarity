@@ -79,7 +79,6 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
       for (const task of tasks as { id: string; content: string; description?: string; priority: number; due?: { date: string } }[]) {
         const dueDate = task.due?.date ?? null
         const score = scoreTodoistTask({ priority: task.priority, dueDate, title: task.content })
-        if (score.score < SCORE_THRESHOLD) { skipped++; continue }
 
         await upsertTriageItem(userId, {
           source: "todoist",
