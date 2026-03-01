@@ -22,7 +22,7 @@ export async function POST(
   }
 
   const { id } = await params
-  const body = await request.json() as { action: Action }
+  const body = await request.json() as { action: Action; priority?: number }
 
   const rows = await db
     .select()
@@ -45,8 +45,36 @@ export async function POST(
         )
       )
 
-    await db.delete(triageQueue).where(eq(triageQueue.id, id))
+    // Write priority back to Todoist if changed
+    if (
+      item.source === "todoist" &&
+      item.sourceId &&
+      body.priority !== undefined
+    ) {
+      const meta = JSON.parse(item.sourceMetadata || "{}") as { priority?: number }
+      if (body.priority !== meta.priority) {
+        try {
+          const { updateTodoistTask } = await import("@/lib/integrations/todoist")
+          await updateTodoistTask(session.user.id, item.sourceId, {
+            priority: body.priority,
+          })
+          await db
+            .update(tasks)
+            .set({ priorityManual: body.priority })
+            .where(
+              and(
+                eq(tasks.source, "todoist"),
+                eq(tasks.sourceId, item.sourceId),
+                eq(tasks.userId, session.user.id)
+              )
+            )
+        } catch {
+          // Best-effort — task is still approved even if Todoist update fails
+        }
+      }
+    }
 
+    await db.delete(triageQueue).where(eq(triageQueue.id, id))
     return NextResponse.json({ ok: true })
   }
 
@@ -54,6 +82,19 @@ export async function POST(
     await db.update(triageQueue)
       .set({ status: "dismissed", reviewedAt: new Date() })
       .where(eq(triageQueue.id, id))
+
+    // Hide the corresponding task so it doesn't appear anywhere
+    if (item.source === "todoist" && item.sourceId) {
+      await db.update(tasks)
+        .set({ isHidden: true })
+        .where(
+          and(
+            eq(tasks.source, "todoist"),
+            eq(tasks.sourceId, item.sourceId),
+            eq(tasks.userId, session.user.id)
+          )
+        )
+    }
 
     if (item.source === "gmail" && item.sourceId) {
       try {
