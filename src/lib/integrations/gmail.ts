@@ -277,3 +277,24 @@ export async function archiveGmailMessage(
     return { ok: false, error: msg }
   }
 }
+
+export async function trashGmailMessage(
+  userId: string,
+  gmailId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const gmail = await getAuthenticatedGmailClient(userId)
+  if (!gmail) {
+    return { ok: false, error: "Google not connected" }
+  }
+
+  try {
+    await gmail.users.messages.trash({
+      userId: "me",
+      id: gmailId,
+    })
+    return { ok: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return { ok: false, error: msg }
+  }
+}

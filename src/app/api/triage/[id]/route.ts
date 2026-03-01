@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { triageQueue, tasks, lifeContextItems } from "@/lib/schema"
 import { eq, and } from "drizzle-orm"
 import { getTodoistIntegrationRow } from "@/lib/integrations/todoist"
-import { archiveGmailMessage } from "@/lib/integrations/gmail"
+import { trashGmailMessage } from "@/lib/integrations/gmail"
 import { decryptToken } from "@/lib/crypto"
 
 type Action = "approve" | "dismiss" | "push_to_context" | "complete"
@@ -98,7 +98,7 @@ export async function POST(
 
     if (item.source === "gmail" && item.sourceId) {
       try {
-        await archiveGmailMessage(session.user.id, item.sourceId)
+        await trashGmailMessage(session.user.id, item.sourceId)
       } catch {
         // Best-effort — item is already dismissed locally
       }
