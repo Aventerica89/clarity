@@ -20,6 +20,13 @@ const SOURCE_LABELS: Record<string, string> = {
   google_tasks: "Google Tasks",
 }
 
+const TODOIST_PRIORITIES = [
+  { value: 1, label: "P1", color: "bg-muted text-muted-foreground" },
+  { value: 2, label: "P2", color: "bg-blue-500/15 text-blue-700 dark:text-blue-400" },
+  { value: 3, label: "P3", color: "bg-orange-500/15 text-orange-700 dark:text-orange-400" },
+  { value: 4, label: "P4", color: "bg-red-500/15 text-red-700 dark:text-red-400" },
+] as const
+
 export interface TriageItem {
   id: string
   source: string
@@ -29,6 +36,7 @@ export interface TriageItem {
   aiScore: number
   aiReasoning: string
   createdAt: string
+  sourceMetadata: string
 }
 
 interface TriageCardProps {
@@ -51,6 +59,10 @@ export function TriageCard({
   const [loading, setLoading] = useState<"approve" | "dismiss" | "context" | "complete" | null>(null)
   const SourceIcon = SOURCE_ICONS[item.source] ?? Mail
   const isTodoist = item.source === "todoist"
+  const currentPriority = isTodoist
+    ? (JSON.parse(item.sourceMetadata || "{}") as { priority?: number }).priority ?? 1
+    : 1
+  const [selectedPriority, setSelectedPriority] = useState(currentPriority)
   const isCompact = variant === "compact"
 
   async function handleDismiss() {
@@ -91,7 +103,12 @@ export function TriageCard({
     await fetch(`/api/triage/${item.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "approve" }),
+      body: JSON.stringify({
+        action: "approve",
+        ...(isTodoist && selectedPriority !== currentPriority
+          ? { priority: selectedPriority }
+          : {}),
+      }),
     })
     onComplete(item.id)
     setLoading(null)
@@ -127,6 +144,26 @@ export function TriageCard({
           <p className={cn("text-xs text-muted-foreground/70 mt-1 italic", isCompact && "hidden")}>
             {item.aiReasoning}
           </p>
+          {isTodoist && (
+            <div className="flex gap-1.5 mt-2">
+              {TODOIST_PRIORITIES.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setSelectedPriority(p.value)}
+                  className={cn(
+                    "px-2 py-0.5 rounded text-xs font-medium transition-all",
+                    p.color,
+                    selectedPriority === p.value
+                      ? "ring-2 ring-ring ring-offset-1"
+                      : "opacity-50 hover:opacity-75"
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
