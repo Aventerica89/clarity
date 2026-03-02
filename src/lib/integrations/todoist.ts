@@ -4,8 +4,6 @@ import { db } from "@/lib/db"
 import { integrations, tasks } from "@/lib/schema"
 import { decryptToken, encryptToken } from "@/lib/crypto"
 
-const TODOIST_SYNC = "https://api.todoist.com/sync/v9"
-
 interface SaveTokenOptions {
   providerAccountId?: string
   config?: Record<string, unknown>
@@ -250,13 +248,14 @@ export async function getTodoistIntegrationRow(userId: string) {
   return getTodoistRow(userId)
 }
 
-// Fetch Todoist user profile — uses Sync API v9 (not covered by SDK)
+// Fetch Todoist user profile — intentionally uses Sync API v9 because the
+// REST v2 API has no user profile endpoint. Called once during OAuth callback.
 export async function fetchTodoistUserProfile(token: string): Promise<{
   id: string
   email: string
   full_name: string
 }> {
-  const res = await fetch(`${TODOIST_SYNC}/user`, {
+  const res = await fetch("https://api.todoist.com/sync/v9/user", {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) {
