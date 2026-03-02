@@ -29,13 +29,13 @@ export function CoachPanel() {
           }
         }}
         placeholder="Ask Clarity anything..."
-        className="flex-1 bg-transparent text-base md:text-sm placeholder:text-muted-foreground/60 focus:outline-none"
+        className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
       />
       <button
         type="button"
         onClick={go}
         disabled={!query.trim()}
-        className="ml-2 flex size-9 shrink-0 items-center justify-center rounded-md bg-clarity-amber/10 text-clarity-amber transition-opacity disabled:opacity-30"
+        className="ml-2 flex size-7 shrink-0 items-center justify-center rounded-md bg-clarity-amber/10 text-clarity-amber transition-opacity disabled:opacity-30"
         aria-label="Go to chat"
       >
         <ArrowRight className="size-4" />
