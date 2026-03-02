@@ -371,7 +371,7 @@ function ChatPageInner() {
                 ))}
               </PromptSuggestionGroup>
             </div>
-            <div className="shrink-0 px-4 pb-safe-nav md:pb-4 w-full max-w-2xl mx-auto">
+            <div className="shrink-0 px-4 pb-4 w-full max-w-2xl mx-auto">
               <PromptInput
                 value={input}
                 onValueChange={setInput}
@@ -450,7 +450,7 @@ function ChatPageInner() {
             </div>
 
             {/* Input */}
-            <div className="border-t px-4 md:px-6 py-3 pb-safe-nav md:pb-3">
+            <div className="border-t px-4 md:px-6 py-3">
               <div className="mx-auto max-w-2xl">
                 <PromptInput
                   value={input}
