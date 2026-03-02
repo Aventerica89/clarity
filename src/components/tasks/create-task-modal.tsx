@@ -89,7 +89,7 @@ export function CreateTaskModal({
 
   return (
     <Dialog open={open} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-[calc(100vw-2rem)] sm:w-full">
         <DialogHeader>
           <DialogTitle>New Task</DialogTitle>
         </DialogHeader>
@@ -101,11 +101,10 @@ export function CreateTaskModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What needs to be done?"
-              autoFocus
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Due date</Label>
               <Input

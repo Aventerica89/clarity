@@ -114,7 +114,7 @@ export default function EmailPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search subject or sender..."
-              className="h-8 pl-8 text-xs w-[220px]"
+              className="h-10 md:h-8 pl-8 text-base md:text-xs w-full max-w-[220px]"
             />
           </div>
           <ViewToggle pageKey="email" value={viewMode} onChange={handleViewChange} />

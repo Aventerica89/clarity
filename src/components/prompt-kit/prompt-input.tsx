@@ -93,7 +93,7 @@ export function PromptInputTextarea({
       disabled={disabled ?? isLoading}
       rows={1}
       className={cn(
-        "flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground",
+        "flex-1 resize-none bg-transparent text-base md:text-sm outline-none placeholder:text-muted-foreground",
         "min-h-[24px] overflow-y-hidden leading-relaxed",
         className,
       )}
@@ -136,7 +136,7 @@ export function PromptInputAction({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+        "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
         "hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed",
         className,
       )}

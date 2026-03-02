@@ -199,7 +199,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={handleFavorite}
-              className="flex-shrink-0 text-muted-foreground hover:text-amber-500 transition-colors"
+              className="flex-shrink-0 flex items-center justify-center min-h-[36px] min-w-[36px] -ml-1.5 -my-1 text-muted-foreground hover:text-amber-500 transition-colors"
               aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
             >
               <Star
@@ -223,7 +223,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
 
         <button
           onClick={handleExpand}
-          className={`flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1 ${isCompact ? "hidden" : ""}`}
+          className={`flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1 min-h-[36px] pr-2 ${isCompact ? "hidden" : ""}`}
         >
           {expanded
             ? <ChevronUp className="size-3" />
@@ -263,10 +263,11 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
         </div>
       )}
 
-      <div className={`flex gap-2 ${isCompact ? "hidden" : ""}`}>
+      <div className={`flex flex-wrap gap-2 ${isCompact ? "hidden" : ""}`}>
         <Button
           size="sm"
           variant="outline"
+          className="h-10 sm:h-8"
           onClick={() => handleAction("add_to_todoist")}
           disabled={loading !== null}
         >
@@ -279,6 +280,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
         <Button
           size="sm"
           variant="outline"
+          className="h-10 sm:h-8"
           onClick={() => handleAction("push_to_context")}
           disabled={loading !== null}
         >
@@ -291,6 +293,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
         <Button
           size="sm"
           variant="outline"
+          className="h-10 sm:h-8"
           onClick={handleArchive}
           disabled={loading !== null}
         >
@@ -303,7 +306,7 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
         <Button
           size="sm"
           variant="outline"
-          className="text-muted-foreground hover:text-violet-500"
+          className="h-10 sm:h-8 text-muted-foreground hover:text-violet-500"
           onClick={() => setPinOpen(true)}
           disabled={loading !== null}
         >

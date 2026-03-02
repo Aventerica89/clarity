@@ -127,7 +127,7 @@ export function TaskCardEnhanced({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
               onClick={() => onHide(task.id)}
               aria-label="Hide task"
             >
@@ -137,7 +137,7 @@ export function TaskCardEnhanced({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-violet-500"
+            className="h-9 w-9 text-muted-foreground hover:text-violet-500"
             onClick={() => setPinOpen(true)}
             aria-label="Pin to context"
           >
@@ -147,7 +147,7 @@ export function TaskCardEnhanced({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 flex-shrink-0"
+              className="h-9 w-9 flex-shrink-0"
               onClick={() => setExpanded(!expanded)}
               aria-label={expanded ? "Collapse subtasks" : "Expand subtasks"}
             >

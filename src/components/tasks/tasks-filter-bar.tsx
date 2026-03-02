@@ -39,7 +39,7 @@ export function TasksFilterBar({
           placeholder="Search tasks..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-8 h-8 text-xs"
+          className="pl-8 h-10 md:h-8 text-base md:text-xs"
         />
       </div>
 
@@ -48,7 +48,7 @@ export function TasksFilterBar({
           value={filters.source}
           onValueChange={(v) => onChange({ ...filters, source: v })}
         >
-          <SelectTrigger className="w-[140px] h-8 text-xs">
+          <SelectTrigger className="w-[140px] h-10 md:h-8 text-sm md:text-xs">
             <SelectValue placeholder="Source" />
           </SelectTrigger>
           <SelectContent>
@@ -65,7 +65,7 @@ export function TasksFilterBar({
           value={filters.priority}
           onValueChange={(v) => onChange({ ...filters, priority: v })}
         >
-          <SelectTrigger className="w-[130px] h-8 text-xs">
+          <SelectTrigger className="w-[130px] h-10 md:h-8 text-sm md:text-xs">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
@@ -82,7 +82,7 @@ export function TasksFilterBar({
             onChange({ ...filters, dateFilter: v as TaskFilters["dateFilter"] })
           }
         >
-          <SelectTrigger className="w-[130px] h-8 text-xs">
+          <SelectTrigger className="w-[130px] h-10 md:h-8 text-sm md:text-xs">
             <SelectValue placeholder="Due date" />
           </SelectTrigger>
           <SelectContent>
@@ -98,7 +98,7 @@ export function TasksFilterBar({
             value={filters.project}
             onValueChange={(v) => onChange({ ...filters, project: v })}
           >
-            <SelectTrigger className="w-[150px] h-8 text-xs">
+            <SelectTrigger className="w-[150px] h-10 md:h-8 text-sm md:text-xs">
               <SelectValue placeholder="Project" />
             </SelectTrigger>
             <SelectContent>
@@ -116,7 +116,7 @@ export function TasksFilterBar({
           <Button
             variant={view === "list" ? "secondary" : "ghost"}
             size="icon"
-            className="h-8 w-8"
+            className="h-10 w-10 md:h-8 md:w-8"
             onClick={() => onViewChange("list")}
             aria-label="List view"
           >
@@ -125,7 +125,7 @@ export function TasksFilterBar({
           <Button
             variant={view === "grid" ? "secondary" : "ghost"}
             size="icon"
-            className="h-8 w-8"
+            className="h-10 w-10 md:h-8 md:w-8"
             onClick={() => onViewChange("grid")}
             aria-label="Grid view"
           >

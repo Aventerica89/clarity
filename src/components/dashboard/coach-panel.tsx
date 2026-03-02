@@ -29,7 +29,7 @@ export function CoachPanel() {
           }
         }}
         placeholder="Ask Clarity anything..."
-        className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
+        className="flex-1 bg-transparent text-base md:text-sm placeholder:text-muted-foreground/60 focus:outline-none"
       />
       <button
         type="button"

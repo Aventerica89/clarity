@@ -59,7 +59,7 @@ export function LifeContextStrip({ items, snapshot }: Props) {
     <div className="rounded-md border border-border bg-muted/20 text-sm">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
+        className="flex w-full items-center gap-2 px-4 py-3 text-left min-h-[44px]"
       >
         {open ? (
           <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -89,7 +89,7 @@ export function LifeContextStrip({ items, snapshot }: Props) {
               <button
                 onClick={() => handleFilter("all")}
                 className={cn(
-                  "rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                  "rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors min-h-[36px]",
                   filter === "all"
                     ? "bg-foreground text-background"
                     : "bg-muted text-muted-foreground hover:text-foreground",
@@ -102,7 +102,7 @@ export function LifeContextStrip({ items, snapshot }: Props) {
                   key={level}
                   onClick={() => handleFilter(level)}
                   className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize transition-colors",
+                    "rounded-full border px-3 py-1.5 text-[11px] font-medium capitalize transition-colors min-h-[36px]",
                     filter === level
                       ? URGENCY_STYLES[level]
                       : "border-transparent bg-muted text-muted-foreground hover:text-foreground",
@@ -134,7 +134,7 @@ export function LifeContextStrip({ items, snapshot }: Props) {
           {hasMore && (
             <button
               onClick={() => setPage((p) => p + 1)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors min-h-[36px] flex items-center"
             >
               Show {Math.min(PAGE_SIZE, filtered.length - visible.length)} more
             </button>

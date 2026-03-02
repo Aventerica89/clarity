@@ -75,18 +75,20 @@ export function TaskCard({ task, onComplete }: TaskCardProps) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-1.5">
-          <p className="text-[13px] font-medium leading-snug">{task.title}</p>
-          {task.description && (
-            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
-              {task.description}
-            </p>
-          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium leading-snug">{task.title}</p>
+            {task.description && (
+              <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                {task.description}
+              </p>
+            )}
+          </div>
           {task.source === "todoist" && task.sourceId && (
             <a
               href={`https://todoist.com/app/task/${task.sourceId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 mt-0.5 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex-shrink-0 mt-0.5 p-1 -m-1 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Open in Todoist"
             >
               <ExternalLink className="size-3" />

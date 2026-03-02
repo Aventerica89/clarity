@@ -152,7 +152,7 @@ export function TriageCard({
                   type="button"
                   onClick={() => setSelectedPriority(p.value)}
                   className={cn(
-                    "px-2 py-1.5 min-h-[36px] rounded text-xs font-medium transition-all",
+                    "px-2 py-2 min-h-[44px] rounded text-xs font-medium transition-all",
                     p.color,
                     selectedPriority === p.value
                       ? "ring-2 ring-ring ring-offset-1"
@@ -172,7 +172,7 @@ export function TriageCard({
           <>
             <Button
               size="sm"
-              className="flex-1"
+              className="flex-1 h-10 sm:h-8"
               onClick={handleComplete}
               disabled={loading !== null}
             >
@@ -182,6 +182,7 @@ export function TriageCard({
             <Button
               size="sm"
               variant="outline"
+              className="h-10 sm:h-8"
               onClick={handleApprove}
               disabled={loading !== null}
             >
@@ -191,7 +192,7 @@ export function TriageCard({
         ) : (
           <Button
             size="sm"
-            className="flex-1"
+            className="flex-1 h-10 sm:h-8"
             onClick={() => onApprove(item)}
             disabled={loading !== null}
           >
@@ -202,6 +203,7 @@ export function TriageCard({
         <Button
           size="sm"
           variant="outline"
+          className="h-10 sm:h-8"
           onClick={handlePushToContext}
           disabled={loading !== null}
         >
@@ -211,6 +213,7 @@ export function TriageCard({
         <Button
           size="sm"
           variant="ghost"
+          className="h-10 sm:h-8"
           onClick={handleDismiss}
           disabled={loading !== null}
         >

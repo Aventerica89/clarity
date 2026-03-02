@@ -56,7 +56,7 @@ export function EventCard({ event }: EventCardProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-violet-500"
+        className="h-9 w-9 flex-shrink-0 opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 max-md:opacity-100 transition-opacity text-muted-foreground hover:text-violet-500"
         onClick={() => setPinOpen(true)}
         aria-label="Pin to context"
       >

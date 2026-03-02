@@ -148,7 +148,7 @@ export function TriagePageContent() {
             placeholder="Search triage items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-8 text-xs"
+            className="pl-8 h-10 md:h-8 text-base md:text-xs"
           />
         </div>
         <div className="flex items-center gap-3 flex-wrap">

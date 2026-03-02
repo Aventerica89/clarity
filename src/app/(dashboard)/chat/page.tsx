@@ -264,7 +264,7 @@ function ChatPageInner() {
               <div
                 key={s.id}
                 className={cn(
-                  "group flex items-center justify-between rounded-md px-3 py-2 text-sm cursor-pointer",
+                  "group flex items-center justify-between rounded-md px-3 py-2.5 text-sm cursor-pointer min-h-[44px]",
                   s.id === activeSessionId
                     ? "bg-clarity-amber/10 text-foreground"
                     : "hover:bg-accent/50 text-muted-foreground hover:text-foreground",
@@ -277,7 +277,7 @@ function ChatPageInner() {
                 </div>
                 <button
                   type="button"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-0.5 rounded hover:text-destructive"
+                  className="opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 max-md:opacity-100 transition-opacity shrink-0 p-1.5 rounded hover:text-destructive min-h-[36px] min-w-[36px] flex items-center justify-center"
                   onClick={(e) => {
                     e.stopPropagation()
                     deleteSession(s.id)
@@ -371,7 +371,7 @@ function ChatPageInner() {
                 ))}
               </PromptSuggestionGroup>
             </div>
-            <div className="shrink-0 px-4 pb-4 w-full max-w-2xl mx-auto">
+            <div className="shrink-0 px-4 pb-safe-nav md:pb-4 w-full max-w-2xl mx-auto">
               <PromptInput
                 value={input}
                 onValueChange={setInput}
@@ -384,7 +384,7 @@ function ChatPageInner() {
                   <select
                     value={provider}
                     onChange={(e) => setProvider(e.target.value)}
-                    className="h-7 rounded-md border border-input bg-transparent px-2 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                    className="h-9 rounded-md border border-input bg-transparent px-2 text-sm text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
                     title="AI provider"
                   >
                     <option value="auto">Auto</option>
@@ -450,7 +450,7 @@ function ChatPageInner() {
             </div>
 
             {/* Input */}
-            <div className="border-t px-4 md:px-6 py-3">
+            <div className="border-t px-4 md:px-6 py-3 pb-safe-nav md:pb-3">
               <div className="mx-auto max-w-2xl">
                 <PromptInput
                   value={input}
@@ -464,7 +464,7 @@ function ChatPageInner() {
                     <select
                       value={provider}
                       onChange={(e) => setProvider(e.target.value)}
-                      className="h-7 rounded-md border border-input bg-transparent px-2 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                      className="h-9 rounded-md border border-input bg-transparent px-2 text-sm text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
                       title="AI provider"
                     >
                       <option value="auto">Auto</option>

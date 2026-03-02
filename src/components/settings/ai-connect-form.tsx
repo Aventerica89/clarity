@@ -120,7 +120,7 @@ export function AIConnectForm({ provider, connected, placeholder, label }: Props
   return (
     <div className="space-y-2">
       <Label htmlFor={`${provider}-token`} className="text-sm">{label}</Label>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Input
           id={`${provider}-token`}
           type="password"
@@ -128,8 +128,11 @@ export function AIConnectForm({ provider, connected, placeholder, label }: Props
           value={token}
           onChange={(e) => setToken(e.target.value)}
           className="flex-1"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && token.trim()) handleSave()
+          }}
         />
-        <Button size="sm" onClick={handleSave} disabled={isPending || !token.trim()}>
+        <Button size="sm" onClick={handleSave} disabled={isPending || !token.trim()} className="sm:shrink-0">
           Save
         </Button>
       </div>

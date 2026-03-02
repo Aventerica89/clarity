@@ -26,14 +26,14 @@ export function SpendingFilterBar({ filters, onChange }: SpendingFilterBarProps)
         placeholder="Search transactions..."
         value={filters.search}
         onChange={(e) => onChange({ ...filters, search: e.target.value })}
-        className="w-[180px] h-8 text-xs"
+        className="w-[180px] h-10 md:h-8 text-base md:text-xs"
       />
 
       <Select
         value={filters.dateRange}
         onValueChange={(v) => onChange({ ...filters, dateRange: v })}
       >
-        <SelectTrigger className="w-[110px] h-8 text-xs">
+        <SelectTrigger className="w-[110px] h-10 md:h-8 text-sm md:text-xs">
           <SelectValue placeholder="Date range" />
         </SelectTrigger>
         <SelectContent>
@@ -48,7 +48,7 @@ export function SpendingFilterBar({ filters, onChange }: SpendingFilterBarProps)
         value={filters.category}
         onValueChange={(v) => onChange({ ...filters, category: v })}
       >
-        <SelectTrigger className="w-[140px] h-8 text-xs">
+        <SelectTrigger className="w-[140px] h-10 md:h-8 text-sm md:text-xs">
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
