@@ -25,7 +25,7 @@ export function CollapsibleSection({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center gap-1.5 py-1 md:pointer-events-none"
+        className="flex w-full items-center gap-1.5 py-1 min-h-[44px]"
       >
         <ChevronRight
           className={cn(

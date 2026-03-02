@@ -86,12 +86,12 @@ export function ApproveModal({ item, onClose, onSuccess }: ApproveModalProps) {
 
   return (
     <Dialog open={!!item} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md flex flex-col max-h-[90dvh]">
         <DialogHeader>
           <DialogTitle>Add to Todoist</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="flex-1 overflow-y-auto min-h-0 space-y-4 py-2">
           <div className="space-y-1.5">
             <Label>Task title</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />

@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
-import { Plus, Trash2, Send, Loader2, MessageSquare } from "lucide-react"
+import { Plus, Trash2, Send, Loader2, MessageSquare, PanelLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ChatContainer } from "@/components/prompt-kit/chat-container"
 import { Message, MessageAvatar, MessageContent } from "@/components/prompt-kit/message"
 import { PromptInput, PromptInputTextarea, PromptInputActions, PromptInputAction } from "@/components/prompt-kit/prompt-input"
@@ -249,9 +250,53 @@ function ChatPageInner() {
   const groups = groupSessionsByDate(sessions)
   const hasMessages = messages.length > 0
 
+  const sessionsList = (
+    <div className="flex-1 overflow-y-auto py-2 px-1">
+      {sessions.length === 0 ? (
+        <p className="px-3 py-2 text-xs text-muted-foreground">No conversations yet</p>
+      ) : (
+        groups.map((group) => (
+          <div key={group.label} className="mb-3">
+            <p className="px-3 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {group.label}
+            </p>
+            {group.items.map((s) => (
+              <div
+                key={s.id}
+                className={cn(
+                  "group flex items-center justify-between rounded-md px-3 py-2 text-sm cursor-pointer",
+                  s.id === activeSessionId
+                    ? "bg-clarity-amber/10 text-foreground"
+                    : "hover:bg-accent/50 text-muted-foreground hover:text-foreground",
+                )}
+                onClick={() => loadSession(s.id)}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <MessageSquare className="size-3.5 shrink-0 opacity-60" />
+                  <span className="truncate text-xs">{s.title}</span>
+                </div>
+                <button
+                  type="button"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-0.5 rounded hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteSession(s.id)
+                  }}
+                  title="Delete"
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ))
+      )}
+    </div>
+  )
+
   return (
     <div className="flex h-full -m-4 md:-m-6 overflow-hidden">
-      {/* Sessions sidebar */}
+      {/* Sessions sidebar — desktop */}
       <aside className="hidden md:flex w-60 flex-col border-r shrink-0">
         <div className="flex items-center justify-between px-3 py-3 border-b">
           <span className="text-sm font-medium">Conversations</span>
@@ -265,52 +310,40 @@ function ChatPageInner() {
             <Plus className="size-3.5" />
           </Button>
         </div>
-
-        <div className="flex-1 overflow-y-auto py-2 px-1">
-          {sessions.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">No conversations yet</p>
-          ) : (
-            groups.map((group) => (
-              <div key={group.label} className="mb-3">
-                <p className="px-3 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {group.label}
-                </p>
-                {group.items.map((s) => (
-                  <div
-                    key={s.id}
-                    className={cn(
-                      "group flex items-center justify-between rounded-md px-3 py-2 text-sm cursor-pointer",
-                      s.id === activeSessionId
-                        ? "bg-clarity-amber/10 text-foreground"
-                        : "hover:bg-accent/50 text-muted-foreground hover:text-foreground",
-                    )}
-                    onClick={() => loadSession(s.id)}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <MessageSquare className="size-3.5 shrink-0 opacity-60" />
-                      <span className="truncate text-xs">{s.title}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-0.5 rounded hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteSession(s.id)
-                      }}
-                      title="Delete"
-                    >
-                      <Trash2 className="size-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ))
-          )}
-        </div>
+        {sessionsList}
       </aside>
 
       {/* Main chat area */}
       <div className="relative flex flex-1 flex-col min-w-0">
+        {/* Mobile sessions trigger */}
+        <div className="flex items-center gap-2 px-4 py-2 border-b md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-9" title="Conversations">
+                <PanelLeft className="size-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-0 flex flex-col">
+              <SheetHeader className="flex flex-row items-center justify-between px-3 py-3 border-b">
+                <SheetTitle className="text-sm font-medium">Conversations</SheetTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  onClick={createNewSession}
+                  title="New conversation"
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+              </SheetHeader>
+              {sessionsList}
+            </SheetContent>
+          </Sheet>
+          <span className="text-sm font-medium">
+            {sessions.find((s) => s.id === activeSessionId)?.title ?? "Clarity Coach"}
+          </span>
+        </div>
+
         <ChatAtmosphere />
 
         {/* No session selected / empty state */}

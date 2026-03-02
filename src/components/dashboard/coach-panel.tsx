@@ -35,7 +35,7 @@ export function CoachPanel() {
         type="button"
         onClick={go}
         disabled={!query.trim()}
-        className="ml-2 flex size-7 shrink-0 items-center justify-center rounded-md bg-clarity-amber/10 text-clarity-amber transition-opacity disabled:opacity-30"
+        className="ml-2 flex size-9 shrink-0 items-center justify-center rounded-md bg-clarity-amber/10 text-clarity-amber transition-opacity disabled:opacity-30"
         aria-label="Go to chat"
       >
         <ArrowRight className="size-4" />

@@ -152,7 +152,7 @@ export function TriageCard({
                   type="button"
                   onClick={() => setSelectedPriority(p.value)}
                   className={cn(
-                    "px-2 py-0.5 rounded text-xs font-medium transition-all",
+                    "px-2 py-1.5 min-h-[36px] rounded text-xs font-medium transition-all",
                     p.color,
                     selectedPriority === p.value
                       ? "ring-2 ring-ring ring-offset-1"
@@ -167,7 +167,7 @@ export function TriageCard({
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         {isTodoist ? (
           <>
             <Button

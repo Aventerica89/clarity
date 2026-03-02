@@ -247,6 +247,14 @@
   [data-scroll] {
     -webkit-overflow-scrolling: touch;
   }
+  /* Eliminate 300ms tap delay on interactive elements */
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  label {
+    touch-action: manipulation;
+  }
 }
 
 /* Tiptap editor styles */
