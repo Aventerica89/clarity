@@ -88,12 +88,14 @@ See `.env.example` for full list. Use `npm run env:inject` to populate from 1Pas
 
 Key vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TODOIST_CLIENT_ID`, `TODOIST_CLIENT_SECRET`, `PLAID_CLIENT_ID`, `PLAID_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `CRON_SECRET`, `TOKEN_ENCRYPTION_KEY`.
 
+Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (weather widget), `PLAID_ENV` (sandbox/development/production), `CLARITY_TIMEZONE` (optional, defaults to `America/Phoenix`).
+
 ## Important Rules
 
 ### Anthropic OAuth
 - NEVER use `@ai-sdk/anthropic` for AI calls — it doesn't support OAuth tokens
-- ALWAYS use `@anthropic-ai/sdk` directly
-- Pattern: `token.startsWith('sk-ant-oat') ? new Anthropic({ authToken: token }) : new Anthropic({ apiKey: token })`
+- ALWAYS use `@anthropic-ai/sdk` directly via `createAnthropicClient(token)` from `@/lib/ai/client`
+- The client uses `{ apiKey: token }` for all token types — both `sk-ant-api...` and `sk-ant-oat...` OAuth tokens work this way
 
 ### Data Access
 - ALWAYS use Drizzle ORM with Turso client (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`)
@@ -107,6 +109,7 @@ Key vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `BETTER_AUTH_SECRET`, `GOOGL
 
 ### Timezone
 - ALWAYS use `America/Phoenix` (UTC-7, no DST)
+- Override via `CLARITY_TIMEZONE` env var if needed (defaults to `America/Phoenix` — see `src/lib/ai/coach.ts`)
 - Date strings: `new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix" }).format(new Date())` → `YYYY-MM-DD`
 
 ### Apple companion (planned)
@@ -221,6 +224,9 @@ clarity/
       sun-position.ts      # Sun position calculation for time-of-day UI
       utils.ts             # cn() + misc utilities
       ai/                  # AI provider setup + prompts
+        client.ts          # Multi-provider client factory (Anthropic, Gemini, DeepSeek, Groq)
+        coach.ts           # AI coach streaming logic
+        plan-parser.ts     # Day plan parsing utilities
         todoist-tools.ts   # Todoist AI tool definitions
       integrations/        # Google, Todoist adapters
       plaid/               # Plaid client + sync
