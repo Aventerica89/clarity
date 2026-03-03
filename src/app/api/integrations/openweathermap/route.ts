@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { revalidateTag } from "next/cache"
 import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
       set: { accessTokenEncrypted: encrypted, syncStatus: "idle", lastError: null },
     })
 
+  revalidateTag("weather")
   return NextResponse.json({ ok: true })
 }
 

@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("appid", apiKey)
     url.searchParams.set("units", "imperial")
 
-    const res = await fetch(url.toString(), { next: { revalidate: 1800 } })
+    const res = await fetch(url.toString(), { next: { revalidate: 1800, tags: ["weather"] } })
     if (!res.ok) {
       return NextResponse.json(
         { error: "Weather API error" },
