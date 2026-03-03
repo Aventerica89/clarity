@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { syncGmailMessages } from "@/lib/integrations/gmail-sync"
+import { syncRatelimit } from "@/lib/ratelimit"
 
 export async function POST() {
   try {
@@ -9,6 +10,9 @@ export async function POST() {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { success } = await syncRatelimit.limit(session.user.id)
+    if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     const result = await syncGmailMessages(session.user.id)
 

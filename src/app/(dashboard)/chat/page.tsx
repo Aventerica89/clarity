@@ -123,7 +123,7 @@ function ChatPageInner() {
       const res = await fetch(`/api/chat/sessions/${id}`)
       if (!res.ok) return
       const data = await res.json() as { messages: ChatMessage[] }
-      setMessages(data.messages)
+      setMessages(data.messages.slice(-100))
     } finally {
       setIsLoadingMessages(false)
     }

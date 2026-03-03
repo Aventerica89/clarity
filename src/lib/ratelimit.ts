@@ -38,3 +38,17 @@ export const triageScanRatelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, "1 m"),
   prefix: "rl:triage-scan",
 })
+
+// Manual sync endpoints (Gmail, Todoist, Google Calendar) — external API calls
+export const syncRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1 m"),
+  prefix: "rl:sync",
+})
+
+// Weather widget — proxies to OpenWeatherMap API
+export const weatherRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "1 m"),
+  prefix: "rl:weather",
+})

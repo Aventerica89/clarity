@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { integrations } from "@/lib/schema"
 import { and, eq } from "drizzle-orm"
 import { decryptToken } from "@/lib/crypto"
+import { weatherRatelimit } from "@/lib/ratelimit"
 
 // Phoenix, AZ coordinates
 const LAT = 33.4484
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { success } = await weatherRatelimit.limit(session.user.id)
+    if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
     // Try to get API key from integrations table
     const [integration] = await db

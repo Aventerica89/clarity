@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import { plaidItems } from "@/lib/schema"
 import { encryptToken } from "@/lib/crypto"
 import { createPlaidClient } from "@/lib/plaid"
+import { plaidRatelimit } from "@/lib/ratelimit"
 
 const exchangeSchema = z.object({
   public_token: z.string().min(1),
@@ -15,6 +16,9 @@ const exchangeSchema = z.object({
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { success } = await plaidRatelimit.limit(session.user.id)
+  if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
   let body: unknown
   try {

@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, uniqueIndex, index } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
 
 // ─── Better Auth core tables ──────────────────────────────────────────────────
@@ -73,6 +73,8 @@ export const tasks = sqliteTable("tasks", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (t) => [
   uniqueIndex("tasks_user_source_idx").on(t.userId, t.source, t.sourceId),
+  index("tasks_user_completed_idx").on(t.userId, t.isCompleted),
+  index("tasks_user_due_idx").on(t.userId, t.dueDate),
 ])
 
 // Unified events — from Google Calendar or Apple Calendar
@@ -243,7 +245,9 @@ export const coachMessages = sqliteTable("coach_messages", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
-})
+}, (t) => [
+  index("coach_messages_user_session_idx").on(t.userId, t.sessionId),
+])
 
 // Chat sessions — named conversation threads on the /chat page
 export const chatSessions = sqliteTable("chat_sessions", {
@@ -293,6 +297,7 @@ export const transactions = sqliteTable("transactions", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (t) => [
   uniqueIndex("transactions_plaid_id_idx").on(t.plaidTransactionId),
+  index("transactions_user_date_idx").on(t.userId, t.date),
 ])
 
 // Emails — cached Gmail messages, synced via cron or manual refresh
@@ -333,6 +338,7 @@ export const triageQueue = sqliteTable("triage_queue", {
   reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
 }, (t) => [
   uniqueIndex("triage_user_source_idx").on(t.userId, t.source, t.sourceId),
+  index("triage_user_status_idx").on(t.userId, t.status),
 ])
 
 // Day plans — AI-generated daily plan + 3-day horizon, cached per user per day
