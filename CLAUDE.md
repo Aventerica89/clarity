@@ -70,7 +70,6 @@ Migrations live in `supabase/migrations/`. Config: `drizzle.config.ts` (dialect:
 | `/commit` | Create conventional commit |
 | `/code-review` | Review code |
 | `/deploy-check` | Pre-deployment checklist |
-| `/jbdocs` | Sync to docs.jbcloud.app |
 
 ## Key Integrations
 
