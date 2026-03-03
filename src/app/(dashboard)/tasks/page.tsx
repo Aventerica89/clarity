@@ -23,6 +23,7 @@ export default function TasksPage() {
   const [tab, setTab] = useState("active")
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [view, setView] = useState<"list" | "grid">("list")
@@ -47,7 +48,9 @@ export default function TasksPage() {
       const res = await fetch(`/api/tasks?${params}`)
       const data = (await res.json()) as { tasks: TaskItem[] }
       setTasks(data.tasks ?? [])
+      setError(null)
     } catch {
+      setError("Failed to load tasks. Try refreshing.")
       setTasks([])
     } finally {
       setLoading(false)
@@ -148,6 +151,8 @@ export default function TasksPage() {
         <TabsContent value={tab} className="mt-4 space-y-6">
           {loading ? (
             <TasksLoadingSkeleton />
+          ) : error ? (
+            <p className="text-sm text-destructive py-4">{error}</p>
           ) : displayTasks.length === 0 ? (
             <TasksEmptyState tab={tab} hasSearch={search.length > 0} />
           ) : view === "grid" ? (

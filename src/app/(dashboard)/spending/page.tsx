@@ -1,5 +1,3 @@
-"use client"
-
 import { PageTabs } from "@/components/ui/page-tabs"
 import { TransactionList } from "@/components/spending/transaction-list"
 import { RecurringTab } from "@/components/spending/recurring-tab"

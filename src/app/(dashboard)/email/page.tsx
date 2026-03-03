@@ -52,15 +52,20 @@ export default function EmailPage() {
 
   useEffect(() => {
     async function load() {
-      const [recentRes, starredRes] = await Promise.all([
-        fetch("/api/emails"),
-        fetch("/api/emails/starred"),
-      ])
-      const recentData = (await recentRes.json()) as { messages: GmailMessage[] }
-      const starredData = (await starredRes.json()) as { messages: GmailMessage[] }
-      setRecent(recentData.messages ?? [])
-      setStarred(starredData.messages ?? [])
-      setLoading(false)
+      try {
+        const [recentRes, starredRes] = await Promise.all([
+          fetch("/api/emails"),
+          fetch("/api/emails/starred"),
+        ])
+        const recentData = (await recentRes.json()) as { messages: GmailMessage[] }
+        const starredData = (await starredRes.json()) as { messages: GmailMessage[] }
+        setRecent(recentData.messages ?? [])
+        setStarred(starredData.messages ?? [])
+      } catch {
+        // Silent fail — show empty state
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])

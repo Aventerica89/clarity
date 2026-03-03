@@ -59,15 +59,7 @@ export function DayPlanV3() {
     fetchPlan()
   }, [fetchPlan])
 
-  // Auto-generate if no cached plan
-  useEffect(() => {
-    if (!loading && !rawPlan && !generating) {
-      generatePlan()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, rawPlan])
-
-  async function generatePlan() {
+  const generatePlan = useCallback(async () => {
     setGenerating(true)
     setError(null)
     try {
@@ -89,7 +81,14 @@ export function DayPlanV3() {
     } finally {
       setGenerating(false)
     }
-  }
+  }, [model])
+
+  // Auto-generate if no cached plan — must be after generatePlan definition
+  useEffect(() => {
+    if (!loading && !rawPlan && !generating) {
+      generatePlan()
+    }
+  }, [loading, rawPlan, generating, generatePlan])
 
   function handleModelChange(m: ModelChoice) {
     setModel(m)
