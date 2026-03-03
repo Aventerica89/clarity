@@ -1,5 +1,5 @@
 import { TodoistApi, type Task } from "@doist/todoist-api-typescript"
-import { and, eq } from "drizzle-orm"
+import { and, eq, notInArray, sql } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { integrations, tasks } from "@/lib/schema"
 import { decryptToken, encryptToken } from "@/lib/crypto"
@@ -154,6 +154,23 @@ export async function syncTodoistTasks(userId: string): Promise<{
   for (const t of rawTasks) {
     await upsertTodoistTask(userId, t, projectNames)
     synced++
+  }
+
+  // Hide tasks that no longer exist in Todoist (deleted remotely)
+  if (rawTasks.length > 0) {
+    const activeSourceIds = rawTasks.map((t) => t.id)
+    await db
+      .update(tasks)
+      .set({ isHidden: true, updatedAt: sql`(unixepoch())` })
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          eq(tasks.source, "todoist"),
+          eq(tasks.isCompleted, false),
+          eq(tasks.isHidden, false),
+          notInArray(tasks.sourceId, activeSourceIds),
+        ),
+      )
   }
 
   await db

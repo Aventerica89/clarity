@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, LayoutList, LayoutGrid } from "lucide-react"
+import { Search, LayoutList, LayoutGrid, Table2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,8 +17,8 @@ interface TasksFilterBarProps {
   onChange: (filters: TaskFilters) => void
   search: string
   onSearchChange: (v: string) => void
-  view: "list" | "grid"
-  onViewChange: (v: "list" | "grid") => void
+  view: "list" | "grid" | "table"
+  onViewChange: (v: "list" | "grid" | "table") => void
   projects: string[]
 }
 
@@ -130,6 +130,15 @@ export function TasksFilterBar({
             aria-label="Grid view"
           >
             <LayoutGrid className="size-3.5" />
+          </Button>
+          <Button
+            variant={view === "table" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-10 w-10 md:h-8 md:w-8"
+            onClick={() => onViewChange("table")}
+            aria-label="Table view"
+          >
+            <Table2 className="size-3.5" />
           </Button>
         </div>
       </div>

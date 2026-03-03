@@ -141,6 +141,17 @@ export async function POST(request: NextRequest) {
         const todoistTask = await fetchTodoistTaskById(token, result.taskId)
         if (todoistTask) {
           await upsertTodoistTask(session.user.id, todoistTask)
+          // User explicitly created this task — mark it triaged so it shows immediately
+          await db
+            .update(tasks)
+            .set({ triaged: true })
+            .where(
+              and(
+                eq(tasks.userId, session.user.id),
+                eq(tasks.source, "todoist"),
+                eq(tasks.sourceId, result.taskId),
+              ),
+            )
         }
       }
     } catch {
@@ -159,6 +170,7 @@ export async function POST(request: NextRequest) {
       title: body.title.trim(),
       dueDate: body.dueDate ?? null,
       priorityManual: body.priority ?? 1,
+      triaged: true,
       labels: "[]",
       metadata: "{}",
     })

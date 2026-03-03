@@ -21,6 +21,7 @@
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
     "@libsql/client": "^0.17.0",
+    "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-placeholder": "^3.20.0",
     "@tiptap/extension-task-item": "^3.20.0",
     "@tiptap/extension-task-list": "^3.20.0",
