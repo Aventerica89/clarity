@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { TodoistConnectForm } from "@/components/settings/todoist-connect-form"
 import { AIProvidersPanel } from "@/components/settings/ai-providers-panel"
+import { OpenWeatherMapConnectForm } from "@/components/settings/openweathermap-connect-form"
 import { SyncButton } from "@/components/settings/sync-button"
 import { PlaidConnectionPanel } from "@/components/settings/plaid-connection-panel"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
@@ -22,7 +23,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows, geminiRows, geminiProRows, deepseekRows, groqRows, plaidItemRows] = await Promise.all([
+  const [googleRows, todoistRows, anthropicRows, geminiRows, geminiProRows, deepseekRows, groqRows, openWeatherMapRows, plaidItemRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -64,6 +65,11 @@ export default async function SettingsPage() {
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "groq")))
       .limit(1),
     db
+      .select({ id: integrations.id })
+      .from(integrations)
+      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "openweathermap")))
+      .limit(1),
+    db
       .select({
         id: plaidItems.id,
         institutionName: plaidItems.institutionName,
@@ -96,6 +102,7 @@ export default async function SettingsPage() {
     deepseek: deepseekRows.length > 0,
     groq: groqRows.length > 0,
   }
+  const openWeatherMapConnected = openWeatherMapRows.length > 0
 
   // Batch-fetch all accounts for connected Plaid items in one query
   const plaidItemIds = plaidItemRows.map((i) => i.id)
@@ -207,6 +214,33 @@ export default async function SettingsPage() {
                       connectionMethod={todoistConnectionMethod}
                     />
                     {todoist && <SyncButton provider="todoist" label="Sync now" />}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <span className="text-lg leading-none">🌤</span>
+                        OpenWeatherMap
+                      </CardTitle>
+                      <Badge
+                        variant="outline"
+                        className={openWeatherMapConnected
+                          ? "text-green-600 dark:text-green-400 border-green-600/20 bg-green-600/5"
+                          : "text-muted-foreground"}
+                      >
+                        {openWeatherMapConnected ? "Connected" : "Not connected"}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      {openWeatherMapConnected
+                        ? "API key saved. Weather widget is active."
+                        : "Add your OpenWeatherMap API key to power the weather widget."}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <OpenWeatherMapConnectForm connected={openWeatherMapConnected} />
                   </CardContent>
                 </Card>
               </div>
