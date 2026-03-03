@@ -20,7 +20,8 @@ interface TaskListProps {
 
 export function TaskList({ tasks }: TaskListProps) {
   async function handleComplete(taskId: string) {
-    await fetch(`/api/tasks/${taskId}/complete`, { method: "POST" })
+    const res = await fetch(`/api/tasks/${taskId}/complete`, { method: "POST" })
+    if (!res.ok) throw new Error(`Failed to complete task: ${res.status}`)
   }
 
   return (

@@ -67,51 +67,75 @@ export function TriageCard({
 
   async function handleDismiss() {
     setLoading("dismiss")
-    await fetch(`/api/triage/${item.id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "dismiss" }),
-    })
-    onDismiss(item.id)
-    setLoading(null)
+    try {
+      const res = await fetch(`/api/triage/${item.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "dismiss" }),
+      })
+      if (!res.ok) throw new Error(`Failed to dismiss: ${res.status}`)
+      onDismiss(item.id)
+    } catch (err) {
+      console.error("[triage] dismiss error:", err)
+    } finally {
+      setLoading(null)
+    }
   }
 
   async function handlePushToContext() {
     setLoading("context")
-    await fetch(`/api/triage/${item.id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "push_to_context" }),
-    })
-    onPushToContext(item.id)
-    setLoading(null)
+    try {
+      const res = await fetch(`/api/triage/${item.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "push_to_context" }),
+      })
+      if (!res.ok) throw new Error(`Failed to push to context: ${res.status}`)
+      onPushToContext(item.id)
+    } catch (err) {
+      console.error("[triage] push-to-context error:", err)
+    } finally {
+      setLoading(null)
+    }
   }
 
   async function handleComplete() {
     setLoading("complete")
-    await fetch(`/api/triage/${item.id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "complete" }),
-    })
-    onComplete(item.id)
-    setLoading(null)
+    try {
+      const res = await fetch(`/api/triage/${item.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete" }),
+      })
+      if (!res.ok) throw new Error(`Failed to complete: ${res.status}`)
+      onComplete(item.id)
+    } catch (err) {
+      console.error("[triage] complete error:", err)
+    } finally {
+      setLoading(null)
+    }
   }
 
   async function handleApprove() {
     setLoading("approve")
-    await fetch(`/api/triage/${item.id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "approve",
-        ...(isTodoist && selectedPriority !== currentPriority
-          ? { priority: selectedPriority }
-          : {}),
-      }),
-    })
-    onComplete(item.id)
-    setLoading(null)
+    try {
+      const res = await fetch(`/api/triage/${item.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "approve",
+          ...(isTodoist && selectedPriority !== currentPriority
+            ? { priority: selectedPriority }
+            : {}),
+        }),
+      })
+      if (!res.ok) throw new Error(`Failed to approve: ${res.status}`)
+      onComplete(item.id)
+    } catch (err) {
+      console.error("[triage] approve error:", err)
+    } finally {
+      setLoading(null)
+    }
   }
 
   const scoreColor = item.aiScore >= 80

@@ -52,23 +52,25 @@ export function ApproveModal({ item, onClose, onSuccess }: ApproveModalProps) {
   async function handleSubmit() {
     if (!item || !projectId) return
     setSubmitting(true)
-
-    const res = await fetch(`/api/triage/${item.id}/approve`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        projectId,
-        dueDate: dueDate || undefined,
-        subtasks,
-      }),
-    })
-
-    const data = (await res.json()) as { taskId?: string; error?: string }
-    setSubmitting(false)
-
-    if (data.taskId) {
-      onSuccess(item.id, data.taskId)
+    try {
+      const res = await fetch(`/api/triage/${item.id}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          projectId,
+          dueDate: dueDate || undefined,
+          subtasks,
+        }),
+      })
+      const data = (await res.json()) as { taskId?: string; error?: string }
+      if (data.taskId) {
+        onSuccess(item.id, data.taskId)
+      }
+    } catch (err) {
+      console.error("[approve-modal] submit error:", err)
+    } finally {
+      setSubmitting(false)
     }
   }
 

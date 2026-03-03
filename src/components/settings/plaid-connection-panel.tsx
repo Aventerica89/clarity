@@ -45,9 +45,15 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  // Check for OAuth redirect return (bank OAuth flow)
-  const isOAuthReturn = typeof window !== "undefined"
-    && new URLSearchParams(window.location.search).has("oauth_state_id")
+  // Detect OAuth redirect return after mount (avoids SSR hydration mismatch)
+  const [isOAuthReturn, setIsOAuthReturn] = useState(false)
+  const [receivedRedirectUri, setReceivedRedirectUri] = useState<string | undefined>()
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const oauthReturn = params.has("oauth_state_id")
+    setIsOAuthReturn(oauthReturn)
+    if (oauthReturn) setReceivedRedirectUri(window.location.href)
+  }, [])
 
   async function fetchLinkToken() {
     setLoading(true)
@@ -102,10 +108,6 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
     },
     [setItems, setError],
   )
-
-  const receivedRedirectUri = isOAuthReturn
-    ? window.location.href
-    : undefined
 
   const { open, ready } = usePlaidLink({
     token: linkToken,

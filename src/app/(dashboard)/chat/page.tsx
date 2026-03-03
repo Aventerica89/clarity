@@ -104,8 +104,7 @@ function ChatPageInner() {
       router.replace("/chat", { scroll: false })
       sendMessage(q)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams])
+  }, [searchParams, sendMessage, router])
 
   async function createNewSession() {
     abortRef.current?.abort()
@@ -149,7 +148,7 @@ function ChatPageInner() {
     }
   }
 
-  async function sendMessage(overrideQuestion?: string | unknown) {
+  const sendMessage = useCallback(async (overrideQuestion?: string | unknown) => {
     const question = (typeof overrideQuestion === "string" ? overrideQuestion : input).trim()
     if (!question || isStreaming) return
 
@@ -245,7 +244,7 @@ function ChatPageInner() {
     } finally {
       setIsStreaming(false)
     }
-  }
+  }, [isStreaming, activeSessionId, messages, provider, router])
 
   const groups = groupSessionsByDate(sessions)
   const hasMessages = messages.length > 0
