@@ -120,6 +120,7 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 
 | Issue | Fix |
 |-------|-----|
+| Adding a new page to nav | Add to `src/lib/nav-items.ts`, then add href to `PRIMARY_HREFS` or `MORE_HREFS` in `src/components/mobile-nav.tsx` |
 | Tailwind v4 scrollbar hiding | Use `scrollbar-none` (NOT `scrollbar-hide`) |
 | CSS Grid child overflow | Add `min-w-0` to grid children that contain scrollable/flex content |
 | Tiptap HTML inflation | Rich text HTML is much longer than plain text — Zod max set to 20000 for life-context routes |
@@ -250,6 +251,7 @@ clarity/
 
 - Architecture: `docs/ARCHITECTURE.md`
 - Implementation Plan: `docs/PLAN.md`
+- Feature Ideas Backlog: `docs/IDEAS.md` — add here when user says "add to idea list"
 - Competitive Analysis & Roadmap: `~/.claude/plans/2026-02-26-clarity-competitive-analysis.md`
 - Google Workspace API Research: `~/.claude/plans/zazzy-exploring-mountain.md`
 - Design System: `.interface-design/system.md`
