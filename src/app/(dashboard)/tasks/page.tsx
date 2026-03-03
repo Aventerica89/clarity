@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TasksFilterBar } from "@/components/tasks/tasks-filter-bar"
 import { TaskGroup } from "@/components/tasks/task-group"
 import { TaskCardEnhanced } from "@/components/tasks/task-card-enhanced"
+import { TaskTable } from "@/components/tasks/task-table"
 import { CreateTaskModal } from "@/components/tasks/create-task-modal"
 import { SubtaskList } from "@/components/tasks/subtask-list"
 import {
@@ -26,7 +27,7 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const [view, setView] = useState<"list" | "grid">("list")
+  const [view, setView] = useState<"list" | "grid" | "table">("list")
   const [gridPage, setGridPage] = useState(1)
   const [filters, setFilters] = useState<TaskFilters>({
     source: "all",
@@ -121,6 +122,24 @@ export default function TasksPage() {
     )
   }
 
+  async function handleBulkComplete(ids: string[]) {
+    await fetch("/api/tasks/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete", ids }),
+    })
+    setTasks((prev) => prev.filter((t) => !ids.includes(t.id)))
+  }
+
+  async function handleBulkHide(ids: string[]) {
+    await fetch("/api/tasks/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "hide", ids }),
+    })
+    setTasks((prev) => prev.filter((t) => !ids.includes(t.id)))
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -155,6 +174,15 @@ export default function TasksPage() {
             <p className="text-sm text-destructive py-4">{error}</p>
           ) : displayTasks.length === 0 ? (
             <TasksEmptyState tab={tab} hasSearch={search.length > 0} />
+          ) : view === "table" ? (
+            <TaskTable
+              tasks={displayTasks}
+              onComplete={tab === "active" ? handleComplete : undefined}
+              onHide={tab === "active" ? handleHide : undefined}
+              onReschedule={tab === "active" ? handleReschedule : undefined}
+              onBulkComplete={tab === "active" ? handleBulkComplete : undefined}
+              onBulkHide={tab === "active" ? handleBulkHide : undefined}
+            />
           ) : view === "grid" ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

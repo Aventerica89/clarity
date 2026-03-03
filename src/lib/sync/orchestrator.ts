@@ -2,6 +2,7 @@ import { syncGoogleCalendarEvents } from "@/lib/integrations/google-calendar"
 import { syncTodoistTasks } from "@/lib/integrations/todoist"
 import { syncGmailMessages } from "@/lib/integrations/gmail-sync"
 import { syncTriageQueue } from "@/lib/triage/sync"
+import { purgeOldCompletedTasks } from "@/lib/tasks/cleanup"
 
 interface SyncResult {
   userId: string
@@ -42,6 +43,13 @@ export async function syncAllForUser(userId: string): Promise<SyncResult> {
     triage = await syncTriageQueue(userId)
   } catch (err) {
     triage = { added: 0, skipped: 0, errors: [err instanceof Error ? err.message : String(err)] }
+  }
+
+  // Purge completed tasks older than 30 days (best-effort)
+  try {
+    await purgeOldCompletedTasks(userId)
+  } catch {
+    // Non-fatal — sync continues regardless
   }
 
   return { userId, google, todoist, gmail, triage }
