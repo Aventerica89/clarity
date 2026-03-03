@@ -55,7 +55,7 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
     if (oauthReturn) setReceivedRedirectUri(window.location.href)
   }, [])
 
-  async function fetchLinkToken() {
+  const fetchLinkToken = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -68,14 +68,14 @@ export function PlaidConnectionPanel({ initialItems }: Props) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // Auto-fetch link token on OAuth return so Plaid Link can resume
   useEffect(() => {
     if (isOAuthReturn && !linkToken) {
       fetchLinkToken()
     }
-  }, [isOAuthReturn])
+  }, [isOAuthReturn, fetchLinkToken])
 
   const onPlaidSuccess = useCallback(
     async (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {

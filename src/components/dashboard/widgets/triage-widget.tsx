@@ -32,16 +32,17 @@ export function TriageWidget() {
   const router = useRouter()
   const [items, setItems] = useState<TriageItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     async function fetchTriage() {
       try {
         const res = await fetch("/api/widgets/week?type=triage")
-        if (!res.ok) return
+        if (!res.ok) throw new Error("Failed to load")
         const json = (await res.json()) as { items: TriageItem[] }
         setItems(json.items)
       } catch {
-        // Silent
+        setError(true)
       } finally {
         setLoading(false)
       }
@@ -56,6 +57,17 @@ export function TriageWidget() {
           Triage Inbox
         </div>
         {[1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Triage Inbox
+        </div>
+        <p className="text-xs text-muted-foreground">Could not load triage data.</p>
       </div>
     )
   }

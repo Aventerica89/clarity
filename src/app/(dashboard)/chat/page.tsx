@@ -7,7 +7,7 @@ import { Plus, Trash2, Send, Loader2, MessageSquare, PanelLeft } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ChatContainer } from "@/components/prompt-kit/chat-container"
-import { Message, MessageAvatar, MessageContent } from "@/components/prompt-kit/message"
+import { MessageContent } from "@/components/prompt-kit/message"
 import { PromptInput, PromptInputTextarea, PromptInputActions, PromptInputAction } from "@/components/prompt-kit/prompt-input"
 import { PromptSuggestion, PromptSuggestionGroup } from "@/components/prompt-kit/prompt-suggestion"
 import { Loader } from "@/components/prompt-kit/loader"

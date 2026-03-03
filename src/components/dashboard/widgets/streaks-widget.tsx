@@ -36,16 +36,17 @@ function StreakRing({ streak, max, missed }: { streak: number; max: number; miss
 export function StreaksWidget() {
   const [data, setData] = useState<StreakData[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     async function fetchStreaks() {
       try {
         const res = await fetch("/api/widgets/streaks")
-        if (!res.ok) return
+        if (!res.ok) throw new Error("Failed to load")
         const json = (await res.json()) as { routines: StreakData[] }
         setData(json.routines)
       } catch {
-        // Silent
+        setError(true)
       } finally {
         setLoading(false)
       }
@@ -62,6 +63,17 @@ export function StreaksWidget() {
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-10 rounded-md" />)}
         </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Routine Streaks
+        </div>
+        <p className="text-xs text-muted-foreground">Could not load streaks.</p>
       </div>
     )
   }
