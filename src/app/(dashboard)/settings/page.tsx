@@ -23,7 +23,7 @@ export default async function SettingsPage() {
 
   const userId = session.user.id
 
-  const [googleRows, todoistRows, anthropicRows, geminiRows, geminiProRows, deepseekRows, groqRows, openWeatherMapRows, plaidItemRows] = await Promise.all([
+  const [googleRows, todoistRows, keyIntegrationRows, plaidItemRows] = await Promise.all([
     db
       .select({ accessToken: account.accessToken })
       .from(account)
@@ -40,35 +40,14 @@ export default async function SettingsPage() {
       .where(and(eq(integrations.userId, userId), eq(integrations.provider, "todoist")))
       .limit(1),
     db
-      .select({ id: integrations.id })
+      .select({ provider: integrations.provider })
       .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "anthropic")))
-      .limit(1),
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini")))
-      .limit(1),
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "gemini-pro")))
-      .limit(1),
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "deepseek")))
-      .limit(1),
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "groq")))
-      .limit(1),
-    db
-      .select({ id: integrations.id })
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "openweathermap")))
-      .limit(1),
+      .where(
+        and(
+          eq(integrations.userId, userId),
+          inArray(integrations.provider, ["anthropic", "gemini", "gemini-pro", "deepseek", "groq", "openweathermap"]),
+        ),
+      ),
     db
       .select({
         id: plaidItems.id,
@@ -95,14 +74,15 @@ export default async function SettingsPage() {
       // Malformed config — ignore
     }
   }
+  const connectedProviders = new Set(keyIntegrationRows.map((r) => r.provider))
   const aiConnected = {
-    anthropic: anthropicRows.length > 0,
-    gemini: geminiRows.length > 0,
-    "gemini-pro": geminiProRows.length > 0,
-    deepseek: deepseekRows.length > 0,
-    groq: groqRows.length > 0,
+    anthropic: connectedProviders.has("anthropic"),
+    gemini: connectedProviders.has("gemini"),
+    "gemini-pro": connectedProviders.has("gemini-pro"),
+    deepseek: connectedProviders.has("deepseek"),
+    groq: connectedProviders.has("groq"),
   }
-  const openWeatherMapConnected = openWeatherMapRows.length > 0
+  const openWeatherMapConnected = connectedProviders.has("openweathermap")
 
   // Batch-fetch all accounts for connected Plaid items in one query
   const plaidItemIds = plaidItemRows.map((i) => i.id)
