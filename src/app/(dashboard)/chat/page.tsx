@@ -96,16 +96,6 @@ function ChatPageInner() {
       .catch(() => {})
   }, [])
 
-  // Auto-send from ?q= query param (e.g. from Today page CTA)
-  useEffect(() => {
-    const q = searchParams.get("q")
-    if (q && !didAutoSend.current) {
-      didAutoSend.current = true
-      router.replace("/chat", { scroll: false })
-      sendMessage(q)
-    }
-  }, [searchParams, sendMessage, router])
-
   async function createNewSession() {
     abortRef.current?.abort()
     const res = await fetch("/api/chat/sessions", {
@@ -245,6 +235,17 @@ function ChatPageInner() {
       setIsStreaming(false)
     }
   }, [isStreaming, activeSessionId, messages, provider, router])
+
+  // Auto-send from ?q= query param (e.g. from Today page CTA)
+  // Must be after sendMessage useCallback definition to avoid TDZ with const
+  useEffect(() => {
+    const q = searchParams.get("q")
+    if (q && !didAutoSend.current) {
+      didAutoSend.current = true
+      router.replace("/chat", { scroll: false })
+      sendMessage(q)
+    }
+  }, [searchParams, sendMessage, router])
 
   const groups = groupSessionsByDate(sessions)
   const hasMessages = messages.length > 0
