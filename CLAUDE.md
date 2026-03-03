@@ -27,7 +27,8 @@
 ```
 Browser (Vercel) <-> Turso (LibSQL/Drizzle)
                           ^
-GH Actions cron -------> /api/cron/sync (CRON_SECRET auth)
+GH Actions cron -------> /api/cron/sync (CRON_SECRET auth, every 15 min)
+GH Actions cron -------> /api/cron/prune (CRON_SECRET auth, daily 3am UTC)
 Google APIs -----------> /api/sync, /api/auth (OAuth)
 Todoist API -----------> /api/todoist (OAuth)
 Plaid API -------------> /api/plaid (Link token + transactions)
@@ -79,6 +80,7 @@ Migrations live in `supabase/migrations/`. Config: `drizzle.config.ts` (dialect:
 | Gmail | REST API + OAuth | Emails → DB cache, triage, tasks |
 | Todoist | OAuth (PKCE) | Tasks (read/write/complete) |
 | Plaid | Link + sync API | Bank transactions, balances |
+| OpenWeatherMap | API key (stored in `integrations` table) | Weather widget |
 | Upstash Redis | REST API | Rate limiting for AI + sync |
 | Apple (planned) | AppleScript (companion) | Reminders, Calendar, Notes, Mail |
 
@@ -128,6 +130,11 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | AI context freshness | Coach must inject fresh context on every turn (not cache from first message) |
 | `stripHtml()` for AI | Always strip Tiptap HTML to plain text before sending to AI models |
 | Double browser scrollbar | Apply `overflow: hidden` to `html` only — NOT `body`. Body overflow creates a BFC that breaks `h-full` height chains and all inner scroll containers. `overscroll-behavior: none` alone is insufficient. |
+| Adding integration with external API key + caching | After saving key to DB, call `revalidateTag("tag")` in the POST route. Tag the external `fetch()` with `{ next: { revalidate: N, tags: ["tag"] } }`. Without this, cached responses survive key changes for up to N seconds. |
+| Non-unique Drizzle indexes | Import `index` alongside `uniqueIndex` from `drizzle-orm/sqlite-core` — they are separate exports. |
+| Settings page: checking multiple provider connections | Use one `inArray(integrations.provider, [...])` query + `Set.has()` instead of N separate queries — already the pattern in `settings/page.tsx`. |
+| 1Password `op read` with `#` in item name | `#` is invalid in secret references — `op://Vault/#item/field` will error. No workaround via CLI; use `op item get` by item ID instead. |
+| 1Password service account vault access | Current `OP_SERVICE_ACCOUNT_TOKEN` only has **Business** vault. Todoist OAuth creds (`TODOIST_CLIENT_ID`, `TODOIST_CLIENT_SECRET`) are in **App Dev** vault → item `#clarity`. See `~/.claude/plans/todoist-env-setup.md`. |
 
 ## Database Tables
 
@@ -188,7 +195,10 @@ clarity/
         chat/              # Chat sessions
         cron/              # GH Actions sync endpoint
         emails/            # Gmail cache CRUD
-        integrations/      # Provider key management (anthropic, deepseek, groq, gemini, gemini-pro)
+        integrations/      # Provider key management (anthropic, deepseek, groq, gemini, gemini-pro, openweathermap)
+        cron/
+          sync/            # Every 15 min — Google, Todoist, Gmail, triage
+          prune/           # Daily 3am UTC — deletes coach_messages >90d, triage resolved >30d, emails >60d
         profile/           # User profile API
         routine-costs/     # Routine cost estimates CRUD
         life-context/      # Life context CRUD
@@ -241,6 +251,7 @@ clarity/
   .github/
     workflows/
       sync-cron.yml        # Every 15 min sync via GH Actions
+      prune-cron.yml       # Daily 3am UTC data rotation via GH Actions
       update-preview-link.yml  # Auto-update URLsToGo preview link
   .interface-design/
     system.md              # Design system tokens + principles
