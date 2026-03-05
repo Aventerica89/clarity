@@ -12,7 +12,7 @@ import {
   type RowSelectionState,
   type Column,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Check, ChevronDown, EyeOff, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, Check, ChevronDown, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -28,10 +28,15 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { SourceBadge } from "./source-badge"
 import { ReschedulePopover } from "./reschedule-popover"
 import {
@@ -48,6 +53,7 @@ interface TaskTableProps {
   onComplete?: (id: string) => void
   onHide?: (id: string) => void
   onReschedule?: (id: string, date: string) => void
+  onPriorityChange?: (id: string, priority: number) => Promise<void>
   onBulkComplete?: (ids: string[]) => Promise<void>
   onBulkHide?: (ids: string[]) => Promise<void>
 }
@@ -71,6 +77,7 @@ export function TaskTable({
   onComplete,
   onHide,
   onReschedule,
+  onPriorityChange,
   onBulkComplete,
   onBulkHide,
 }: TaskTableProps) {
@@ -123,6 +130,28 @@ export function TaskTable({
         accessorKey: "priorityManual",
         header: ({ column }) => <SortableHeader column={column} label="Priority" />,
         cell: ({ row }) => {
+          if (onPriorityChange && row.original.source === "todoist") {
+            const currentPriority = row.original.priorityManual ?? 1
+            return (
+              <Select
+                value={String(currentPriority)}
+                onValueChange={(v) => {
+                  const next = parseInt(v, 10)
+                  if (!Number.isNaN(next)) void onPriorityChange(row.original.id, next)
+                }}
+              >
+                <SelectTrigger className="h-7 w-[92px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5" className="text-xs">Urgent</SelectItem>
+                  <SelectItem value="4" className="text-xs">High</SelectItem>
+                  <SelectItem value="3" className="text-xs">Medium</SelectItem>
+                  <SelectItem value="1" className="text-xs">Normal</SelectItem>
+                </SelectContent>
+              </Select>
+            )
+          }
           const p = row.original.priorityManual
           if (!p || p < 3) return <span className="text-xs text-muted-foreground">—</span>
           return (
@@ -156,7 +185,7 @@ export function TaskTable({
           return (
             <span
               className={cn(
-                "font-mono text-[11px]",
+                "font-mono text-11",
                 isOverdue(task.dueDate) ? "text-destructive" : "text-muted-foreground",
               )}
             >
@@ -185,12 +214,12 @@ export function TaskTable({
           return (
             <div className="flex flex-wrap gap-1">
               {labels.slice(0, 2).map((l) => (
-                <Badge key={l} variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                <Badge key={l} variant="secondary" className="text-10 px-1.5 py-0 font-normal">
                   {l}
                 </Badge>
               ))}
               {labels.length > 2 && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                <Badge variant="secondary" className="text-10 px-1.5 py-0 font-normal">
                   +{labels.length - 2}
                 </Badge>
               )}
@@ -199,42 +228,8 @@ export function TaskTable({
         },
       },
 
-      // ── Actions ─────────────────────────────────────────────────────────────
-      {
-        id: "actions",
-        enableHiding: false,
-        enableSorting: false,
-        cell: ({ row }) => {
-          const task = row.original
-          if (!onComplete && !onHide) return null
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="size-3.5" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36">
-                {onComplete && (
-                  <DropdownMenuItem onClick={() => onComplete(task.id)}>
-                    <Check className="size-3.5 mr-2" />
-                    Complete
-                  </DropdownMenuItem>
-                )}
-                {onHide && (
-                  <DropdownMenuItem onClick={() => onHide(task.id)}>
-                    <EyeOff className="size-3.5 mr-2" />
-                    Hide
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )
-        },
-      },
     ],
-    [onComplete, onHide, onReschedule],
+    [onPriorityChange, onReschedule],
   )
 
   const table = useReactTable({
@@ -282,18 +277,18 @@ export function TaskTable({
               {selectedIds.length} selected
             </span>
             {onBulkComplete && (
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleBulkComplete}>
+              <Button size="sm" variant="outline" className="h-6 text-[11px] gap-1 px-2" onClick={handleBulkComplete}>
                 <Check className="size-3" />
                 Complete
               </Button>
             )}
             {onBulkHide && (
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleBulkHide}>
+              <Button size="sm" variant="outline" className="h-6 text-[11px] gap-1 px-2" onClick={handleBulkHide}>
                 <EyeOff className="size-3" />
                 Hide
               </Button>
             )}
-            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setRowSelection({})}>
+            <Button size="sm" variant="ghost" className="h-6 text-[11px] px-2" onClick={() => setRowSelection({})}>
               Clear
             </Button>
           </div>
@@ -303,7 +298,7 @@ export function TaskTable({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1 ml-auto">
+            <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 ml-auto px-2">
               Columns
               <ChevronDown className="size-3" />
             </Button>
@@ -335,7 +330,6 @@ export function TaskTable({
                     className={cn(
                       "h-9 px-3 text-xs",
                       header.id === "select" && "w-10",
-                      header.id === "actions" && "w-10",
                     )}
                   >
                     {header.isPlaceholder
@@ -366,7 +360,6 @@ export function TaskTable({
                       className={cn(
                         "px-3 py-2",
                         cell.column.id === "select" && "w-10",
-                        cell.column.id === "actions" && "w-10",
                         cell.column.id === "title" && "max-w-[300px]",
                       )}
                     >

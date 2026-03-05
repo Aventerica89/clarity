@@ -44,12 +44,14 @@ Mac companion ---------> /api/* (Apple data push) — planned
 | Command | Purpose |
 |---------|---------|
 | `npm run dev` | Start dev server |
+| `npm run dev:stable` | Start dev server in webpack mode with Tailwind oxide disabled (fallback when Turbopack native bindings fail) |
 | `npm run build` | Production build |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright E2E |
 | `npm run dev:auth` | Dev server with 1Password auth injection |
+| `npm run dev:auth:stable` | Auth-injected stable dev mode (webpack + no-oxide) |
 | `npm run env:inject` | Populate `.env.local` from 1Password |
 
 ### Database Commands
@@ -134,6 +136,7 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | Settings page: checking multiple provider connections | Use one `inArray(integrations.provider, [...])` query + `Set.has()` instead of N separate queries — already the pattern in `settings/page.tsx`. |
 | 1Password `op read` with `#` in item name | `#` is invalid in secret references — `op://Vault/#item/field` will error. No workaround via CLI; use `op item get` by item ID instead. |
 | 1Password service account vault access | Current `OP_SERVICE_ACCOUNT_TOKEN` only has **Business** vault. Todoist OAuth creds (`TODOIST_CLIENT_ID`, `TODOIST_CLIENT_SECRET`) are in **App Dev** vault → item `#clarity`. See `~/.claude/plans/todoist-env-setup.md`. |
+| Turbopack + Tailwind oxide native binding error (`Cannot find native binding`) | Use `npm run dev:stable` (or `npm run dev:auth:stable`) to run webpack mode with `TAILWIND_DISABLE_OXIDE=1`. |
 
 ## Database Tables
 

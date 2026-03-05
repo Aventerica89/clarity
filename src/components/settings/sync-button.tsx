@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { emitSyncCompleted } from "@/lib/client-sync-events"
 
 interface Props {
   provider: "google-calendar" | "todoist"
@@ -22,7 +23,13 @@ export function SyncButton({ provider, label = "Sync now" }: Props) {
       let data: { synced?: number; error?: string } = {}
       try { data = (await res.json()) as typeof data } catch { /* empty body */ }
       if (res.ok) {
-        setMessage(`Synced ${data.synced ?? 0} items.`)
+        const syncedCount = data.synced ?? 0
+        const noun = provider === "todoist" ? "Todoist tasks" : "calendar events"
+        setMessage(`Synced ${syncedCount} ${noun}.`)
+        emitSyncCompleted({
+          source: "settings",
+          providers: [provider],
+        })
         router.refresh()
       } else {
         setMessage(data.error ?? "Sync failed.")

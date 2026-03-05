@@ -151,7 +151,26 @@ export async function syncTodoistTasks(userId: string): Promise<{
   }
 
   let synced = 0
+  const hiddenRows = await db
+    .select({ sourceId: tasks.sourceId })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.userId, userId),
+        eq(tasks.source, "todoist"),
+        eq(tasks.isHidden, true),
+      ),
+    )
+  const hiddenSourceIds = new Set(
+    hiddenRows
+      .map((r) => r.sourceId)
+      .filter((id): id is string => typeof id === "string" && id.length > 0),
+  )
+
   for (const t of rawTasks) {
+    if (hiddenSourceIds.has(t.id)) {
+      continue
+    }
     await upsertTodoistTask(userId, t, projectNames)
     synced++
   }

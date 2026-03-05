@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
   if (status === "active") {
     conditions.push(eq(tasks.isCompleted, false))
     conditions.push(eq(tasks.isHidden, false))
-    conditions.push(eq(tasks.triaged, true))
   } else if (status === "completed") {
     conditions.push(eq(tasks.isCompleted, true))
   } else if (status === "hidden") {

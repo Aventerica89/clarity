@@ -31,6 +31,7 @@ interface EmailCardProps {
   onArchived?: (gmailId: string) => void
   onFavoriteToggled?: (gmailId: string, favorited: boolean) => void
   variant?: "compact" | "comfortable"
+  preview?: boolean
 }
 
 function parseSender(from: string): { name: string; email: string } {
@@ -63,7 +64,13 @@ function formatDate(dateStr: string): string {
   }
 }
 
-export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "comfortable" }: EmailCardProps) {
+export function EmailCard({
+  message,
+  onArchived,
+  onFavoriteToggled,
+  variant = "comfortable",
+  preview = false,
+}: EmailCardProps) {
   const isCompact = variant === "compact"
   const [loading, setLoading] = useState<string | null>(null)
   const [favorited, setFavorited] = useState(message.isFavorited ?? false)
@@ -82,6 +89,14 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
   )
 
   async function handleExpand() {
+    if (preview) {
+      setExpanded((prev) => !prev)
+      if (!bodyFetched) {
+        setBodyPlain("Preview mode: email body is disabled.")
+        setBodyFetched(true)
+      }
+      return
+    }
     if (expanded) {
       setExpanded(false)
       return
@@ -116,6 +131,10 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
   }
 
   async function handleAction(action: "add_to_todoist" | "push_to_context") {
+    if (preview) {
+      toast.info(action === "add_to_todoist" ? "Preview: Todoist action" : "Preview: Context action")
+      return
+    }
     const key = action === "add_to_todoist" ? "todoist" : "context"
     setLoading(key)
     try {
@@ -146,6 +165,10 @@ export function EmailCard({ message, onArchived, onFavoriteToggled, variant = "c
   }
 
   async function handleArchive() {
+    if (preview) {
+      onArchived?.(message.id)
+      return
+    }
     setLoading("archive")
     try {
       const res = await fetch("/api/emails/archive", {

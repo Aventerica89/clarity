@@ -42,6 +42,7 @@ export interface TriageItem {
 interface TriageCardProps {
   item: TriageItem
   variant?: "compact" | "comfortable"
+  preview?: boolean
   onApprove: (item: TriageItem) => void
   onDismiss: (id: string) => void
   onPushToContext: (id: string) => void
@@ -51,6 +52,7 @@ interface TriageCardProps {
 export function TriageCard({
   item,
   variant = "comfortable",
+  preview = false,
   onApprove,
   onDismiss,
   onPushToContext,
@@ -66,6 +68,10 @@ export function TriageCard({
   const isCompact = variant === "compact"
 
   async function handleDismiss() {
+    if (preview) {
+      onDismiss(item.id)
+      return
+    }
     setLoading("dismiss")
     try {
       const res = await fetch(`/api/triage/${item.id}`, {
@@ -83,6 +89,10 @@ export function TriageCard({
   }
 
   async function handlePushToContext() {
+    if (preview) {
+      onPushToContext(item.id)
+      return
+    }
     setLoading("context")
     try {
       const res = await fetch(`/api/triage/${item.id}`, {
@@ -100,6 +110,10 @@ export function TriageCard({
   }
 
   async function handleComplete() {
+    if (preview) {
+      onComplete(item.id)
+      return
+    }
     setLoading("complete")
     try {
       const res = await fetch(`/api/triage/${item.id}`, {
@@ -117,6 +131,10 @@ export function TriageCard({
   }
 
   async function handleApprove() {
+    if (preview) {
+      onComplete(item.id)
+      return
+    }
     setLoading("approve")
     try {
       const res = await fetch(`/api/triage/${item.id}`, {

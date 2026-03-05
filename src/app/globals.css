@@ -317,6 +317,20 @@
   --pwa-nav-nudge: 0px;
 }
 
+/* Typography utilities — fills gaps in Tailwind's default scale */
+@utility text-10 {
+  font-size: 0.625rem;
+  line-height: 1rem;
+}
+@utility text-11 {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+}
+@utility text-13 {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
 /* Safe area utilities — used by mobile nav and body clearance */
 @media (max-width: 767px) {
   .pb-safe-nav {

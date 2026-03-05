@@ -2,7 +2,9 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
+import Link from "next/link"
 import {
   Code,
   Database,
@@ -440,6 +442,12 @@ export function DevWiki() {
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold">Dev</h1>
           <Badge variant="outline" className="text-xs font-mono">internal</Badge>
+          <Button asChild variant="outline" size="sm" className="ml-2">
+            <Link href="/dev/cards">Card Playground</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dev/fields">Field Catalog</Link>
+          </Button>
         </div>
         <p className="text-muted-foreground text-sm">
           Architecture, sync system, integrations, and roadmap.
