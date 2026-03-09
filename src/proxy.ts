@@ -1,8 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
 
+// Use Vercel's trusted x-real-ip header — set by Vercel's edge from the
+// TCP connection, not forwarded from the client. x-forwarded-for is
+// intentionally NOT used here because clients can forge it to bypass
+// rate limiting (A04 — Insecure Design).
 const ipIdentifier = (req: NextRequest): string =>
-  req.headers.get("x-forwarded-for") ?? "unknown"
+  req.headers.get("x-real-ip") ?? "unknown"
 
 async function applyRateLimit(
   pathname: string,
