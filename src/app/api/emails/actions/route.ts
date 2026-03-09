@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { db } from "@/lib/db"
 import { lifeContextItems } from "@/lib/schema"
 import { createTodoistTaskWithSubtasks } from "@/lib/integrations/todoist"
 
-type Action = "push_to_context" | "add_to_todoist"
-
-interface ActionBody {
-  action: Action
-  title: string
-  snippet: string
-  projectId?: string
-}
+const actionSchema = z.object({
+  action: z.enum(["push_to_context", "add_to_todoist"]),
+  title: z.string().min(1).max(200),
+  snippet: z.string().max(5000),
+  projectId: z.string().max(100).optional(),
+})
 
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -20,7 +19,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = (await request.json()) as ActionBody
+  const parsed = actionSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  }
+  const body = parsed.data
 
   if (body.action === "push_to_context") {
     await db.insert(lifeContextItems).values({
