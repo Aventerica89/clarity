@@ -85,5 +85,8 @@
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.31.1"
+  },
+  "overrides": {
+    "express-rate-limit": "^8.2.2"
   }
 }

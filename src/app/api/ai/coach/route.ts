@@ -159,8 +159,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ messages })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
@@ -355,8 +355,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.error("[coach] error:", msg)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[coach] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -26,7 +26,7 @@ export async function POST() {
 
     return NextResponse.json({ synced: result.synced })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Sync failed"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
