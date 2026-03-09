@@ -1,7 +1,6 @@
 {
-  "savedAt": "2026-03-01T00:55:00.000Z",
-  "project": "/Users/jb/clarity",
+  "savedAt": "2026-03-09T09:30:00.000Z",
+  "project": "/Users/jb/repos/clarity",
   "branch": "main",
-  "tasks": [],
-  "sessionNotes": "Todoist triage flow COMPLETE. 3 commits: (1) score tests + removed threshold for Todoist in sync.ts, (2) dismiss now hides Todoist tasks + approve writes priority back to Todoist API, (3) inline P1-P4 priority badges on triage cards. All pushed to main. Next: open /triage and click Scan Now to backfill 294 existing Todoist tasks. Then verify full flow: badges, approve, dismiss, priority write-back."
+  "tasks": []
 }
