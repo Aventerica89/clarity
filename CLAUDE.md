@@ -30,7 +30,7 @@ Browser (Vercel) <-> Turso (LibSQL/Drizzle)
 GH Actions cron -------> /api/cron/sync (CRON_SECRET auth, every 15 min)
 GH Actions cron -------> /api/cron/prune (CRON_SECRET auth, daily 3am UTC)
 Google APIs -----------> /api/sync, /api/auth (OAuth)
-Todoist API -----------> /api/todoist (OAuth)
+Todoist API -----------> /api/auth/todoist (OAuth callback)
 Plaid API -------------> /api/plaid (Link token + transactions)
 AI providers ----------> /api/ai, /api/chat (coach + triage scoring)
 Upstash Redis ---------> rate limiting (AI calls, sync)
@@ -45,6 +45,8 @@ Mac companion ---------> /api/* (Apple data push) — planned
 |---------|---------|
 | `npm run dev` | Start dev server |
 | `npm run dev:stable` | Start dev server in webpack mode with Tailwind oxide disabled (fallback when Turbopack native bindings fail) |
+| `npm run dev:no-oxide` | Dev server with Tailwind oxide disabled (Turbopack, no auth injection) |
+| `npm run dev:auth:no-oxide` | Auth-injected dev server with Tailwind oxide disabled (Turbopack) |
 | `npm run build` | Production build |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
@@ -195,6 +197,8 @@ clarity/
         getting-started/   # Onboarding guide
         changelog/         # Version changelog
         profile/           # User profile
+      privacy/             # Privacy policy page
+      style-guide/         # Internal style guide
       api/
         ai/                # AI coach endpoint
         auth/              # Better Auth handlers
@@ -212,11 +216,16 @@ clarity/
         spending/          # Spending analytics
         sync/              # Manual sync trigger
         tasks/             # Task CRUD + Todoist write-back
-        todoist/           # Todoist OAuth callback
-        transactions/      # Transaction queries
-        triage/            # Triage scoring + approve/dismiss
-        webhooks/          # External webhooks
-        widgets/           # Widget data endpoints
+        auth/
+          todoist/         # Todoist OAuth initiation + callback
+        todoist/
+          projects/        # Todoist project list
+        transactions/      # Transaction queries (+ /[id]/recurring)
+        triage/            # Triage scoring + approve/dismiss + count + scan
+        tasks/             # Task CRUD + /bulk + /[id]/subtasks
+        life-context/      # Life context CRUD + financial + graph + search
+        webhooks/          # External webhooks (todoist, plaid)
+        widgets/           # Widget data endpoints (finance, weather, streaks, week)
     components/
       ui/                  # shadcn components
       dashboard/           # Today page: coach, plan, events, tasks, widgets
@@ -228,6 +237,8 @@ clarity/
       triage/              # Triage components
       chat/                # Chat components
       prompt-kit/          # AI chat UI primitives
+      onboarding/          # Onboarding flow components
+      pwa/                 # PWA install prompt components
       dev/                 # Dev wiki components
     lib/
       auth.ts              # Better Auth config (maxPasswordAttempts: 5 — do not remove)
@@ -246,10 +257,12 @@ clarity/
         coach.ts           # AI coach streaming logic
         plan-parser.ts     # Day plan parsing utilities
         todoist-tools.ts   # Todoist AI tool definitions
-      integrations/        # Google, Todoist adapters
+      integrations/        # Google, Todoist, Gmail, contacts adapters
+      tasks/               # Task cleanup utilities
       plaid/               # Plaid client + sync
       sync/                # Sync orchestrator
-      triage/              # Triage scoring logic
+      triage/              # Triage scoring logic (score-structured.ts, sync.ts)
+      client-sync-events.ts  # Client-side sync event bus
       use-active-section.ts  # IntersectionObserver hook (rooted on [data-scroll])
       use-safari-toolbar.ts  # Safari mobile toolbar height hook
     types/                 # Shared TypeScript types

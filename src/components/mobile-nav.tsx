@@ -17,6 +17,7 @@ import { NAV_ITEMS } from "@/lib/nav-items"
 const PRIMARY_HREFS = ["/", "/tasks", "/chat", "/settings"]
 const MORE_HREFS = [
   "/getting-started",
+  "/triage",
   "/spending",
   "/routines",
   "/calendar",
