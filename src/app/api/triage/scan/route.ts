@@ -10,9 +10,13 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { success } = await triageScanRatelimit.limit(session.user.id)
-  if (!success) {
-    return NextResponse.json({ error: "Too many requests. Try again shortly." }, { status: 429 })
+  try {
+    const { success } = await triageScanRatelimit.limit(session.user.id)
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests. Try again shortly." }, { status: 429 })
+    }
+  } catch (err) {
+    console.warn("[triage/scan] rate limiter unavailable; continuing without limit", err)
   }
 
   const result = await syncTriageQueue(session.user.id)

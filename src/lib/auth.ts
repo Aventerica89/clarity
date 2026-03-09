@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth"
-import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { drizzleAdapter } from "@better-auth/drizzle-adapter"
 import { db } from "./db"
 import * as schema from "./schema"
 
@@ -16,6 +16,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    maxPasswordAttempts: 5,
   },
   socialProviders: {
     google: {

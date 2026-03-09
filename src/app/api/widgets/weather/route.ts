@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
       icon: data.weather?.[0]?.main ?? "Clear",
     })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

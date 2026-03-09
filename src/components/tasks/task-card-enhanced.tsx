@@ -109,7 +109,7 @@ export function TaskCardEnhanced({
             ) : task.dueDate ? (
               <span
                 className={cn(
-                  "flex items-center gap-1 font-mono text-[11px] px-1.5 py-0.5",
+                  "flex items-center gap-1 font-mono text-11 px-1.5 py-0.5",
                   overdue ? "text-destructive" : "text-muted-foreground",
                 )}
               >
@@ -117,7 +117,7 @@ export function TaskCardEnhanced({
               </span>
             ) : null}
             {projectName && (
-              <span className="text-[11px] text-muted-foreground/70">{projectName}</span>
+              <span className="text-11 text-muted-foreground/70">{projectName}</span>
             )}
           </div>
         </div>

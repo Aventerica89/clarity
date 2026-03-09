@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { eq } from "drizzle-orm"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { userProfile } from "@/lib/schema"
+
+const profileSchema = z.object({
+  occupation: z.string().max(200).optional(),
+  employer: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  householdType: z.string().max(100).optional(),
+  workSchedule: z.string().max(100).optional(),
+  lifePhase: z.string().max(100).optional(),
+  healthContext: z.string().max(1000).optional(),
+  sideProjects: z.string().max(1000).optional(),
+  lifeValues: z.string().max(1000).optional(),
+  notes: z.string().max(2000).optional(),
+})
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })
@@ -21,19 +35,23 @@ export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const body = await request.json().catch(() => ({})) as Record<string, string>
+  const rawBody = await request.json().catch(() => ({}))
+  const parsed = profileSchema.safeParse(rawBody)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  }
 
   const fields = {
-    occupation: body.occupation?.trim() || null,
-    employer: body.employer?.trim() || null,
-    city: body.city?.trim() || null,
-    householdType: body.householdType?.trim() || null,
-    workSchedule: body.workSchedule?.trim() || null,
-    lifePhase: body.lifePhase?.trim() || null,
-    healthContext: body.healthContext?.trim() || null,
-    sideProjects: body.sideProjects?.trim() || null,
-    lifeValues: body.lifeValues?.trim() || null,
-    notes: body.notes?.trim() || null,
+    occupation: parsed.data.occupation?.trim() || null,
+    employer: parsed.data.employer?.trim() || null,
+    city: parsed.data.city?.trim() || null,
+    householdType: parsed.data.householdType?.trim() || null,
+    workSchedule: parsed.data.workSchedule?.trim() || null,
+    lifePhase: parsed.data.lifePhase?.trim() || null,
+    healthContext: parsed.data.healthContext?.trim() || null,
+    sideProjects: parsed.data.sideProjects?.trim() || null,
+    lifeValues: parsed.data.lifeValues?.trim() || null,
+    notes: parsed.data.notes?.trim() || null,
   }
 
   await db

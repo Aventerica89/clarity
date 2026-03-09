@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ sessions })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ session: created })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

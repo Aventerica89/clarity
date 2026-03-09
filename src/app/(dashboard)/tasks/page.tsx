@@ -5,7 +5,6 @@ import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TasksFilterBar } from "@/components/tasks/tasks-filter-bar"
-import { TaskGroup } from "@/components/tasks/task-group"
 import { TaskCardEnhanced } from "@/components/tasks/task-card-enhanced"
 import { TaskTable } from "@/components/tasks/task-table"
 import { CreateTaskModal } from "@/components/tasks/create-task-modal"
@@ -13,10 +12,8 @@ import { SubtaskList } from "@/components/tasks/subtask-list"
 import {
   type TaskItem,
   type TaskFilters,
-  type DateGroup,
-  DATE_GROUP_ORDER,
-  groupTasksByDate,
 } from "@/types/task"
+import { CLARITY_SYNC_COMPLETED_EVENT } from "@/lib/client-sync-events"
 
 const GRID_PAGE_SIZE = 9
 
@@ -27,7 +24,7 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const [view, setView] = useState<"list" | "grid" | "table">("list")
+  const [view, setView] = useState<"grid2" | "grid3" | "table">("table")
   const [gridPage, setGridPage] = useState(1)
   const [filters, setFilters] = useState<TaskFilters>({
     source: "all",
@@ -60,6 +57,14 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks()
+  }, [fetchTasks])
+
+  useEffect(() => {
+    const onSyncCompleted = () => {
+      fetchTasks()
+    }
+    window.addEventListener(CLARITY_SYNC_COMPLETED_EVENT, onSyncCompleted)
+    return () => window.removeEventListener(CLARITY_SYNC_COMPLETED_EVENT, onSyncCompleted)
   }, [fetchTasks])
 
   // Reset grid page when any filter/search changes
@@ -95,11 +100,12 @@ export default function TasksPage() {
     })
   }, [tasks, search, filters.project])
 
-  const grouped = groupTasksByDate(displayTasks)
-
   // Grid pagination
   const gridTasks = displayTasks.slice(0, gridPage * GRID_PAGE_SIZE)
   const hasMoreGrid = displayTasks.length > gridTasks.length
+  const gridClass = view === "grid3"
+    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+    : "grid grid-cols-1 lg:grid-cols-2 gap-4"
 
   async function handleComplete(id: string) {
     await fetch(`/api/tasks/${id}/complete`, { method: "POST" })
@@ -120,6 +126,21 @@ export default function TasksPage() {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, dueDate: newDate } : t)),
     )
+  }
+
+  async function handlePriorityChange(id: string, priority: number) {
+    const prev = tasks
+    setTasks((current) => current.map((t) => (t.id === id ? { ...t, priorityManual: priority } : t)))
+    try {
+      const res = await fetch(`/api/tasks/${id}/priority`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priority }),
+      })
+      if (!res.ok) throw new Error(`priority ${res.status}`)
+    } catch {
+      setTasks(prev)
+    }
   }
 
   async function handleBulkComplete(ids: string[]) {
@@ -180,12 +201,13 @@ export default function TasksPage() {
               onComplete={tab === "active" ? handleComplete : undefined}
               onHide={tab === "active" ? handleHide : undefined}
               onReschedule={tab === "active" ? handleReschedule : undefined}
+              onPriorityChange={tab === "active" ? handlePriorityChange : undefined}
               onBulkComplete={tab === "active" ? handleBulkComplete : undefined}
               onBulkHide={tab === "active" ? handleBulkHide : undefined}
             />
-          ) : view === "grid" ? (
+          ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className={gridClass}>
                 {gridTasks.map((task) => (
                   <TaskCardEnhanced
                     key={task.id}
@@ -208,20 +230,6 @@ export default function TasksPage() {
                 </button>
               )}
             </div>
-          ) : (
-            DATE_GROUP_ORDER.map((group) => (
-              <TaskGroup
-                key={group}
-                group={group as DateGroup}
-                tasks={grouped[group as DateGroup]}
-                onComplete={tab === "active" ? handleComplete : undefined}
-                onHide={tab === "active" ? handleHide : undefined}
-                onReschedule={tab === "active" ? handleReschedule : undefined}
-                renderSubtasks={(taskId, sourceId, source) => (
-                  <SubtaskList taskId={taskId} sourceId={sourceId} source={source} />
-                )}
-              />
-            ))
           )}
         </TabsContent>
       </Tabs>

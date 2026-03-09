@@ -77,6 +77,11 @@ Scale: 11, 12, 13 (base), 14, 16, 18, 24
 Weights: 400 (body), 500 (labels, UI), 600 (headings, emphasis)
 Letter-spacing: headlines -0.01em, labels 0em, metadata +0.01em
 
+Tailwind utilities (defined in globals.css — fills gaps in default scale):
+- `text-10` → 0.625rem / lh 1rem (finance micro-labels)
+- `text-11` → 0.6875rem / lh 1rem (widget labels, metadata)
+- `text-13` → 0.8125rem / lh 1.25rem (task/event titles, body UI)
+
 ---
 
 ## Depth Strategy
@@ -173,3 +178,4 @@ Hover: border shifts to `--border-emphasis` only. No shadow addition.
 | Amber reserved for priority signal | Accent only means something if it's scarce — don't dilute it | 2026-02-21 |
 | Sidebar same bg as canvas | Avoids fragmenting the visual space into "nav world" vs "content world" | 2026-02-21 |
 | Priority Card left-edge amber | Stripe-inspired entity emphasis — the thing that matters gets a signal, not just another card | 2026-02-21 |
+| Custom text-10/11/13 utilities | Tailwind's scale skips 10px, 11px, 13px — used 10+ times in UI; extracted to @utility in globals.css | 2026-03-03 |

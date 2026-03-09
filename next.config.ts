@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import type { NextConfig } from "next"
 
 const { version } = JSON.parse(readFileSync("./package.json", "utf-8")) as { version: string }
+const isDev = process.env.NODE_ENV !== "production"
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -13,13 +14,13 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // devtools.jbcloud.app: owner-controlled dashboard widget — safe to allow
-      "script-src 'self' 'unsafe-inline' https://vercel.live https://devtools.jbcloud.app https://cdn.plaid.com",
+      // dev mode needs eval for Next.js runtime/HMR.
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://vercel.live https://devtools.jbcloud.app https://cdn.plaid.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self'",
       "frame-src https://cdn.plaid.com",
-      "connect-src 'self' https://*.turso.io https://api.anthropic.com https://generativelanguage.googleapis.com https://api.todoist.com https://www.googleapis.com https://cdn.plaid.com https://production.plaid.com https://sandbox.plaid.com https://devtools.jbcloud.app",
+      `connect-src 'self'${isDev ? " ws: wss: http://localhost:* http://127.0.0.1:*" : ""} https://*.turso.io https://api.anthropic.com https://generativelanguage.googleapis.com https://api.todoist.com https://www.googleapis.com https://cdn.plaid.com https://production.plaid.com https://sandbox.plaid.com https://devtools.jbcloud.app`,
       "frame-ancestors 'none'",
     ].join("; "),
   },

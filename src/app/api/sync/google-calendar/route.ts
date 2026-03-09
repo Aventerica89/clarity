@@ -11,8 +11,12 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { success } = await syncRatelimit.limit(session.user.id)
-    if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+    try {
+      const { success } = await syncRatelimit.limit(session.user.id)
+      if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+    } catch (err) {
+      console.warn("[sync/google-calendar] rate limiter unavailable; continuing without limit", err)
+    }
 
     const result = await syncGoogleCalendarEvents(session.user.id)
 
@@ -22,7 +26,7 @@ export async function POST() {
 
     return NextResponse.json({ synced: result.synced })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Sync failed"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[api] error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

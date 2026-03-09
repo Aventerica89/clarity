@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, LayoutList, LayoutGrid, Table2 } from "lucide-react"
+import { Search, Grid2x2, Grid3x3, Table2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,8 +17,8 @@ interface TasksFilterBarProps {
   onChange: (filters: TaskFilters) => void
   search: string
   onSearchChange: (v: string) => void
-  view: "list" | "grid" | "table"
-  onViewChange: (v: "list" | "grid" | "table") => void
+  view: "grid2" | "grid3" | "table"
+  onViewChange: (v: "grid2" | "grid3" | "table") => void
   projects: string[]
 }
 
@@ -114,22 +114,22 @@ export function TasksFilterBar({
 
         <div className="ml-auto flex gap-1">
           <Button
-            variant={view === "list" ? "secondary" : "ghost"}
+            variant={view === "grid2" ? "secondary" : "ghost"}
             size="icon"
             className="h-10 w-10 md:h-8 md:w-8"
-            onClick={() => onViewChange("list")}
-            aria-label="List view"
+            onClick={() => onViewChange("grid2")}
+            aria-label="2-column grid view"
           >
-            <LayoutList className="size-3.5" />
+            <Grid2x2 className="size-3.5" />
           </Button>
           <Button
-            variant={view === "grid" ? "secondary" : "ghost"}
+            variant={view === "grid3" ? "secondary" : "ghost"}
             size="icon"
             className="h-10 w-10 md:h-8 md:w-8"
-            onClick={() => onViewChange("grid")}
-            aria-label="Grid view"
+            onClick={() => onViewChange("grid3")}
+            aria-label="3-column grid view"
           >
-            <LayoutGrid className="size-3.5" />
+            <Grid3x3 className="size-3.5" />
           </Button>
           <Button
             variant={view === "table" ? "secondary" : "ghost"}

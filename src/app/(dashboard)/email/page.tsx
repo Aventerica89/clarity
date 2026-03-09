@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Loader2, MailX, Search } from "lucide-react"
+import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle"
 import { EmailCard } from "@/components/email/email-card"
+import { EmailTable, type GmailMessageRow } from "@/components/email/email-table"
 
 interface GmailMessage {
   id: string
@@ -18,9 +20,8 @@ interface GmailMessage {
 }
 
 function getGridClass(viewMode: ViewMode): string {
-  if (viewMode === "compact") return "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
-  if (viewMode === "comfortable") return "grid grid-cols-1 lg:grid-cols-2 gap-4"
-  return "space-y-3"
+  if (viewMode === "grid3") return "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
+  return "grid grid-cols-1 lg:grid-cols-2 gap-4"
 }
 
 function filterMessages(messages: GmailMessage[], query: string): GmailMessage[] {
@@ -37,12 +38,12 @@ export default function EmailPage() {
   const [recent, setRecent] = useState<GmailMessage[]>([])
   const [starred, setStarred] = useState<GmailMessage[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<ViewMode>("comfortable")
+  const [viewMode, setViewMode] = useState<ViewMode>("table")
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    const saved = localStorage.getItem("email-view") as ViewMode | null
-    if (saved) setViewMode(saved)
+    const saved = localStorage.getItem("email-view")
+    if (saved === "grid2" || saved === "grid3" || saved === "table") setViewMode(saved)
   }, [])
 
   function handleViewChange(v: ViewMode) {
@@ -93,7 +94,53 @@ export default function EmailPage() {
   const filteredRecent = useMemo(() => filterMessages(recent, search), [recent, search])
   const filteredStarred = useMemo(() => filterMessages(starred, search), [starred, search])
 
-  const cardVariant = viewMode === "spacious" ? "comfortable" : viewMode
+  const cardVariant = viewMode === "grid3" ? "compact" : "comfortable"
+
+  async function handleTableArchive(gmailId: string) {
+    try {
+      const res = await fetch("/api/emails/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gmailId }),
+      })
+      if (!res.ok) throw new Error(`archive ${res.status}`)
+      handleArchived(gmailId)
+    } catch {
+      toast.error("Archive failed")
+    }
+  }
+
+  async function handleTableFavorite(gmailId: string, favorited: boolean) {
+    try {
+      const res = await fetch("/api/emails/favorite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gmailId, favorited }),
+      })
+      if (!res.ok) throw new Error(`favorite ${res.status}`)
+      handleFavoriteToggled(gmailId, favorited)
+    } catch {
+      toast.error("Failed to update favorite")
+    }
+  }
+
+  async function handleTableAction(action: "add_to_todoist" | "push_to_context", message: GmailMessageRow) {
+    try {
+      const res = await fetch("/api/emails/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          title: message.subject,
+          snippet: message.snippet,
+        }),
+      })
+      if (!res.ok) throw new Error(`action ${res.status}`)
+      toast.success(action === "add_to_todoist" ? "Added to Todoist" : "Added to Life Context")
+    } catch {
+      toast.error("Action failed")
+    }
+  }
 
   if (loading) {
     return (
@@ -146,17 +193,27 @@ export default function EmailPage() {
           </TabsList>
           <TabsContent value="starred" className="mt-4">
             {filteredStarred.length > 0 ? (
-              <div className={getGridClass(viewMode)}>
-                {filteredStarred.map((msg) => (
-                  <EmailCard
-                    key={msg.id}
-                    message={msg}
-                    onArchived={handleArchived}
-                    onFavoriteToggled={handleFavoriteToggled}
-                    variant={cardVariant}
-                  />
-                ))}
-              </div>
+              viewMode === "table" ? (
+                <EmailTable
+                  messages={filteredStarred}
+                  onArchive={handleTableArchive}
+                  onFavoriteToggle={handleTableFavorite}
+                  onAddTodoist={(msg) => handleTableAction("add_to_todoist", msg)}
+                  onPushContext={(msg) => handleTableAction("push_to_context", msg)}
+                />
+              ) : (
+                <div className={getGridClass(viewMode)}>
+                  {filteredStarred.map((msg) => (
+                    <EmailCard
+                      key={msg.id}
+                      message={msg}
+                      onArchived={handleArchived}
+                      onFavoriteToggled={handleFavoriteToggled}
+                      variant={cardVariant}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
                 {search ? "No starred emails match your search" : "No starred emails"}
@@ -165,17 +222,27 @@ export default function EmailPage() {
           </TabsContent>
           <TabsContent value="recent" className="mt-4">
             {filteredRecent.length > 0 ? (
-              <div className={getGridClass(viewMode)}>
-                {filteredRecent.map((msg) => (
-                  <EmailCard
-                    key={msg.id}
-                    message={msg}
-                    onArchived={handleArchived}
-                    onFavoriteToggled={handleFavoriteToggled}
-                    variant={cardVariant}
-                  />
-                ))}
-              </div>
+              viewMode === "table" ? (
+                <EmailTable
+                  messages={filteredRecent}
+                  onArchive={handleTableArchive}
+                  onFavoriteToggle={handleTableFavorite}
+                  onAddTodoist={(msg) => handleTableAction("add_to_todoist", msg)}
+                  onPushContext={(msg) => handleTableAction("push_to_context", msg)}
+                />
+              ) : (
+                <div className={getGridClass(viewMode)}>
+                  {filteredRecent.map((msg) => (
+                    <EmailCard
+                      key={msg.id}
+                      message={msg}
+                      onArchived={handleArchived}
+                      onFavoriteToggled={handleFavoriteToggled}
+                      variant={cardVariant}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
                 {search ? "No recent emails match your search" : "No recent emails"}

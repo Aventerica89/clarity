@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:no-oxide": "TAILWIND_DISABLE_OXIDE=1 next dev",
+    "dev:stable": "TAILWIND_DISABLE_OXIDE=1 next dev --webpack",
     "dev:auth": "op run --env-file=.env.dev-auth.tpl -- next dev",
+    "dev:auth:no-oxide": "op run --env-file=.env.dev-auth.tpl -- env TAILWIND_DISABLE_OXIDE=1 next dev",
+    "dev:auth:stable": "op run --env-file=.env.dev-auth.tpl -- env TAILWIND_DISABLE_OXIDE=1 next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -15,6 +19,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",
+    "@better-auth/drizzle-adapter": "^1.5.3",
     "@dagrejs/dagre": "^2.0.4",
     "@doist/todoist-ai": "^7.10.1",
     "@doist/todoist-api-typescript": "^6.8.0",
@@ -62,6 +67,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
+    "@tailwindcss/oxide-darwin-arm64": "^4.2.0",
     "@tailwindcss/postcss": "^4",
     "@types/dagre": "^0.7.54",
     "@types/dompurify": "^3.0.5",
@@ -79,5 +85,8 @@
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.31.1"
+  },
+  "overrides": {
+    "express-rate-limit": "^8.2.2"
   }
 }

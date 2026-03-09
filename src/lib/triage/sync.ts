@@ -1,10 +1,9 @@
 import { eq, and } from "drizzle-orm"
 import { db, client } from "@/lib/db"
-import { triageQueue, account, integrations } from "@/lib/schema"
+import { triageQueue, account, tasks } from "@/lib/schema"
 import { fetchGmailMessages, scoreGmailMessage } from "@/lib/integrations/gmail"
 import { fetchGoogleTasks } from "@/lib/integrations/google-tasks"
 import { scoreTodoistTask, scoreCalendarEvent, scoreGoogleTask } from "./score-structured"
-import { decryptToken } from "@/lib/crypto"
 
 const SCORE_THRESHOLD = 60
 
@@ -45,7 +44,7 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
         const { msg, score } = result.value
         if (score.score < SCORE_THRESHOLD) { skipped++; continue }
 
-        await upsertTriageItem(userId, {
+        const upserted = await upsertTriageItem(userId, {
           source: "gmail",
           sourceId: msg.id,
           title: msg.subject,
@@ -54,43 +53,65 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
           aiReasoning: score.reasoning,
           sourceMetadata: JSON.stringify({ threadId: msg.threadId, from: msg.from, date: msg.date }),
         })
-        added++
+        if (upserted) added++
+        else skipped++
       }
     }
   }
 
   // ── Todoist overdue/high-priority ──────────────────────────────────────────
+  // Use already-synced local tasks to avoid extra API calls and to respect
+  // user-hidden/dismissed items in Clarity.
   try {
-    const todoistRow = await db
-      .select()
-      .from(integrations)
-      .where(and(eq(integrations.userId, userId), eq(integrations.provider, "todoist")))
-      .limit(1)
-      .then((r) => r[0])
-
-    if (todoistRow?.accessTokenEncrypted) {
-      const token = decryptToken(todoistRow.accessTokenEncrypted)
-      const res = await fetch("https://api.todoist.com/api/v1/tasks", {
-        headers: { Authorization: `Bearer ${token}` },
+    const todoistTasks = await db
+      .select({
+        sourceId: tasks.sourceId,
+        title: tasks.title,
+        description: tasks.description,
+        dueDate: tasks.dueDate,
+        priorityManual: tasks.priorityManual,
+        metadata: tasks.metadata,
       })
-      const data = await res.json() as unknown
-      const tasks = Array.isArray(data) ? data : (data as { results?: unknown[] }).results ?? []
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          eq(tasks.source, "todoist"),
+          eq(tasks.isCompleted, false),
+          eq(tasks.isHidden, false),
+          eq(tasks.triaged, false),
+        ),
+      )
 
-      for (const task of tasks as { id: string; content: string; description?: string; priority: number; due?: { date: string } }[]) {
-        const dueDate = task.due?.date ?? null
-        const score = scoreTodoistTask({ priority: task.priority, dueDate, title: task.content })
+    for (const task of todoistTasks) {
+      if (!task.sourceId) continue
 
-        await upsertTriageItem(userId, {
-          source: "todoist",
-          sourceId: task.id,
-          title: task.content,
-          snippet: task.description ?? "",
-          aiScore: score.score,
-          aiReasoning: score.reasoning,
-          sourceMetadata: JSON.stringify({ priority: task.priority, dueDate }),
-        })
-        added++
+      let priority = task.priorityManual ?? 1
+      if (task.metadata) {
+        try {
+          const parsed = JSON.parse(task.metadata) as { todoistPriority?: number }
+          if (typeof parsed.todoistPriority === "number") {
+            priority = parsed.todoistPriority
+          }
+        } catch {
+          // Malformed metadata — fallback to priorityManual
+        }
       }
+
+      const score = scoreTodoistTask({ priority, dueDate: task.dueDate, title: task.title })
+      if (score.score < SCORE_THRESHOLD) { skipped++; continue }
+
+      const upserted = await upsertTriageItem(userId, {
+        source: "todoist",
+        sourceId: task.sourceId,
+        title: task.title,
+        snippet: task.description ?? "",
+        aiScore: score.score,
+        aiReasoning: score.reasoning,
+        sourceMetadata: JSON.stringify({ priority, dueDate: task.dueDate }),
+      })
+      if (upserted) added++
+      else skipped++
     }
   } catch (err) {
     errors.push(`Todoist: ${err instanceof Error ? err.message : String(err)}`)
@@ -136,7 +157,7 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
         const score = scoreCalendarEvent({ startAt, title: event.summary ?? "" })
         if (score.score < SCORE_THRESHOLD) { skipped++; continue }
 
-        await upsertTriageItem(userId, {
+        const upserted = await upsertTriageItem(userId, {
           source: "google_calendar",
           sourceId: event.id!,
           title: event.summary ?? "(no title)",
@@ -145,7 +166,8 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
           aiReasoning: score.reasoning,
           sourceMetadata: JSON.stringify({ startAt, location: event.location }),
         })
-        added++
+        if (upserted) added++
+        else skipped++
       }
     }
   } catch (err) {
@@ -163,7 +185,7 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
         const score = scoreGoogleTask({ title: task.title, due: task.due, notes: task.notes })
         if (score.score < SCORE_THRESHOLD) { skipped++; continue }
 
-        await upsertTriageItem(userId, {
+        const upserted = await upsertTriageItem(userId, {
           source: "google_tasks",
           sourceId: task.id,
           title: task.title,
@@ -172,7 +194,8 @@ export async function syncTriageQueue(userId: string): Promise<SyncResult> {
           aiReasoning: score.reasoning,
           sourceMetadata: JSON.stringify({ due: task.due, status: task.status }),
         })
-        added++
+        if (upserted) added++
+        else skipped++
       }
     }
   } catch (err) {
@@ -192,9 +215,9 @@ interface UpsertInput {
   sourceMetadata: string
 }
 
-async function upsertTriageItem(userId: string, input: UpsertInput) {
+async function upsertTriageItem(userId: string, input: UpsertInput): Promise<boolean> {
   const id = crypto.randomUUID()
-  await client.execute({
+  const result = await client.execute({
     sql: `INSERT INTO triage_queue
             (id, user_id, source, source_id, title, snippet, ai_score, ai_reasoning, source_metadata)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -210,4 +233,5 @@ async function upsertTriageItem(userId: string, input: UpsertInput) {
       input.aiScore, input.aiReasoning, input.sourceMetadata,
     ],
   })
+  return (result.rowsAffected ?? 0) > 0
 }

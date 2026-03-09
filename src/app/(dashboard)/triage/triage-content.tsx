@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TriageCard, type TriageItem } from "@/components/triage/triage-card"
+import { TriageTable } from "@/components/triage/triage-table"
 import { ApproveModal } from "@/components/triage/approve-modal"
 import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle"
 import { FilterBar, type FilterDef } from "@/components/ui/filter-bar"
@@ -26,9 +27,9 @@ const SOURCE_FILTERS: FilterDef[] = [
 ]
 
 const GRID_CLASS: Record<ViewMode, string> = {
-  compact: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3",
-  comfortable: "grid grid-cols-1 lg:grid-cols-2 gap-4",
-  spacious: "grid grid-cols-1 gap-4",
+  grid3: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3",
+  grid2: "grid grid-cols-1 lg:grid-cols-2 gap-4",
+  table: "",
 }
 
 export function TriagePageContent() {
@@ -39,12 +40,12 @@ export function TriagePageContent() {
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [approveTarget, setApproveTarget] = useState<TriageItem | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>("compact")
+  const [viewMode, setViewMode] = useState<ViewMode>("table")
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    const saved = localStorage.getItem("triage-view") as ViewMode | null
-    if (saved) setViewMode(saved)
+    const saved = localStorage.getItem("triage-view")
+    if (saved === "grid2" || saved === "grid3" || saved === "table") setViewMode(saved)
   }, [])
 
   function handleViewChange(v: ViewMode) {
@@ -89,16 +90,54 @@ export function TriagePageContent() {
     }
   }
 
-  function handleDismiss(id: string) {
+  function removeItem(id: string) {
     setItems((prev) => prev.filter((i) => i.id !== id))
+  }
+
+  async function runAction(id: string, action: "dismiss" | "push_to_context" | "complete") {
+    const res = await fetch(`/api/triage/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    })
+    if (!res.ok) throw new Error(`Failed ${action}: ${res.status}`)
+    removeItem(id)
+  }
+
+  function handleDismiss(id: string) {
+    removeItem(id)
+  }
+
+  async function handleDismissAction(id: string) {
+    try {
+      await runAction(id, "dismiss")
+    } catch {
+      toast.error("Failed to dismiss item")
+    }
   }
 
   function handlePushToContext(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+    removeItem(id)
+  }
+
+  async function handlePushToContextAction(id: string) {
+    try {
+      await runAction(id, "push_to_context")
+    } catch {
+      toast.error("Failed to push item to context")
+    }
   }
 
   function handleComplete(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+    removeItem(id)
+  }
+
+  async function handleCompleteAction(id: string) {
+    try {
+      await runAction(id, "complete")
+    } catch {
+      toast.error("Failed to complete item")
+    }
   }
 
   function handleApproveSuccess(itemId: string) {
@@ -106,7 +145,7 @@ export function TriagePageContent() {
     setApproveTarget(null)
   }
 
-  const cardVariant = viewMode === "compact" ? "compact" : "comfortable"
+  const cardVariant = viewMode === "grid3" ? "compact" : "comfortable"
 
   const displayItems = useMemo(() => {
     if (!search) return items
@@ -176,6 +215,14 @@ export function TriagePageContent() {
             </Button>
           )}
         </div>
+      ) : viewMode === "table" ? (
+        <TriageTable
+          items={displayItems}
+          onApprove={setApproveTarget}
+          onDismiss={handleDismissAction}
+          onPushToContext={handlePushToContextAction}
+          onComplete={handleCompleteAction}
+        />
       ) : (
         <div className={GRID_CLASS[viewMode]}>
           {displayItems.map((item) => (

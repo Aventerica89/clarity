@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { LiveClock } from "@/components/dashboard/live-clock"
+import { emitSyncCompleted } from "@/lib/client-sync-events"
 
 export function Header() {
   const { data: session } = useSession()
@@ -44,17 +45,29 @@ export function Header() {
       if (todoist.error) errors.push(`Todoist: ${todoist.error}`)
       if (gmail.error) errors.push(`Gmail: ${gmail.error}`)
 
-      const totalSynced = (triage.added ?? 0) + (cal.synced ?? 0) + (todoist.synced ?? 0) + (gmail.synced ?? 0)
+      const triageAdded = triage.added ?? 0
+      const calendarSynced = cal.synced ?? 0
+      const todoistSynced = todoist.synced ?? 0
+      const gmailSynced = gmail.synced ?? 0
+      const totalSynced = triageAdded + calendarSynced + todoistSynced + gmailSynced
+      const summary = `${todoistSynced} Todoist, ${calendarSynced} Calendar, ${gmailSynced} Gmail, ${triageAdded} triage`
 
       if (errors.length > 0) {
-        toast.warning(`Sync done with ${errors.length} error(s)`, {
-          description: errors[0],
+        toast.warning(`Sync completed with ${errors.length} error(s)`, {
+          description: `${summary}. ${errors[0]}`,
         })
       } else if (totalSynced > 0) {
-        toast.success(`Synced ${totalSynced} item${totalSynced !== 1 ? "s" : ""}`)
+        toast.success("Sync complete", {
+          description: summary,
+        })
       } else {
         toast.info("All up to date")
       }
+
+      emitSyncCompleted({
+        source: "header",
+        providers: ["triage", "google-calendar", "todoist", "gmail"],
+      })
 
       // Regenerate day plan with freshly synced data
       fetch("/api/ai/day-plan", {
