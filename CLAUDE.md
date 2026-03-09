@@ -137,6 +137,7 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | 1Password `op read` with `#` in item name | `#` is invalid in secret references — `op://Vault/#item/field` will error. No workaround via CLI; use `op item get` by item ID instead. |
 | 1Password service account vault access | Current `OP_SERVICE_ACCOUNT_TOKEN` only has **Business** vault. Todoist OAuth creds (`TODOIST_CLIENT_ID`, `TODOIST_CLIENT_SECRET`) are in **App Dev** vault → item `#clarity`. See `~/.claude/plans/todoist-env-setup.md`. |
 | Turbopack + Tailwind oxide native binding error (`Cannot find native binding`) | Use `npm run dev:stable` (or `npm run dev:auth:stable`) to run webpack mode with `TAILWIND_DISABLE_OXIDE=1`. |
+| `supabase/migrations/` naming | Directory is named "supabase" but uses Turso/LibSQL — historical naming, do not rename |
 | `npm audit fix` blocked by Tailwind oxide arm64 | Same arm64 conflict blocks all npm installs locally. Use `package.json` `"overrides"` to force patched transitive dep versions instead. |
 | Rate limit IP on Vercel | Use `x-real-ip` header (Vercel-trusted, from TCP). `x-forwarded-for` is client-forgeable. `req.ip` was removed from `NextRequest` types in Next.js 15+. |
 | API route error responses | Never return `err.message` to client — leaks DB schema/provider internals. Pattern: `console.error("[route] error:", err); return { error: "Internal server error" }` |
@@ -229,7 +230,8 @@ clarity/
       prompt-kit/          # AI chat UI primitives
       dev/                 # Dev wiki components
     lib/
-      auth.ts              # Better Auth config
+      auth.ts              # Better Auth config (maxPasswordAttempts: 5 — do not remove)
+      proxy.ts             # Rate-limiting middleware — called from middleware.ts, NOT middleware.ts itself
       auth-client.ts       # Better Auth browser client
       db.ts                # Turso/LibSQL + Drizzle client
       schema.ts            # Drizzle schema (23 tables)
