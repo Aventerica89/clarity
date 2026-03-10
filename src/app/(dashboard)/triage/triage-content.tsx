@@ -6,7 +6,8 @@ import { RefreshCw, Loader2, CheckCircle2, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { TriageCard, type TriageItem } from "@/components/triage/triage-card"
+import { TriageCard } from "@/components/triage/triage-card"
+import type { TriageItem } from "@/types/triage"
 import { TriageTable } from "@/components/triage/triage-table"
 import { ApproveModal } from "@/components/triage/approve-modal"
 import { SubtaskModal } from "@/components/triage/subtask-modal"
@@ -106,11 +107,8 @@ export function TriagePageContent() {
     removeItem(id)
   }
 
-  function handleDismiss(id: string) {
-    removeItem(id)
-  }
-
-  async function handleDismissAction(id: string) {
+  // Unified action handlers — used by card, table, and modal
+  async function handleDismiss(id: string) {
     try {
       await runAction(id, "dismiss")
     } catch {
@@ -118,23 +116,15 @@ export function TriagePageContent() {
     }
   }
 
-  function handlePushToContext(id: string) {
-    removeItem(id)
-  }
-
-  async function handlePushToContextAction(id: string) {
+  async function handlePushToContext(id: string) {
     try {
       await runAction(id, "push_to_context")
     } catch {
-      toast.error("Failed to push item to context")
+      toast.error("Failed to pin item")
     }
   }
 
-  function handleComplete(id: string) {
-    removeItem(id)
-  }
-
-  async function handleCompleteAction(id: string) {
+  async function handleComplete(id: string) {
     try {
       await runAction(id, "complete")
     } catch {
@@ -147,13 +137,18 @@ export function TriagePageContent() {
     setApproveTarget(null)
   }
 
-  function handleDetailComplete(id: string) {
-    removeItem(id)
+  async function handleDetailComplete(id: string) {
+    await handleComplete(id)
     setDetailTarget(null)
   }
 
-  function handleDetailPin(id: string) {
-    removeItem(id)
+  async function handleDetailPin(id: string) {
+    await handlePushToContext(id)
+    setDetailTarget(null)
+  }
+
+  function handleDetailApprove(item: TriageItem) {
+    removeItem(item.id)
     setDetailTarget(null)
   }
 
@@ -231,9 +226,9 @@ export function TriagePageContent() {
         <TriageTable
           items={displayItems}
           onApprove={setApproveTarget}
-          onDismiss={handleDismissAction}
-          onPushToContext={handlePushToContextAction}
-          onComplete={handleCompleteAction}
+          onDismiss={handleDismiss}
+          onPushToContext={handlePushToContext}
+          onComplete={handleComplete}
         />
       ) : (
         <div className={GRID_CLASS[viewMode]}>
@@ -262,7 +257,7 @@ export function TriagePageContent() {
         item={detailTarget}
         onClose={() => setDetailTarget(null)}
         onComplete={handleDetailComplete}
-        onApprove={(item) => { removeItem(item.id); setDetailTarget(null) }}
+        onApprove={handleDetailApprove}
         onPin={handleDetailPin}
       />
     </div>

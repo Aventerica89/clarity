@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import {
   CheckCircle2,
   X,
@@ -12,51 +12,20 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { SourceBadge } from "./source-badge"
+import { SourceBadge } from "@/components/tasks/source-badge"
 import { getScoreColor } from "./score-color"
+import {
+  type TriageItem,
+  TODOIST_PRIORITIES,
+  cleanTitle,
+  formatSenderName,
+  getGmailDisplayTitle,
+  parseSourceMetadata,
+} from "@/types/triage"
 
-const TODOIST_PRIORITIES = [
-  { value: 1, label: "P1" },
-  { value: 2, label: "P2" },
-  { value: 3, label: "P3" },
-  { value: 4, label: "P4" },
-] as const
-
-const URL_PATTERN = /^https?:\/\/\S+$/i
-const MD_LINK_PATTERN = /\[([^\]]+)\]\([^)]+\)/g
-
-function cleanTitle(title: string): string {
-  return title.replace(MD_LINK_PATTERN, "$1")
-}
-
-function formatSenderName(from: string): string {
-  const nameMatch = from.match(/^([^<]+?)(?:\s*<|$)/)
-  return nameMatch ? nameMatch[1].trim().replace(/^["']|["']$/g, "") : from
-}
-
-function getGmailDisplayTitle(item: TriageItem): { title: string; subtitle: string | null } {
-  if (!URL_PATTERN.test(item.title.trim())) {
-    return { title: item.title, subtitle: null }
-  }
-  const meta = JSON.parse(item.sourceMetadata || "{}") as { from?: string }
-  const sender = meta.from ? formatSenderName(meta.from) : null
-  return {
-    title: sender ? `Email from ${sender}` : "(link shared)",
-    subtitle: item.title,
-  }
-}
-
-export interface TriageItem {
-  id: string
-  source: string
-  sourceId: string
-  title: string
-  snippet: string
-  aiScore: number
-  aiReasoning: string
-  createdAt: string
-  sourceMetadata: string
-}
+// Re-export for backwards compatibility
+export type { TriageItem } from "@/types/triage"
+export { cleanTitle, formatSenderName, getGmailDisplayTitle, TODOIST_PRIORITIES } from "@/types/triage"
 
 interface TriageCardProps {
   item: TriageItem
@@ -77,59 +46,32 @@ export function TriageCard({
   onComplete,
   onCardClick,
 }: TriageCardProps) {
-  const [loading, setLoading] = useState<
-    "approve" | "dismiss" | "context" | "complete" | null
-  >(null)
   const isTodoist = item.source === "todoist"
-  const currentPriority = isTodoist
-    ? (JSON.parse(item.sourceMetadata || "{}") as { priority?: number })
-        .priority ?? 1
-    : 1
-  const [selectedPriority, setSelectedPriority] = useState(currentPriority)
   const isCompact = variant === "compact"
   const isGmail = item.source === "gmail"
+
+  const meta = useMemo(() => parseSourceMetadata(item.sourceMetadata), [item.sourceMetadata])
+  const currentPriority = isTodoist ? (meta.priority ?? 1) : 1
+  const isOverdue = isTodoist && meta.due ? new Date(meta.due) < new Date() : false
+  const sender = isGmail && meta.from ? formatSenderName(meta.from) : null
   const gmailDisplay = isGmail ? getGmailDisplayTitle(item) : null
 
-  const isOverdue = isTodoist
-    ? (() => {
-        const meta = JSON.parse(item.sourceMetadata || "{}") as {
-          due?: string
-        }
-        if (!meta.due) return false
-        return new Date(meta.due) < new Date()
-      })()
-    : false
+  const [selectedPriority, setSelectedPriority] = useState(currentPriority)
+  const [loading, setLoading] = useState<"approve" | "dismiss" | "context" | "complete" | null>(null)
+
+  const scoreColor = getScoreColor(item.aiScore)
 
   async function handleAction(
-    action: "dismiss" | "complete" | "approve" | "push_to_context",
+    key: "approve" | "dismiss" | "context" | "complete",
     callback: () => void
   ) {
-    const key = action === "push_to_context" ? "context" : action
-    setLoading(key as typeof loading)
+    setLoading(key)
     try {
-      const body: Record<string, unknown> = { action }
-      if (
-        action === "approve" &&
-        isTodoist &&
-        selectedPriority !== currentPriority
-      ) {
-        body.priority = selectedPriority
-      }
-      const res = await fetch(`/api/triage/${item.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      callback()
-    } catch (err) {
-      console.error(`[triage] ${action} error:`, err)
+      await Promise.resolve(callback())
     } finally {
       setLoading(null)
     }
   }
-
-  const scoreColor = getScoreColor(item.aiScore)
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" || e.key === " ") {
@@ -160,16 +102,12 @@ export function TriageCard({
         {/* Source Row */}
         <div className="flex items-center gap-1.5">
           <SourceBadge source={item.source} />
-          {isGmail && (() => {
-            const meta = JSON.parse(item.sourceMetadata || "{}") as { from?: string }
-            const sender = meta.from ? formatSenderName(meta.from) : null
-            return sender ? (
-              <>
-                <span className="text-xs text-muted-foreground/60">·</span>
-                <span className="truncate text-xs text-muted-foreground">{sender}</span>
-              </>
-            ) : null
-          })()}
+          {sender && (
+            <>
+              <span className="text-xs text-muted-foreground/60">·</span>
+              <span className="truncate text-xs text-muted-foreground">{sender}</span>
+            </>
+          )}
           {isOverdue && (
             <>
               <span className="text-xs text-muted-foreground/60">·</span>
@@ -264,25 +202,19 @@ export function TriageCard({
         <div className="flex flex-col gap-1.5">
           {isTodoist ? (
             <>
-              {/* Complete */}
               <Button
                 className="h-9 rounded-[10px] text-sm font-semibold"
-                onClick={() =>
-                  handleAction("complete", () => onComplete(item.id))
-                }
+                onClick={() => handleAction("complete", () => onComplete(item.id))}
                 disabled={loading !== null}
                 aria-label="Complete task"
               >
                 <CheckCircle2 className="size-[15px]" />
                 {loading === "complete" ? <Loader2 className="size-4 animate-spin" /> : "Complete"}
               </Button>
-              {/* Approve */}
               <Button
                 variant="outline"
                 className="h-9 rounded-[10px] text-sm font-medium"
-                onClick={() =>
-                  handleAction("approve", () => onApprove(item))
-                }
+                onClick={() => handleAction("approve", () => onApprove(item))}
                 disabled={loading !== null}
                 aria-label="Approve task"
               >
@@ -301,26 +233,20 @@ export function TriageCard({
               Add to Todoist
             </Button>
           )}
-          {/* Pin (Push to Context) */}
           <Button
             variant="outline"
             className="h-9 rounded-[10px] text-sm font-medium"
-            onClick={() =>
-              handleAction("push_to_context", () => onPushToContext(item.id))
-            }
+            onClick={() => handleAction("context", () => onPushToContext(item.id))}
             disabled={loading !== null}
             aria-label="Pin to context"
           >
             <Pin className="size-[15px]" />
             {loading === "context" ? <Loader2 className="size-4 animate-spin" /> : "Pin"}
           </Button>
-          {/* Dismiss */}
           <Button
             variant="ghost"
             className="h-9 rounded-[10px] text-sm font-medium text-muted-foreground hover:text-foreground"
-            onClick={() =>
-              handleAction("dismiss", () => onDismiss(item.id))
-            }
+            onClick={() => handleAction("dismiss", () => onDismiss(item.id))}
             disabled={loading !== null}
             aria-label="Dismiss item"
           >

@@ -10,10 +10,10 @@ import {
   type SortingState,
   type VisibilityState,
   type RowSelectionState,
-  type Column,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Check, ChevronDown, EyeOff } from "lucide-react"
+import { Check, ChevronDown, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SortableHeader } from "@/components/ui/sortable-header"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -57,20 +57,6 @@ interface TaskTableProps {
   onPriorityChange?: (id: string, priority: number) => Promise<void>
   onBulkComplete?: (ids: string[]) => Promise<void>
   onBulkHide?: (ids: string[]) => Promise<void>
-}
-
-function SortableHeader({ column, label }: { column: Column<TaskItem>; label: string }) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="-ml-3 h-8 data-[state=open]:bg-accent text-xs font-medium"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      {label}
-      <ArrowUpDown className="ml-1.5 size-3" />
-    </Button>
-  )
 }
 
 export function TaskTable({
@@ -121,7 +107,7 @@ export function TaskTable({
       // ── Title ───────────────────────────────────────────────────────────────
       {
         accessorKey: "title",
-        header: ({ column }) => <SortableHeader column={column} label="Title" />,
+        header: ({ column }) => <SortableHeader onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} label="Title" />,
         cell: ({ row }) => (
           <span className="font-medium text-sm leading-snug line-clamp-2">
             {row.original.title}
@@ -132,7 +118,7 @@ export function TaskTable({
       // ── Priority ────────────────────────────────────────────────────────────
       {
         accessorKey: "priorityManual",
-        header: ({ column }) => <SortableHeader column={column} label="Priority" />,
+        header: ({ column }) => <SortableHeader onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} label="Priority" />,
         cell: ({ row }) => {
           if (onPriorityChange && row.original.source === "todoist") {
             const currentPriority = row.original.priorityManual ?? 1
@@ -172,7 +158,7 @@ export function TaskTable({
       // ── Due Date ────────────────────────────────────────────────────────────
       {
         accessorKey: "dueDate",
-        header: ({ column }) => <SortableHeader column={column} label="Due" />,
+        header: ({ column }) => <SortableHeader onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} label="Due" />,
         cell: ({ row }) => {
           const task = row.original
           if (!task.dueDate) return <span className="text-xs text-muted-foreground">—</span>
@@ -260,7 +246,7 @@ export function TaskTable({
       // ── Created ─────────────────────────────────────────────────────────────
       {
         accessorKey: "createdAt",
-        header: ({ column }) => <SortableHeader column={column} label="Created" />,
+        header: ({ column }) => <SortableHeader onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} label="Created" />,
         cell: ({ row }) => {
           const created = row.original.createdAt
           if (!created) return <span className="text-11 text-[#ABABAB]">—</span>

@@ -11,9 +11,10 @@ import {
   type VisibilityState,
   type RowSelectionState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, CheckCircle2, ChevronDown, X, ArrowUpCircle } from "lucide-react"
+import { CheckCircle2, ChevronDown, X, ArrowUpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getScoreColor } from "./score-color"
+import { SortableHeader } from "@/components/ui/sortable-header"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
@@ -37,8 +38,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import type { TriageItem } from "./triage-card"
-import { SourceBadge } from "./source-badge"
+import type { TriageItem } from "@/types/triage"
+import { SourceBadge } from "@/components/tasks/source-badge"
 
 interface TriageTableProps {
   items: TriageItem[]
@@ -46,27 +47,6 @@ interface TriageTableProps {
   onDismiss: (id: string) => Promise<void> | void
   onPushToContext: (id: string) => Promise<void> | void
   onComplete: (id: string) => Promise<void> | void
-}
-
-
-function SortableHeader({
-  label,
-  onClick,
-}: {
-  label: string
-  onClick: () => void
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="-ml-3 h-8 data-[state=open]:bg-accent text-xs font-medium"
-      onClick={onClick}
-    >
-      {label}
-      <ArrowUpDown className="ml-1.5 size-3" />
-    </Button>
-  )
 }
 
 export function TriageTable({

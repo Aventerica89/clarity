@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
-import type { TriageItem } from "./triage-card"
+import type { TriageItem } from "@/types/triage"
 
 interface Project { id: string; name: string }
 

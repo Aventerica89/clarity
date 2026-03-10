@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import {
   CheckCircle2,
   Circle,
@@ -22,20 +22,10 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "@/components/ui/drawer"
-import type { TriageItem } from "./triage-card"
-import { SourceBadge } from "./source-badge"
-
-function useIsMobile(breakpoint = 640) {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`)
-    setIsMobile(mql.matches)
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mql.addEventListener("change", handler)
-    return () => mql.removeEventListener("change", handler)
-  }, [breakpoint])
-  return isMobile
-}
+import type { TriageItem } from "@/types/triage"
+import { parseSourceMetadata, formatSenderName } from "@/types/triage"
+import { SourceBadge } from "@/components/tasks/source-badge"
+import { useIsMobile } from "@/lib/use-mobile"
 
 interface SubtaskModalProps {
   item: TriageItem | null
@@ -112,13 +102,8 @@ function SubtaskModalContent({
   const [actionLoading, setActionLoading] = useState<"complete" | "approve" | "pin" | null>(null)
 
   const isTodoist = item.source === "todoist"
-  const isOverdue = isTodoist
-    ? (() => {
-        const meta = JSON.parse(item.sourceMetadata || "{}") as { due?: string }
-        if (!meta.due) return false
-        return new Date(meta.due) < new Date()
-      })()
-    : false
+  const meta = useMemo(() => parseSourceMetadata(item.sourceMetadata), [item.sourceMetadata])
+  const isOverdue = isTodoist && meta.due ? new Date(meta.due) < new Date() : false
 
   const completed = subtasks.filter((s) => s.done)
   const remaining = subtasks.filter((s) => !s.done)
@@ -158,18 +143,9 @@ function SubtaskModalContent({
   async function handleAction(action: "complete" | "approve" | "pin") {
     setActionLoading(action)
     try {
-      const apiAction = action === "pin" ? "push_to_context" : action
-      const res = await fetch(`/api/triage/${item.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: apiAction }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      if (action === "complete") onComplete(item.id)
-      else if (action === "approve") onApprove(item)
-      else onPin(item.id)
-    } catch (err) {
-      console.error(`[subtask-modal] ${action} error:`, err)
+      if (action === "complete") await Promise.resolve(onComplete(item.id))
+      else if (action === "approve") await Promise.resolve(onApprove(item))
+      else await Promise.resolve(onPin(item.id))
     } finally {
       setActionLoading(null)
     }
