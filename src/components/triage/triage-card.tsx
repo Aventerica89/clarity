@@ -11,6 +11,7 @@ import {
   ListTodo,
   Sparkles,
   ThumbsUp,
+  ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -86,6 +87,7 @@ interface TriageCardProps {
   onDismiss: (id: string) => void
   onPushToContext: (id: string) => void
   onComplete: (id: string) => void
+  onCardClick?: (item: TriageItem) => void
 }
 
 export function TriageCard({
@@ -96,6 +98,7 @@ export function TriageCard({
   onDismiss,
   onPushToContext,
   onComplete,
+  onCardClick,
 }: TriageCardProps) {
   const [loading, setLoading] = useState<
     "approve" | "dismiss" | "context" | "complete" | null
@@ -173,8 +176,10 @@ export function TriageCard({
       <div
         className={cn(
           "flex flex-1 flex-col gap-3.5",
-          isCompact ? "p-4" : "px-6 py-5"
+          isCompact ? "p-4" : "px-6 py-5",
+          onCardClick && "cursor-pointer"
         )}
+        onClick={() => onCardClick?.(item)}
       >
         {/* Source Row */}
         <div className="flex items-center gap-1.5">
@@ -240,7 +245,7 @@ export function TriageCard({
               <button
                 key={p.value}
                 type="button"
-                onClick={() => setSelectedPriority(p.value)}
+                onClick={(e) => { e.stopPropagation(); setSelectedPriority(p.value) }}
                 className={cn(
                   "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                   selectedPriority === p.value
@@ -252,6 +257,14 @@ export function TriageCard({
               </button>
             ))}
           </div>
+        )}
+
+        {/* View details link */}
+        {onCardClick && (
+          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#ABABAB] transition-colors hover:text-[#1E2432]">
+            View details
+            <ChevronRight className="size-3" />
+          </span>
         )}
       </div>
 

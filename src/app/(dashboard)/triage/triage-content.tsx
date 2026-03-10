@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { TriageCard, type TriageItem } from "@/components/triage/triage-card"
 import { TriageTable } from "@/components/triage/triage-table"
 import { ApproveModal } from "@/components/triage/approve-modal"
+import { SubtaskModal } from "@/components/triage/subtask-modal"
 import { ViewToggle, type ViewMode } from "@/components/ui/view-toggle"
 import { FilterBar, type FilterDef } from "@/components/ui/filter-bar"
 
@@ -40,6 +41,7 @@ export function TriagePageContent() {
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [approveTarget, setApproveTarget] = useState<TriageItem | null>(null)
+  const [detailTarget, setDetailTarget] = useState<TriageItem | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>("table")
   const [search, setSearch] = useState("")
 
@@ -145,6 +147,16 @@ export function TriagePageContent() {
     setApproveTarget(null)
   }
 
+  function handleDetailComplete(id: string) {
+    removeItem(id)
+    setDetailTarget(null)
+  }
+
+  function handleDetailPin(id: string) {
+    removeItem(id)
+    setDetailTarget(null)
+  }
+
   const cardVariant = viewMode === "grid3" ? "compact" : "comfortable"
 
   const displayItems = useMemo(() => {
@@ -234,6 +246,7 @@ export function TriagePageContent() {
               onDismiss={handleDismiss}
               onPushToContext={handlePushToContext}
               onComplete={handleComplete}
+              onCardClick={setDetailTarget}
             />
           ))}
         </div>
@@ -243,6 +256,14 @@ export function TriagePageContent() {
         item={approveTarget}
         onClose={() => setApproveTarget(null)}
         onSuccess={handleApproveSuccess}
+      />
+
+      <SubtaskModal
+        item={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        onComplete={handleDetailComplete}
+        onApprove={(item) => { removeItem(item.id); setDetailTarget(null) }}
+        onPin={handleDetailPin}
       />
     </div>
   )
