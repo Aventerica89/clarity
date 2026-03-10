@@ -1,9 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { CheckCircle2, X, ArrowUpCircle, Mail, Calendar, CheckSquare, ListTodo } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import {
+  CheckCircle2,
+  X,
+  Pin,
+  Mail,
+  Calendar,
+  CheckSquare,
+  ListTodo,
+  Sparkles,
+  ThumbsUp,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const SOURCE_ICONS: Record<string, React.ElementType> = {
@@ -20,11 +28,18 @@ const SOURCE_LABELS: Record<string, string> = {
   google_tasks: "Google Tasks",
 }
 
+const SOURCE_COLORS: Record<string, string> = {
+  todoist: "text-[#E44332]",
+  gmail: "text-[#4285F4]",
+  google_calendar: "text-[#4285F4]",
+  google_tasks: "text-[#4285F4]",
+}
+
 const TODOIST_PRIORITIES = [
-  { value: 1, label: "P1", color: "bg-muted text-muted-foreground" },
-  { value: 2, label: "P2", color: "bg-blue-500/15 text-blue-700 dark:text-blue-400" },
-  { value: 3, label: "P3", color: "bg-orange-500/15 text-orange-700 dark:text-orange-400" },
-  { value: 4, label: "P4", color: "bg-red-500/15 text-red-700 dark:text-red-400" },
+  { value: 1, label: "P1" },
+  { value: 2, label: "P2" },
+  { value: 3, label: "P3" },
+  { value: 4, label: "P4" },
 ] as const
 
 export interface TriageItem {
@@ -58,210 +73,235 @@ export function TriageCard({
   onPushToContext,
   onComplete,
 }: TriageCardProps) {
-  const [loading, setLoading] = useState<"approve" | "dismiss" | "context" | "complete" | null>(null)
+  const [loading, setLoading] = useState<
+    "approve" | "dismiss" | "context" | "complete" | null
+  >(null)
   const SourceIcon = SOURCE_ICONS[item.source] ?? Mail
+  const sourceColor = SOURCE_COLORS[item.source] ?? "text-muted-foreground"
   const isTodoist = item.source === "todoist"
   const currentPriority = isTodoist
-    ? (JSON.parse(item.sourceMetadata || "{}") as { priority?: number }).priority ?? 1
+    ? (JSON.parse(item.sourceMetadata || "{}") as { priority?: number })
+        .priority ?? 1
     : 1
   const [selectedPriority, setSelectedPriority] = useState(currentPriority)
   const isCompact = variant === "compact"
 
-  async function handleDismiss() {
+  const isOverdue = isTodoist
+    ? (() => {
+        const meta = JSON.parse(item.sourceMetadata || "{}") as {
+          due?: string
+        }
+        if (!meta.due) return false
+        return new Date(meta.due) < new Date()
+      })()
+    : false
+
+  async function handleAction(
+    action: "dismiss" | "complete" | "approve" | "push_to_context",
+    callback: () => void
+  ) {
     if (preview) {
-      onDismiss(item.id)
+      callback()
       return
     }
-    setLoading("dismiss")
+    const key = action === "push_to_context" ? "context" : action
+    setLoading(key as typeof loading)
     try {
+      const body: Record<string, unknown> = { action }
+      if (
+        action === "approve" &&
+        isTodoist &&
+        selectedPriority !== currentPriority
+      ) {
+        body.priority = selectedPriority
+      }
       const res = await fetch(`/api/triage/${item.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "dismiss" }),
+        body: JSON.stringify(body),
       })
-      if (!res.ok) throw new Error(`Failed to dismiss: ${res.status}`)
-      onDismiss(item.id)
+      if (!res.ok) throw new Error(`Failed: ${res.status}`)
+      callback()
     } catch (err) {
-      console.error("[triage] dismiss error:", err)
+      console.error(`[triage] ${action} error:`, err)
     } finally {
       setLoading(null)
     }
   }
 
-  async function handlePushToContext() {
-    if (preview) {
-      onPushToContext(item.id)
-      return
-    }
-    setLoading("context")
-    try {
-      const res = await fetch(`/api/triage/${item.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "push_to_context" }),
-      })
-      if (!res.ok) throw new Error(`Failed to push to context: ${res.status}`)
-      onPushToContext(item.id)
-    } catch (err) {
-      console.error("[triage] push-to-context error:", err)
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  async function handleComplete() {
-    if (preview) {
-      onComplete(item.id)
-      return
-    }
-    setLoading("complete")
-    try {
-      const res = await fetch(`/api/triage/${item.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "complete" }),
-      })
-      if (!res.ok) throw new Error(`Failed to complete: ${res.status}`)
-      onComplete(item.id)
-    } catch (err) {
-      console.error("[triage] complete error:", err)
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  async function handleApprove() {
-    if (preview) {
-      onComplete(item.id)
-      return
-    }
-    setLoading("approve")
-    try {
-      const res = await fetch(`/api/triage/${item.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "approve",
-          ...(isTodoist && selectedPriority !== currentPriority
-            ? { priority: selectedPriority }
-            : {}),
-        }),
-      })
-      if (!res.ok) throw new Error(`Failed to approve: ${res.status}`)
-      onComplete(item.id)
-    } catch (err) {
-      console.error("[triage] approve error:", err)
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  const scoreColor = item.aiScore >= 80
-    ? "text-destructive"
-    : item.aiScore >= 60
-    ? "text-amber-500"
-    : "text-muted-foreground"
+  const scoreColor =
+    item.aiScore >= 80
+      ? "text-[#E85A4F]"
+      : item.aiScore >= 60
+        ? "text-[#C9A53E]"
+        : "text-[#8A8A8A]"
 
   return (
-    <div className={cn("rounded-lg border bg-card space-y-3", isCompact ? "p-3" : "p-4")}>
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 text-muted-foreground">
-          <SourceIcon className="size-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="text-xs font-normal">
+    <div
+      className={cn(
+        "flex overflow-hidden rounded-[16px] border border-[#EFEFEF] bg-white",
+        isCompact ? "flex-col sm:flex-row" : "flex-col sm:flex-row"
+      )}
+    >
+      {/* ── Left Panel: Content ── */}
+      <div
+        className={cn(
+          "flex flex-1 flex-col gap-3.5",
+          isCompact ? "p-4" : "px-6 py-5"
+        )}
+      >
+        {/* Source Row */}
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-lg border border-[#EFEFEF] px-2 py-0.5">
+            <SourceIcon className={cn("size-3", sourceColor)} />
+            <span className="text-xs text-[#1E2432]">
               {SOURCE_LABELS[item.source] ?? item.source}
-            </Badge>
-            <span className={cn("text-xs font-medium", scoreColor)}>
-              {item.aiScore}/100
             </span>
-          </div>
-          <p className="font-medium text-sm leading-snug">{item.title}</p>
-          {item.snippet && (
-            <p className={cn("text-xs text-muted-foreground mt-1", isCompact ? "line-clamp-1" : "line-clamp-2")}>
-              {item.snippet}
-            </p>
-          )}
-          <p className={cn("text-xs text-muted-foreground/70 mt-1 italic", isCompact && "hidden")}>
-            {item.aiReasoning}
-          </p>
-          {isTodoist && (
-            <div className="flex gap-1.5 mt-2">
-              {TODOIST_PRIORITIES.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
-                  onClick={() => setSelectedPriority(p.value)}
-                  className={cn(
-                    "px-2 py-2 min-h-[44px] rounded text-xs font-medium transition-all",
-                    p.color,
-                    selectedPriority === p.value
-                      ? "ring-2 ring-ring ring-offset-1"
-                      : "opacity-50 hover:opacity-75"
-                  )}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
+          </span>
+          {isOverdue && (
+            <>
+              <span className="text-xs text-[#ABABAB]">·</span>
+              <span className="text-xs font-medium text-[#E5484D]">
+                Overdue
+              </span>
+            </>
           )}
         </div>
+
+        {/* Title */}
+        <p className="text-[16px] font-semibold leading-snug text-[#1E2432]">
+          {item.title}
+        </p>
+
+        {/* Snippet */}
+        {item.snippet && (
+          <p
+            className={cn(
+              "text-[13px] leading-[1.45] text-[#8A8A8A]",
+              isCompact ? "line-clamp-1" : "line-clamp-2"
+            )}
+          >
+            {item.snippet}
+          </p>
+        )}
+
+        {/* AI Reasoning (left panel, compact) */}
+        {!isCompact && item.aiReasoning && (
+          <p className="text-xs italic text-[#ABABAB]">{item.aiReasoning}</p>
+        )}
+
+        {/* Priority Pills (Todoist only) */}
+        {isTodoist && (
+          <div className="flex gap-1.5">
+            {TODOIST_PRIORITIES.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => setSelectedPriority(p.value)}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
+                  selectedPriority === p.value
+                    ? "border-[1.5px] border-[#1E2432] bg-[#F5F4F2] text-[#1E2432]"
+                    : "bg-[#F5F4F2] text-[#8A8A8A] hover:text-[#1E2432]"
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {isTodoist ? (
-          <>
-            <Button
-              size="sm"
-              className="flex-1 h-10 sm:h-8"
-              onClick={handleComplete}
+      {/* ── Right Panel: AI + Actions ── */}
+      <div
+        className={cn(
+          "flex shrink-0 flex-col justify-between gap-4 bg-[#F5F4F2] p-5",
+          "sm:w-[200px] sm:rounded-r-[16px]"
+        )}
+      >
+        {/* AI Analysis Section */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="size-3.5 text-[#8A8A8A]" />
+            <span className="text-sm font-semibold text-[#1E2432]">
+              AI Analysis
+            </span>
+          </div>
+          {item.aiReasoning && (
+            <p className="text-xs italic leading-[1.4] text-[#8A8A8A]">
+              {item.aiReasoning}
+            </p>
+          )}
+          <span className={cn("font-mono text-[32px] font-bold", scoreColor)}>
+            {item.aiScore}
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-1.5">
+          {isTodoist ? (
+            <>
+              {/* Complete */}
+              <button
+                type="button"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50"
+                onClick={() =>
+                  handleAction("complete", () => onComplete(item.id))
+                }
+                disabled={loading !== null}
+              >
+                <CheckCircle2 className="size-[15px]" />
+                {loading === "complete" ? "..." : "Complete"}
+              </button>
+              {/* Approve */}
+              <button
+                type="button"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50"
+                onClick={() =>
+                  handleAction("approve", () => onApprove(item))
+                }
+                disabled={loading !== null}
+              >
+                <ThumbsUp className="size-[15px] text-[#8A8A8A]" />
+                {loading === "approve" ? "..." : "Approve"}
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50"
+              onClick={() => handleAction("approve", () => onApprove(item))}
               disabled={loading !== null}
             >
-              <CheckCircle2 className="size-3.5 mr-1.5" />
-              {loading === "complete" ? "Completing..." : "Complete"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-10 sm:h-8"
-              onClick={handleApprove}
-              disabled={loading !== null}
-            >
-              {loading === "approve" ? "Approving..." : "Approve"}
-            </Button>
-          </>
-        ) : (
-          <Button
-            size="sm"
-            className="flex-1 h-10 sm:h-8"
-            onClick={() => onApprove(item)}
+              <CheckCircle2 className="size-[15px]" />
+              Add to Todoist
+            </button>
+          )}
+          {/* Pin (Push to Context) */}
+          <button
+            type="button"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50"
+            onClick={() =>
+              handleAction("push_to_context", () => onPushToContext(item.id))
+            }
             disabled={loading !== null}
           >
-            <CheckCircle2 className="size-3.5 mr-1.5" />
-            Add to Todoist
-          </Button>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-10 sm:h-8"
-          onClick={handlePushToContext}
-          disabled={loading !== null}
-        >
-          <ArrowUpCircle className="size-3.5 mr-1.5" />
-          Context
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-10 sm:h-8"
-          onClick={handleDismiss}
-          disabled={loading !== null}
-        >
-          <X className="size-3.5 mr-1" />
-          {loading === "dismiss" ? "Dismissing..." : "Dismiss"}
-        </Button>
+            <Pin className="size-[15px] text-[#8A8A8A]" />
+            {loading === "context" ? "..." : "Pin"}
+          </button>
+          {/* Dismiss */}
+          <button
+            type="button"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] px-4 text-sm font-medium text-[#8A8A8A] transition-colors hover:text-[#1E2432] disabled:opacity-50"
+            onClick={() =>
+              handleAction("dismiss", () => onDismiss(item.id))
+            }
+            disabled={loading !== null}
+          >
+            <X className="size-[15px]" />
+            {loading === "dismiss" ? "..." : "Dismiss"}
+          </button>
+        </div>
       </div>
     </div>
   )

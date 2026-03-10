@@ -7,3 +7,6 @@ GOOGLE_CLIENT_ID=op://App Dev/k5sqdmqh6c5rdk43rcskco3fsm/credential
 GOOGLE_CLIENT_SECRET=op://App Dev/pxdbar2qzucpqb7hsu2mbqzth4/credential
 TODOIST_CLIENT_ID=op://App Dev/oklogquw3ohhdzoktpfznimajy/credential
 TODOIST_CLIENT_SECRET=op://App Dev/o74b3kf4vqjpnnbhdzh23zckam/credential
+
+# Auth base URL — matches PORT so OAuth callbacks land correctly
+BETTER_AUTH_URL=http://localhost:${PORT:-3000}

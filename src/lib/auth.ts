@@ -49,6 +49,8 @@ export const auth = betterAuth({
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:3003",
     "https://clarity.jbcloud.app",
     "https://clarity-jb-cloud-apps.vercel.app",
     "https://clarity-git-main-jb-cloud-apps.vercel.app",
