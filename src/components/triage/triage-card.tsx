@@ -148,7 +148,7 @@ export function TriageCard({
       {/* -- Left Panel: Content -- */}
       <div
         className={cn(
-          "flex flex-1 flex-col gap-3.5",
+          "flex min-w-0 flex-1 flex-col gap-3.5",
           isCompact ? "p-4" : "px-6 py-5",
           onCardClick && "cursor-pointer"
         )}
@@ -196,7 +196,7 @@ export function TriageCard({
         {item.snippet && (
           <p
             className={cn(
-              "text-[13px] leading-[1.45] text-muted-foreground",
+              "break-all text-[13px] leading-[1.45] text-muted-foreground",
               isCompact ? "line-clamp-1" : "line-clamp-2"
             )}
           >
