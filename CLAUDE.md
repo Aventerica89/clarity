@@ -143,6 +143,7 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | API route error responses | Never return `err.message` to client — leaks DB schema/provider internals. Pattern: `console.error("[route] error:", err); return { error: "Internal server error" }` |
 | Flex child with long URLs | Add `break-all` to text containers + `min-w-0` to flex children. Unbroken URLs don't wrap by default and push flex items beyond their bounds. |
 | Turbopack stale module cache | New `.ts` files may not resolve until dev server restart. If `Cannot find module` for a file that exists, restart dev or use `npm run dev:stable`. |
+| `npm install` without committing `package.json` | Vercel builds from git — if `package.json` isn't committed after `npm install`, deploys fail silently while local builds work. Always commit `package.json` + `package-lock.json` together with code that imports the new package. |
 
 ## Database Tables
 
