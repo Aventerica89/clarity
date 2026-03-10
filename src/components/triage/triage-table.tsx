@@ -14,7 +14,6 @@ import {
 import { ArrowUpDown, CheckCircle2, ChevronDown, X, ArrowUpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -38,6 +37,7 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import type { TriageItem } from "./triage-card"
+import { SourceBadge } from "./source-badge"
 
 interface TriageTableProps {
   items: TriageItem[]
@@ -47,12 +47,6 @@ interface TriageTableProps {
   onComplete: (id: string) => Promise<void> | void
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-  gmail: "Gmail",
-  google_calendar: "Calendar",
-  todoist: "Todoist",
-  google_tasks: "Google Tasks",
-}
 
 function SortableHeader({
   label,
@@ -131,9 +125,7 @@ export function TriageTable({
         accessorKey: "source",
         header: () => <span className="text-xs font-medium">Source</span>,
         cell: ({ row }) => (
-          <Badge variant="outline" className="text-xs font-normal">
-            {SOURCE_LABELS[row.original.source] ?? row.original.source}
-          </Badge>
+          <SourceBadge source={row.original.source} />
         ),
       },
       {

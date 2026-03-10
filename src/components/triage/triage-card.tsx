@@ -5,36 +5,12 @@ import {
   CheckCircle2,
   X,
   Pin,
-  Mail,
-  Calendar,
-  CheckSquare,
-  ListTodo,
   Sparkles,
   ThumbsUp,
   ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const SOURCE_ICONS: Record<string, React.ElementType> = {
-  gmail: Mail,
-  google_calendar: Calendar,
-  todoist: CheckSquare,
-  google_tasks: ListTodo,
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  gmail: "Gmail",
-  google_calendar: "Calendar",
-  todoist: "Todoist",
-  google_tasks: "Google Tasks",
-}
-
-const SOURCE_COLORS: Record<string, string> = {
-  todoist: "text-[#E44332]",
-  gmail: "text-[#4285F4]",
-  google_calendar: "text-[#4285F4]",
-  google_tasks: "text-[#4285F4]",
-}
+import { SourceBadge } from "./source-badge"
 
 const TODOIST_PRIORITIES = [
   { value: 1, label: "P1" },
@@ -103,8 +79,6 @@ export function TriageCard({
   const [loading, setLoading] = useState<
     "approve" | "dismiss" | "context" | "complete" | null
   >(null)
-  const SourceIcon = SOURCE_ICONS[item.source] ?? Mail
-  const sourceColor = SOURCE_COLORS[item.source] ?? "text-muted-foreground"
   const isTodoist = item.source === "todoist"
   const currentPriority = isTodoist
     ? (JSON.parse(item.sourceMetadata || "{}") as { priority?: number })
@@ -168,11 +142,11 @@ export function TriageCard({
   return (
     <div
       className={cn(
-        "flex overflow-hidden rounded-[16px] border border-[#EFEFEF] bg-white",
+        "flex overflow-hidden rounded-[16px] border border-[#EFEFEF] bg-white dark:border-[#2A2A2A] dark:bg-[#141414]",
         isCompact ? "flex-col sm:flex-row" : "flex-col sm:flex-row"
       )}
     >
-      {/* ── Left Panel: Content ── */}
+      {/* -- Left Panel: Content -- */}
       <div
         className={cn(
           "flex flex-1 flex-col gap-3.5",
@@ -183,25 +157,20 @@ export function TriageCard({
       >
         {/* Source Row */}
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-lg border border-[#EFEFEF] px-2 py-0.5">
-            <SourceIcon className={cn("size-3", sourceColor)} />
-            <span className="text-xs text-[#1E2432]">
-              {SOURCE_LABELS[item.source] ?? item.source}
-            </span>
-          </span>
+          <SourceBadge source={item.source} />
           {isGmail && (() => {
             const meta = JSON.parse(item.sourceMetadata || "{}") as { from?: string }
             const sender = meta.from ? formatSenderName(meta.from) : null
             return sender ? (
               <>
-                <span className="text-xs text-[#ABABAB]">·</span>
+                <span className="text-xs text-[#ABABAB] dark:text-[#555]">·</span>
                 <span className="truncate text-xs text-[#8A8A8A]">{sender}</span>
               </>
             ) : null
           })()}
           {isOverdue && (
             <>
-              <span className="text-xs text-[#ABABAB]">·</span>
+              <span className="text-xs text-[#ABABAB] dark:text-[#555]">·</span>
               <span className="text-xs font-medium text-[#E5484D]">
                 Overdue
               </span>
@@ -210,13 +179,13 @@ export function TriageCard({
         </div>
 
         {/* Title */}
-        <p className="text-[16px] font-semibold leading-snug text-[#1E2432]">
+        <p className="text-[16px] font-semibold leading-snug text-[#1E2432] dark:text-[#E8E8E8]">
           {gmailDisplay ? gmailDisplay.title : cleanTitle(item.title)}
         </p>
 
         {/* URL subtitle (Gmail URL-only subjects) */}
         {gmailDisplay?.subtitle && (
-          <p className="truncate text-[13px] text-[#ABABAB]">
+          <p className="truncate text-[13px] text-[#ABABAB] dark:text-[#555]">
             {gmailDisplay.subtitle}
           </p>
         )}
@@ -235,7 +204,7 @@ export function TriageCard({
 
         {/* AI Reasoning (left panel, compact) */}
         {!isCompact && item.aiReasoning && (
-          <p className="text-xs italic text-[#ABABAB]">{item.aiReasoning}</p>
+          <p className="text-xs italic text-[#ABABAB] dark:text-[#666]">{item.aiReasoning}</p>
         )}
 
         {/* Priority Pills (Todoist only) */}
@@ -249,8 +218,8 @@ export function TriageCard({
                 className={cn(
                   "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                   selectedPriority === p.value
-                    ? "border-[1.5px] border-[#1E2432] bg-[#F5F4F2] text-[#1E2432]"
-                    : "bg-[#F5F4F2] text-[#8A8A8A] hover:text-[#1E2432]"
+                    ? "border-[1.5px] border-[#1E2432] bg-[#F5F4F2] text-[#1E2432] dark:border-[#E8E8E8] dark:bg-[#2A2A2A] dark:text-[#E8E8E8]"
+                    : "bg-[#F5F4F2] text-[#8A8A8A] hover:text-[#1E2432] dark:bg-[#1A1A1A] dark:hover:text-[#E8E8E8]"
                 )}
               >
                 {p.label}
@@ -261,17 +230,17 @@ export function TriageCard({
 
         {/* View details link */}
         {onCardClick && (
-          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#ABABAB] transition-colors hover:text-[#1E2432]">
+          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#ABABAB] transition-colors hover:text-[#1E2432] dark:text-[#666] dark:hover:text-[#E8E8E8]">
             View details
             <ChevronRight className="size-3" />
           </span>
         )}
       </div>
 
-      {/* ── Right Panel: AI + Actions ── */}
+      {/* -- Right Panel: AI + Actions -- */}
       <div
         className={cn(
-          "flex shrink-0 flex-col justify-between gap-4 bg-[#F5F4F2] p-5",
+          "flex shrink-0 flex-col justify-between gap-4 bg-[#F5F4F2] p-5 dark:bg-[#1A1A1A]",
           "sm:w-[200px] sm:rounded-r-[16px]"
         )}
       >
@@ -279,7 +248,7 @@ export function TriageCard({
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-1.5">
             <Sparkles className="size-3.5 text-[#8A8A8A]" />
-            <span className="text-sm font-semibold text-[#1E2432]">
+            <span className="text-sm font-semibold text-[#1E2432] dark:text-[#E8E8E8]">
               AI Analysis
             </span>
           </div>
@@ -300,7 +269,7 @@ export function TriageCard({
               {/* Complete */}
               <button
                 type="button"
-                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50 dark:bg-[#E8E8E8] dark:text-[#1E2432] dark:hover:bg-[#D4D4D4]"
                 onClick={() =>
                   handleAction("complete", () => onComplete(item.id))
                 }
@@ -312,7 +281,7 @@ export function TriageCard({
               {/* Approve */}
               <button
                 type="button"
-                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50 dark:border-[#333] dark:text-[#E8E8E8] dark:hover:bg-[#2A2A2A]"
                 onClick={() =>
                   handleAction("approve", () => onApprove(item))
                 }
@@ -325,7 +294,7 @@ export function TriageCard({
           ) : (
             <button
               type="button"
-              className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50"
+              className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50 dark:bg-[#E8E8E8] dark:text-[#1E2432] dark:hover:bg-[#D4D4D4]"
               onClick={() => handleAction("approve", () => onApprove(item))}
               disabled={loading !== null}
             >
@@ -336,7 +305,7 @@ export function TriageCard({
           {/* Pin (Push to Context) */}
           <button
             type="button"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50 dark:border-[#333] dark:text-[#E8E8E8] dark:hover:bg-[#2A2A2A]"
             onClick={() =>
               handleAction("push_to_context", () => onPushToContext(item.id))
             }
@@ -348,7 +317,7 @@ export function TriageCard({
           {/* Dismiss */}
           <button
             type="button"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] px-4 text-sm font-medium text-[#8A8A8A] transition-colors hover:text-[#1E2432] disabled:opacity-50"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] px-4 text-sm font-medium text-[#8A8A8A] transition-colors hover:text-[#1E2432] disabled:opacity-50 dark:hover:text-[#E8E8E8]"
             onClick={() =>
               handleAction("dismiss", () => onDismiss(item.id))
             }
