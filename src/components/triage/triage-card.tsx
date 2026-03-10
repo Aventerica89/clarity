@@ -42,6 +42,25 @@ const TODOIST_PRIORITIES = [
   { value: 4, label: "P4" },
 ] as const
 
+const URL_PATTERN = /^https?:\/\/\S+$/i
+
+function formatSenderName(from: string): string {
+  const nameMatch = from.match(/^([^<]+?)(?:\s*<|$)/)
+  return nameMatch ? nameMatch[1].trim().replace(/^["']|["']$/g, "") : from
+}
+
+function getGmailDisplayTitle(item: TriageItem): { title: string; subtitle: string | null } {
+  if (!URL_PATTERN.test(item.title.trim())) {
+    return { title: item.title, subtitle: null }
+  }
+  const meta = JSON.parse(item.sourceMetadata || "{}") as { from?: string }
+  const sender = meta.from ? formatSenderName(meta.from) : null
+  return {
+    title: sender ? `Email from ${sender}` : "(link shared)",
+    subtitle: item.title,
+  }
+}
+
 export interface TriageItem {
   id: string
   source: string
@@ -85,6 +104,8 @@ export function TriageCard({
     : 1
   const [selectedPriority, setSelectedPriority] = useState(currentPriority)
   const isCompact = variant === "compact"
+  const isGmail = item.source === "gmail"
+  const gmailDisplay = isGmail ? getGmailDisplayTitle(item) : null
 
   const isOverdue = isTodoist
     ? (() => {
@@ -158,6 +179,16 @@ export function TriageCard({
               {SOURCE_LABELS[item.source] ?? item.source}
             </span>
           </span>
+          {isGmail && (() => {
+            const meta = JSON.parse(item.sourceMetadata || "{}") as { from?: string }
+            const sender = meta.from ? formatSenderName(meta.from) : null
+            return sender ? (
+              <>
+                <span className="text-xs text-[#ABABAB]">·</span>
+                <span className="truncate text-xs text-[#8A8A8A]">{sender}</span>
+              </>
+            ) : null
+          })()}
           {isOverdue && (
             <>
               <span className="text-xs text-[#ABABAB]">·</span>
@@ -170,8 +201,15 @@ export function TriageCard({
 
         {/* Title */}
         <p className="text-[16px] font-semibold leading-snug text-[#1E2432]">
-          {item.title}
+          {gmailDisplay ? gmailDisplay.title : item.title}
         </p>
+
+        {/* URL subtitle (Gmail URL-only subjects) */}
+        {gmailDisplay?.subtitle && (
+          <p className="truncate text-[13px] text-[#ABABAB]">
+            {gmailDisplay.subtitle}
+          </p>
+        )}
 
         {/* Snippet */}
         {item.snippet && (
