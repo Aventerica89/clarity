@@ -43,6 +43,11 @@ const TODOIST_PRIORITIES = [
 ] as const
 
 const URL_PATTERN = /^https?:\/\/\S+$/i
+const MD_LINK_PATTERN = /\[([^\]]+)\]\([^)]+\)/g
+
+function cleanTitle(title: string): string {
+  return title.replace(MD_LINK_PATTERN, "$1")
+}
 
 function formatSenderName(from: string): string {
   const nameMatch = from.match(/^([^<]+?)(?:\s*<|$)/)
@@ -201,7 +206,7 @@ export function TriageCard({
 
         {/* Title */}
         <p className="text-[16px] font-semibold leading-snug text-[#1E2432]">
-          {gmailDisplay ? gmailDisplay.title : item.title}
+          {gmailDisplay ? gmailDisplay.title : cleanTitle(item.title)}
         </p>
 
         {/* URL subtitle (Gmail URL-only subjects) */}
