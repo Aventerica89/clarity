@@ -132,7 +132,7 @@ export function TriagePageContent() {
     }
   }
 
-  function handleApproveSuccess(itemId: string) {
+  function handleApproveSuccess(itemId: string, _taskId: string) {
     setItems((prev) => prev.filter((i) => i.id !== itemId))
     setApproveTarget(null)
   }
