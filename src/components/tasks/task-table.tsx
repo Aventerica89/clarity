@@ -44,6 +44,7 @@ import {
   PRIORITY_COLORS,
   PRIORITY_LABELS,
   parseLabels,
+  parseMetadata,
   isOverdue,
 } from "@/types/task"
 import { cn } from "@/lib/utils"
@@ -85,6 +86,9 @@ export function TaskTable({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     labels: false,
+    dueTime: false,
+    project: false,
+    createdAt: false,
   })
   const [, startBulkTransition] = useTransition()
 
@@ -195,10 +199,22 @@ export function TaskTable({
         },
       },
 
+      // ── Time ─────────────────────────────────────────────────────────────────
+      {
+        accessorKey: "dueTime",
+        header: () => <span className="text-xs font-semibold tracking-wide text-[#8A8A8A]">Time</span>,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const time = row.original.dueTime
+          if (!time) return <span className="text-11 text-[#ABABAB]">—</span>
+          return <span className="font-mono text-11 text-[#8A8A8A]">{time}</span>
+        },
+      },
+
       // ── Source ──────────────────────────────────────────────────────────────
       {
         accessorKey: "source",
-        header: () => <span className="text-xs font-medium">Source</span>,
+        header: () => <span className="text-xs font-semibold tracking-wide text-[#8A8A8A]">Source</span>,
         enableSorting: false,
         cell: ({ row }) => <SourceBadge source={row.original.source} />,
       },
@@ -206,25 +222,52 @@ export function TaskTable({
       // ── Labels ──────────────────────────────────────────────────────────────
       {
         id: "labels",
-        header: () => <span className="text-xs font-medium">Labels</span>,
+        header: () => <span className="text-xs font-semibold tracking-wide text-[#8A8A8A]">Labels</span>,
         enableSorting: false,
         cell: ({ row }) => {
           const labels = parseLabels(row.original.labels)
-          if (labels.length === 0) return <span className="text-xs text-muted-foreground">—</span>
+          if (labels.length === 0) return <span className="text-xs text-[#ABABAB]">—</span>
           return (
             <div className="flex flex-wrap gap-1">
               {labels.slice(0, 2).map((l) => (
-                <Badge key={l} variant="secondary" className="text-10 px-1.5 py-0 font-normal">
+                <Badge key={l} variant="secondary" className="text-10 px-1.5 py-0 font-normal rounded-md">
                   {l}
                 </Badge>
               ))}
               {labels.length > 2 && (
-                <Badge variant="secondary" className="text-10 px-1.5 py-0 font-normal">
+                <Badge variant="secondary" className="text-10 px-1.5 py-0 font-normal rounded-md">
                   +{labels.length - 2}
                 </Badge>
               )}
             </div>
           )
+        },
+      },
+
+      // ── Project ─────────────────────────────────────────────────────────────
+      {
+        id: "project",
+        header: () => <span className="text-xs font-semibold tracking-wide text-[#8A8A8A]">Project</span>,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const meta = parseMetadata(row.original.metadata)
+          const project = typeof meta.projectName === "string" ? meta.projectName : null
+          if (!project) return <span className="text-xs text-[#ABABAB]">—</span>
+          return <span className="text-xs text-[#8A8A8A]">{project}</span>
+        },
+      },
+
+      // ── Created ─────────────────────────────────────────────────────────────
+      {
+        accessorKey: "createdAt",
+        header: ({ column }) => <SortableHeader column={column} label="Created" />,
+        cell: ({ row }) => {
+          const created = row.original.createdAt
+          if (!created) return <span className="text-11 text-[#ABABAB]">—</span>
+          const diff = Date.now() - new Date(created).getTime()
+          const days = Math.floor(diff / 86400000)
+          const label = days < 1 ? "today" : days < 7 ? `${days}d ago` : days < 14 ? "1w ago" : `${Math.floor(days / 7)}w ago`
+          return <span className="text-11 text-[#ABABAB]">{label}</span>
         },
       },
 
@@ -311,7 +354,7 @@ export function TaskTable({
                 checked={col.getIsVisible()}
                 onCheckedChange={(v) => col.toggleVisibility(!!v)}
               >
-                {col.id === "priorityManual" ? "Priority" : col.id}
+                {col.id === "priorityManual" ? "Priority" : col.id === "dueDate" ? "Due" : col.id === "dueTime" ? "Time" : col.id === "createdAt" ? "Created" : col.id}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
@@ -319,16 +362,16 @@ export function TaskTable({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border bg-card overflow-x-auto">
+      <div className="rounded-2xl border border-[#EFEFEF] bg-white dark:bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id} className="hover:bg-transparent">
+              <TableRow key={hg.id} className="bg-[#F5F4F2] dark:bg-muted hover:bg-[#F5F4F2] dark:hover:bg-muted border-b border-[#EFEFEF]">
                 {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
                     className={cn(
-                      "h-9 px-3 text-xs",
+                      "h-11 px-3 text-xs font-semibold tracking-wide text-[#8A8A8A]",
                       header.id === "select" && "w-10",
                     )}
                   >
@@ -348,17 +391,21 @@ export function TaskTable({
                 </TableCell>
               </TableRow>
             ) : (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, idx) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group"
+                  className={cn(
+                    "group border-b border-[#F5F4F2]",
+                    idx % 2 === 1 && "bg-[#F8F7F5] dark:bg-muted/30",
+                    row.original.isCompleted && "opacity-60",
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        "px-3 py-2",
+                        "px-3 py-3",
                         cell.column.id === "select" && "w-10",
                         cell.column.id === "title" && "max-w-[300px]",
                       )}
@@ -374,8 +421,10 @@ export function TaskTable({
       </div>
 
       {tasks.length > 0 && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-[#ABABAB] px-4 py-2.5">
           {table.getFilteredRowModel().rows.length} task{table.getFilteredRowModel().rows.length !== 1 ? "s" : ""}
+          {" · "}
+          {tasks.filter((t) => t.isCompleted).length} completed
         </p>
       )}
     </div>

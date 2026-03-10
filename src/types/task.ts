@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import {
+  Bell,
   CheckSquare,
   Mail,
   PenLine,
@@ -19,6 +20,7 @@ export const TASK_SOURCES = [
   "apple_notes",
   "apple_mail",
   "google_calendar",
+  "google_tasks",
   "routine",
 ] as const
 
@@ -28,10 +30,11 @@ export const SOURCE_ICONS: Record<TaskSource, LucideIcon> = {
   todoist: CheckSquare,
   gmail: Mail,
   manual: PenLine,
-  apple_reminders: ListTodo,
+  apple_reminders: Bell,
   apple_notes: StickyNote,
   apple_mail: Mail,
   google_calendar: Calendar,
+  google_tasks: ListTodo,
   routine: RotateCcw,
 }
 
@@ -43,17 +46,19 @@ export const SOURCE_LABELS: Record<TaskSource, string> = {
   apple_notes: "Notes",
   apple_mail: "Apple Mail",
   google_calendar: "Calendar",
+  google_tasks: "G Tasks",
   routine: "Routine",
 }
 
 export const SOURCE_COLORS: Record<TaskSource, string> = {
-  todoist: "text-red-500",
-  gmail: "text-blue-500",
-  manual: "text-muted-foreground",
+  todoist: "text-[#E44332]",
+  gmail: "text-[#4285F4]",
+  manual: "text-[#8A8A8A]",
   apple_reminders: "text-purple-500",
   apple_notes: "text-amber-500",
-  apple_mail: "text-blue-400",
-  google_calendar: "text-green-500",
+  apple_mail: "text-[#4285F4]",
+  google_calendar: "text-[#34A853]",
+  google_tasks: "text-[#4285F4]",
   routine: "text-cyan-500",
 }
 
@@ -187,4 +192,12 @@ export function groupTasksByDate(
   }
 
   return groups
+}
+
+export function parseMetadata(metadataJson: string): Record<string, unknown> {
+  try {
+    return JSON.parse(metadataJson) as Record<string, unknown>
+  } catch {
+    return {}
+  }
 }
