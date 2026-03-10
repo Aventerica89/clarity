@@ -141,6 +141,8 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | `npm audit fix` blocked by Tailwind oxide arm64 | Same arm64 conflict blocks all npm installs locally. Use `package.json` `"overrides"` to force patched transitive dep versions instead. |
 | Rate limit IP on Vercel | Use `x-real-ip` header (Vercel-trusted, from TCP). `x-forwarded-for` is client-forgeable. `req.ip` was removed from `NextRequest` types in Next.js 15+. |
 | API route error responses | Never return `err.message` to client — leaks DB schema/provider internals. Pattern: `console.error("[route] error:", err); return { error: "Internal server error" }` |
+| Flex child with long URLs | Add `break-all` to text containers + `min-w-0` to flex children. Unbroken URLs don't wrap by default and push flex items beyond their bounds. |
+| Turbopack stale module cache | New `.ts` files may not resolve until dev server restart. If `Cannot find module` for a file that exists, restart dev or use `npm run dev:stable`. |
 
 ## Database Tables
 
@@ -252,7 +254,9 @@ clarity/
       triage/              # Triage scoring logic
       use-active-section.ts  # IntersectionObserver hook (rooted on [data-scroll])
       use-safari-toolbar.ts  # Safari mobile toolbar height hook
+      use-mobile.ts          # useIsMobile() responsive breakpoint hook
     types/                 # Shared TypeScript types
+      triage.ts            # TriageItem type + helpers (cleanTitle, parseSourceMetadata)
   supabase/
     migrations/            # Drizzle-generated SQL (dialect: turso)
   .github/
