@@ -143,7 +143,6 @@ export function CardPlayground() {
                   key={item.id}
                   item={item}
                   variant={viewMode === "grid3" ? "compact" : "comfortable"}
-                  preview
                   onApprove={(approved) => setTriageItems((prev) => prev.filter((i) => i.id !== approved.id))}
                   onDismiss={(id) => setTriageItems((prev) => prev.filter((i) => i.id !== id))}
                   onPushToContext={(id) => setTriageItems((prev) => prev.filter((i) => i.id !== id))}

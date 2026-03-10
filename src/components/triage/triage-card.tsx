@@ -8,9 +8,12 @@ import {
   Sparkles,
   ThumbsUp,
   ChevronRight,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { SourceBadge } from "./source-badge"
+import { getScoreColor } from "./score-color"
 
 const TODOIST_PRIORITIES = [
   { value: 1, label: "P1" },
@@ -58,7 +61,6 @@ export interface TriageItem {
 interface TriageCardProps {
   item: TriageItem
   variant?: "compact" | "comfortable"
-  preview?: boolean
   onApprove: (item: TriageItem) => void
   onDismiss: (id: string) => void
   onPushToContext: (id: string) => void
@@ -69,7 +71,6 @@ interface TriageCardProps {
 export function TriageCard({
   item,
   variant = "comfortable",
-  preview = false,
   onApprove,
   onDismiss,
   onPushToContext,
@@ -103,10 +104,6 @@ export function TriageCard({
     action: "dismiss" | "complete" | "approve" | "push_to_context",
     callback: () => void
   ) {
-    if (preview) {
-      callback()
-      return
-    }
     const key = action === "push_to_context" ? "context" : action
     setLoading(key as typeof loading)
     try {
@@ -132,18 +129,20 @@ export function TriageCard({
     }
   }
 
-  const scoreColor =
-    item.aiScore >= 80
-      ? "text-[#E85A4F]"
-      : item.aiScore >= 60
-        ? "text-[#C9A53E]"
-        : "text-[#8A8A8A]"
+  const scoreColor = getScoreColor(item.aiScore)
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      onCardClick?.(item)
+    }
+  }
 
   return (
     <div
       className={cn(
-        "flex overflow-hidden rounded-[16px] border border-[#EFEFEF] bg-white dark:border-[#2A2A2A] dark:bg-[#141414]",
-        isCompact ? "flex-col sm:flex-row" : "flex-col sm:flex-row"
+        "flex overflow-hidden rounded-[16px] border bg-background",
+        "flex-col sm:flex-row"
       )}
     >
       {/* -- Left Panel: Content -- */}
@@ -154,6 +153,9 @@ export function TriageCard({
           onCardClick && "cursor-pointer"
         )}
         onClick={() => onCardClick?.(item)}
+        onKeyDown={onCardClick ? handleKeyDown : undefined}
+        role={onCardClick ? "button" : undefined}
+        tabIndex={onCardClick ? 0 : undefined}
       >
         {/* Source Row */}
         <div className="flex items-center gap-1.5">
@@ -163,15 +165,15 @@ export function TriageCard({
             const sender = meta.from ? formatSenderName(meta.from) : null
             return sender ? (
               <>
-                <span className="text-xs text-[#ABABAB] dark:text-[#555]">·</span>
-                <span className="truncate text-xs text-[#8A8A8A]">{sender}</span>
+                <span className="text-xs text-muted-foreground/60">·</span>
+                <span className="truncate text-xs text-muted-foreground">{sender}</span>
               </>
             ) : null
           })()}
           {isOverdue && (
             <>
-              <span className="text-xs text-[#ABABAB] dark:text-[#555]">·</span>
-              <span className="text-xs font-medium text-[#E5484D]">
+              <span className="text-xs text-muted-foreground/60">·</span>
+              <span className="text-xs font-medium text-destructive">
                 Overdue
               </span>
             </>
@@ -179,13 +181,13 @@ export function TriageCard({
         </div>
 
         {/* Title */}
-        <p className="text-[16px] font-semibold leading-snug text-[#1E2432] dark:text-[#E8E8E8]">
+        <p className="text-[16px] font-semibold leading-snug text-foreground">
           {gmailDisplay ? gmailDisplay.title : cleanTitle(item.title)}
         </p>
 
         {/* URL subtitle (Gmail URL-only subjects) */}
         {gmailDisplay?.subtitle && (
-          <p className="truncate text-[13px] text-[#ABABAB] dark:text-[#555]">
+          <p className="truncate text-[13px] text-muted-foreground/60">
             {gmailDisplay.subtitle}
           </p>
         )}
@@ -194,7 +196,7 @@ export function TriageCard({
         {item.snippet && (
           <p
             className={cn(
-              "text-[13px] leading-[1.45] text-[#8A8A8A]",
+              "text-[13px] leading-[1.45] text-muted-foreground",
               isCompact ? "line-clamp-1" : "line-clamp-2"
             )}
           >
@@ -202,24 +204,20 @@ export function TriageCard({
           </p>
         )}
 
-        {/* AI Reasoning (left panel, compact) */}
-        {!isCompact && item.aiReasoning && (
-          <p className="text-xs italic text-[#ABABAB] dark:text-[#666]">{item.aiReasoning}</p>
-        )}
-
         {/* Priority Pills (Todoist only) */}
         {isTodoist && (
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5" role="group" aria-label="Priority selection">
             {TODOIST_PRIORITIES.map((p) => (
               <button
                 key={p.value}
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setSelectedPriority(p.value) }}
+                aria-pressed={selectedPriority === p.value}
                 className={cn(
                   "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                   selectedPriority === p.value
-                    ? "border-[1.5px] border-[#1E2432] bg-[#F5F4F2] text-[#1E2432] dark:border-[#E8E8E8] dark:bg-[#2A2A2A] dark:text-[#E8E8E8]"
-                    : "bg-[#F5F4F2] text-[#8A8A8A] hover:text-[#1E2432] dark:bg-[#1A1A1A] dark:hover:text-[#E8E8E8]"
+                    ? "border-[1.5px] border-foreground bg-muted text-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >
                 {p.label}
@@ -230,7 +228,7 @@ export function TriageCard({
 
         {/* View details link */}
         {onCardClick && (
-          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#ABABAB] transition-colors hover:text-[#1E2432] dark:text-[#666] dark:hover:text-[#E8E8E8]">
+          <span className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
             View details
             <ChevronRight className="size-3" />
           </span>
@@ -240,20 +238,20 @@ export function TriageCard({
       {/* -- Right Panel: AI + Actions -- */}
       <div
         className={cn(
-          "flex shrink-0 flex-col justify-between gap-4 bg-[#F5F4F2] p-5 dark:bg-[#1A1A1A]",
+          "flex shrink-0 flex-col justify-between gap-4 bg-muted p-5",
           "sm:w-[200px] sm:rounded-r-[16px]"
         )}
       >
         {/* AI Analysis Section */}
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-1.5">
-            <Sparkles className="size-3.5 text-[#8A8A8A]" />
-            <span className="text-sm font-semibold text-[#1E2432] dark:text-[#E8E8E8]">
+            <Sparkles className="size-3.5 text-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">
               AI Analysis
             </span>
           </div>
           {item.aiReasoning && (
-            <p className="text-xs italic leading-[1.4] text-[#8A8A8A]">
+            <p className="text-xs italic leading-[1.4] text-muted-foreground">
               {item.aiReasoning}
             </p>
           )}
@@ -267,65 +265,68 @@ export function TriageCard({
           {isTodoist ? (
             <>
               {/* Complete */}
-              <button
-                type="button"
-                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50 dark:bg-[#E8E8E8] dark:text-[#1E2432] dark:hover:bg-[#D4D4D4]"
+              <Button
+                className="h-9 rounded-[10px] text-sm font-semibold"
                 onClick={() =>
                   handleAction("complete", () => onComplete(item.id))
                 }
                 disabled={loading !== null}
+                aria-label="Complete task"
               >
                 <CheckCircle2 className="size-[15px]" />
-                {loading === "complete" ? "..." : "Complete"}
-              </button>
+                {loading === "complete" ? <Loader2 className="size-4 animate-spin" /> : "Complete"}
+              </Button>
               {/* Approve */}
-              <button
-                type="button"
-                className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50 dark:border-[#333] dark:text-[#E8E8E8] dark:hover:bg-[#2A2A2A]"
+              <Button
+                variant="outline"
+                className="h-9 rounded-[10px] text-sm font-medium"
                 onClick={() =>
                   handleAction("approve", () => onApprove(item))
                 }
                 disabled={loading !== null}
+                aria-label="Approve task"
               >
-                <ThumbsUp className="size-[15px] text-[#8A8A8A]" />
-                {loading === "approve" ? "..." : "Approve"}
-              </button>
+                <ThumbsUp className="size-[15px]" />
+                {loading === "approve" ? <Loader2 className="size-4 animate-spin" /> : "Approve"}
+              </Button>
             </>
           ) : (
-            <button
-              type="button"
-              className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50 dark:bg-[#E8E8E8] dark:text-[#1E2432] dark:hover:bg-[#D4D4D4]"
+            <Button
+              className="h-9 rounded-[10px] text-sm font-semibold"
               onClick={() => handleAction("approve", () => onApprove(item))}
               disabled={loading !== null}
+              aria-label="Add to Todoist"
             >
               <CheckCircle2 className="size-[15px]" />
               Add to Todoist
-            </button>
+            </Button>
           )}
           {/* Pin (Push to Context) */}
-          <button
-            type="button"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50 dark:border-[#333] dark:text-[#E8E8E8] dark:hover:bg-[#2A2A2A]"
+          <Button
+            variant="outline"
+            className="h-9 rounded-[10px] text-sm font-medium"
             onClick={() =>
               handleAction("push_to_context", () => onPushToContext(item.id))
             }
             disabled={loading !== null}
+            aria-label="Pin to context"
           >
-            <Pin className="size-[15px] text-[#8A8A8A]" />
-            {loading === "context" ? "..." : "Pin"}
-          </button>
+            <Pin className="size-[15px]" />
+            {loading === "context" ? <Loader2 className="size-4 animate-spin" /> : "Pin"}
+          </Button>
           {/* Dismiss */}
-          <button
-            type="button"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] px-4 text-sm font-medium text-[#8A8A8A] transition-colors hover:text-[#1E2432] disabled:opacity-50 dark:hover:text-[#E8E8E8]"
+          <Button
+            variant="ghost"
+            className="h-9 rounded-[10px] text-sm font-medium text-muted-foreground hover:text-foreground"
             onClick={() =>
               handleAction("dismiss", () => onDismiss(item.id))
             }
             disabled={loading !== null}
+            aria-label="Dismiss item"
           >
             <X className="size-[15px]" />
-            {loading === "dismiss" ? "..." : "Dismiss"}
-          </button>
+            {loading === "dismiss" ? <Loader2 className="size-4 animate-spin" /> : "Dismiss"}
+          </Button>
         </div>
       </div>
     </div>

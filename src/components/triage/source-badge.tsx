@@ -40,12 +40,12 @@ export function SourceBadge({ source, className }: SourceBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-lg border border-[#EFEFEF] px-2 py-0.5 dark:border-[#2A2A2A]",
+        "inline-flex items-center gap-1 rounded-lg border px-2 py-0.5",
         className
       )}
     >
       <Icon className={cn("size-3", color)} />
-      <span className="text-xs text-[#1E2432] dark:text-[#E8E8E8]">{label}</span>
+      <span className="text-xs text-foreground">{label}</span>
     </span>
   )
 }

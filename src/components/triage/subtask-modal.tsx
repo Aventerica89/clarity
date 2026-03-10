@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -58,14 +59,19 @@ function ProgressRing({ completed, total }: { completed: number; total: number }
   const offset = circumference * (1 - progress)
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={`${completed} of ${total} subtasks complete`}
+    >
       <svg width={size} height={size} className="-rotate-90">
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          className="stroke-[#EFEFEF] dark:stroke-[#2A2A2A]"
+          className="stroke-border"
           strokeWidth={stroke}
         />
         <circle
@@ -77,7 +83,7 @@ function ProgressRing({ completed, total }: { completed: number; total: number }
             "transition-all duration-300",
             progress === 1
               ? "stroke-[#4CAF50]"
-              : "stroke-[#1E2432] dark:stroke-[#E8E8E8]"
+              : "stroke-foreground"
           )}
           strokeWidth={stroke}
           strokeDasharray={circumference}
@@ -85,7 +91,7 @@ function ProgressRing({ completed, total }: { completed: number; total: number }
           strokeLinecap="round"
         />
       </svg>
-      <span className="absolute text-xs font-bold text-[#1E2432] dark:text-[#E8E8E8]">
+      <span className="absolute text-xs font-bold text-foreground">
         {completed}/{total}
       </span>
     </div>
@@ -173,15 +179,15 @@ function SubtaskModalContent({
     <div className="flex flex-col">
       {/* Header */}
       <div className="space-y-3 px-5 pt-5 pb-2">
-        <p className="text-[16px] font-semibold leading-snug text-[#1E2432] dark:text-[#E8E8E8]">
+        <p className="text-[16px] font-semibold leading-snug text-foreground">
           {item.title}
         </p>
         <div className="flex items-center gap-1.5">
           <SourceBadge source={item.source} />
           {isOverdue && (
             <>
-              <span className="text-xs text-[#ABABAB] dark:text-[#666]">·</span>
-              <span className="text-xs font-medium text-[#E5484D]">
+              <span className="text-xs text-muted-foreground/60">·</span>
+              <span className="text-xs font-medium text-destructive">
                 Overdue
               </span>
             </>
@@ -193,8 +199,9 @@ function SubtaskModalContent({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add a description..."
+          aria-label="Task description"
           rows={3}
-          className="w-full resize-none rounded-[10px] border border-[#EFEFEF] bg-[#FAFAFA] px-3 py-2.5 text-[13px] leading-[1.5] text-[#1E2432] placeholder:text-[#ABABAB] outline-none transition-colors focus:border-[#D4D4D4] focus:bg-white dark:border-[#2A2A2A] dark:bg-[#1A1A1A] dark:text-[#E8E8E8] dark:placeholder:text-[#555] dark:focus:border-[#444] dark:focus:bg-[#222]"
+          className="w-full resize-none rounded-[10px] border bg-muted/50 px-3 py-2.5 text-[13px] leading-[1.5] text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus:border-ring focus:bg-background"
         />
       </div>
 
@@ -203,10 +210,10 @@ function SubtaskModalContent({
         <div className="flex items-center gap-3 px-5 py-3">
           <ProgressRing completed={completed.length} total={subtasks.length} />
           <div>
-            <p className="text-sm font-medium text-[#1E2432] dark:text-[#E8E8E8]">
+            <p className="text-sm font-medium text-foreground">
               {completed.length} of {subtasks.length} complete
             </p>
-            <p className="text-xs text-[#8A8A8A]">
+            <p className="text-xs text-muted-foreground">
               {remaining.length} remaining
             </p>
           </div>
@@ -214,8 +221,8 @@ function SubtaskModalContent({
       )}
 
       {loadingSubtasks && (
-        <div className="flex justify-center py-6">
-          <Loader2 className="size-5 animate-spin text-[#8A8A8A]" />
+        <div className="flex justify-center py-6" aria-busy="true">
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
         </div>
       )}
 
@@ -225,7 +232,7 @@ function SubtaskModalContent({
           {/* Completed */}
           {completed.length > 0 && (
             <div className="space-y-1 pb-3">
-              <p className="flex items-center gap-1.5 text-xs text-[#8A8A8A] pb-1">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground pb-1">
                 <CheckCircle2 className="size-3" />
                 Completed {completed.length}
               </p>
@@ -235,10 +242,11 @@ function SubtaskModalContent({
                     key={i}
                     type="button"
                     onClick={() => toggleSubtask(i)}
-                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-[#F5F4F2] dark:hover:bg-[#1A1A1A]"
+                    aria-pressed={true}
+                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted"
                   >
-                    <CheckCircle2 className="size-4 shrink-0 text-[#8A8A8A]" />
-                    <span className="text-sm text-[#8A8A8A] line-through">
+                    <CheckCircle2 className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground line-through">
                       {s.text}
                     </span>
                   </button>
@@ -250,7 +258,7 @@ function SubtaskModalContent({
           {/* Remaining */}
           {remaining.length > 0 && (
             <div className="space-y-1 pb-3">
-              <p className="flex items-center gap-1.5 text-xs text-[#8A8A8A] pb-1">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground pb-1">
                 <Circle className="size-3" />
                 Remaining {remaining.length}
               </p>
@@ -260,10 +268,11 @@ function SubtaskModalContent({
                     key={i}
                     type="button"
                     onClick={() => toggleSubtask(i)}
-                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-[#F5F4F2] dark:hover:bg-[#1A1A1A]"
+                    aria-pressed={false}
+                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted"
                   >
-                    <Circle className="size-4 shrink-0 text-[#ABABAB] dark:text-[#555]" />
-                    <span className="text-sm text-[#1E2432] dark:text-[#E8E8E8]">{s.text}</span>
+                    <Circle className="size-4 shrink-0 text-muted-foreground/60" />
+                    <span className="text-sm text-foreground">{s.text}</span>
                   </button>
                 ) : null
               )}
@@ -273,55 +282,59 @@ function SubtaskModalContent({
       )}
 
       {/* Add subtask input */}
-      <div className="flex items-center gap-2 border-t border-[#EFEFEF] px-5 py-3 dark:border-[#2A2A2A]">
-        <Plus className="size-4 shrink-0 text-[#ABABAB] dark:text-[#555]" />
+      <div className="flex items-center gap-2 border-t px-5 py-3">
+        <Plus className="size-4 shrink-0 text-muted-foreground/60" />
         <input
           type="text"
           value={newSubtask}
           onChange={(e) => setNewSubtask(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addSubtask()}
           placeholder="Add a subtask..."
-          className="flex-1 bg-transparent text-sm text-[#1E2432] placeholder:text-[#ABABAB] outline-none dark:text-[#E8E8E8] dark:placeholder:text-[#555]"
+          aria-label="New subtask"
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 outline-none"
         />
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center gap-2 border-t border-[#EFEFEF] px-5 py-4 dark:border-[#2A2A2A]">
-        <button
-          type="button"
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-[#1E2432] text-sm font-semibold text-white transition-colors hover:bg-[#2a3347] disabled:opacity-50 dark:bg-[#E8E8E8] dark:text-[#1E2432] dark:hover:bg-[#D4D4D4]"
+      <div className="flex items-center gap-2 border-t px-5 py-4">
+        <Button
+          className="h-10 flex-1 rounded-[10px] text-sm font-semibold"
           onClick={() => handleAction("complete")}
           disabled={actionLoading !== null}
+          aria-label="Complete all subtasks"
         >
           <CheckCircle2 className="size-[15px]" />
-          {actionLoading === "complete" ? "..." : "Complete All"}
-        </button>
-        <button
-          type="button"
-          className="flex h-10 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50 dark:border-[#333] dark:text-[#E8E8E8] dark:hover:bg-[#2A2A2A]"
+          {actionLoading === "complete" ? <Loader2 className="size-4 animate-spin" /> : "Complete All"}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-10 rounded-[10px] text-sm font-medium"
           onClick={() => handleAction("approve")}
           disabled={actionLoading !== null}
+          aria-label="Approve task"
         >
-          <ThumbsUp className="size-[15px] text-[#8A8A8A]" />
-          {actionLoading === "approve" ? "..." : "Approve"}
-        </button>
-        <button
-          type="button"
-          className="flex h-10 items-center justify-center gap-1.5 rounded-[10px] border border-[#E8E8E8] px-4 text-sm font-medium text-[#1E2432] transition-colors hover:bg-[#EAEAEA] disabled:opacity-50 dark:border-[#333] dark:text-[#E8E8E8] dark:hover:bg-[#2A2A2A]"
+          <ThumbsUp className="size-[15px]" />
+          {actionLoading === "approve" ? <Loader2 className="size-4 animate-spin" /> : "Approve"}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-10 rounded-[10px] text-sm font-medium"
           onClick={() => handleAction("pin")}
           disabled={actionLoading !== null}
+          aria-label="Pin to context"
         >
-          <Pin className="size-[15px] text-[#8A8A8A]" />
-          {actionLoading === "pin" ? "..." : "Pin"}
-        </button>
-        <button
-          type="button"
-          className="flex h-10 items-center justify-center gap-1.5 rounded-[10px] px-4 text-sm font-medium text-[#8A8A8A] transition-colors hover:text-[#1E2432] dark:hover:text-[#E8E8E8]"
+          <Pin className="size-[15px]" />
+          {actionLoading === "pin" ? <Loader2 className="size-4 animate-spin" /> : "Pin"}
+        </Button>
+        <Button
+          variant="ghost"
+          className="h-10 rounded-[10px] text-sm font-medium text-muted-foreground hover:text-foreground"
           onClick={onClose}
+          aria-label="Close modal"
         >
           <X className="size-[15px]" />
           Close
-        </button>
+        </Button>
       </div>
     </div>
   )

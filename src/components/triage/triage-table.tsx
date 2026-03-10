@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table"
 import { ArrowUpDown, CheckCircle2, ChevronDown, X, ArrowUpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getScoreColor } from "./score-color"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
@@ -138,13 +139,7 @@ export function TriageTable({
         ),
         cell: ({ row }) => {
           const score = row.original.aiScore
-          const color =
-            score >= 80
-              ? "text-destructive"
-              : score >= 60
-                ? "text-amber-500"
-                : "text-muted-foreground"
-          return <span className={cn("text-xs tabular-nums", color)}>{score}/100</span>
+          return <span className={cn("text-xs tabular-nums", getScoreColor(score))}>{score}/100</span>
         },
       },
       {
