@@ -83,6 +83,7 @@ vi.mock("@/lib/schema", () => ({
   plaidItems: { userId: "userId-col", id: "id-col" },
   financialSnapshot: { userId: "userId-col" },
   plaidAccounts: { plaidAccountId: "plaid_account_id" },
+  transactions: { plaidTransactionId: "plaid_transaction_id" },
 }))
 
 vi.mock("@/lib/plaid", () => ({
