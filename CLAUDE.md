@@ -144,6 +144,7 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | Flex child with long URLs | Add `break-all` to text containers + `min-w-0` to flex children. Unbroken URLs don't wrap by default and push flex items beyond their bounds. |
 | Turbopack stale module cache | New `.ts` files may not resolve until dev server restart. If `Cannot find module` for a file that exists, restart dev or use `npm run dev:stable`. |
 | `npm install` without committing `package.json` | Vercel builds from git — if `package.json` isn't committed after `npm install`, deploys fail silently while local builds work. Always commit `package.json` + `package-lock.json` together with code that imports the new package. |
+| Vitest picks up tests in git worktrees | Agent worktrees land in `.worktrees/` — vitest discovers their test files and fails. `vitest.config.ts` explicitly excludes `.worktrees/**`; do not remove that exclusion. |
 
 ## Database Tables
 
