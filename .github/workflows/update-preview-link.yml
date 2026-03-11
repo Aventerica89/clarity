@@ -8,12 +8,20 @@ jobs:
     if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment_url != ''
     runs-on: ubuntu-latest
     steps:
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          URLSTOGO_API_KEY: op://App Dev/Clarity/URLSTOGO_API_KEY
+
       - name: Update preview link
         env:
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
         run: |
           curl -s -X PUT \
-            -H "Authorization: Bearer ${{ secrets.URLSTOGO_API_KEY }}" \
+            -H "Authorization: Bearer ${URLSTOGO_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "{\"destination\": \"${DEPLOYMENT_URL}\"}" \
             "https://go.urlstogo.cloud/api/preview-links/clarity--preview"

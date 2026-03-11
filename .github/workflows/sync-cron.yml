@@ -11,10 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CRON_SECRET: op://App Dev/Clarity/CRON_SECRET
+
       - name: Trigger sync
         env:
           APP_URL: ${{ vars.APP_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           response=$(curl -s -w "\n%{http_code}" \
             -X POST "${APP_URL}/api/cron/sync" \
