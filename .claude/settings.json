@@ -6,7 +6,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file=$(python3 -c \"import json,os; d=json.loads(os.environ.get('CLAUDE_TOOL_INPUT','{}')); print(d.get('file_path',''))\" 2>/dev/null); [[ \"$file\" == *\".env.local\"* ]] && echo 'BLOCKED: Never edit .env.local directly. Use: npm run env:inject' && exit 1 || exit 0"
+            "command": "file=$(python3 -c \"import json,os; d=json.loads(os.environ.get('CLAUDE_TOOL_INPUT','{}')); print(d.get('file_path',''))\" 2>/dev/null); [[ \"$file\" == *\".env.local\"* || \"$file\" == *\".env.dev-auth.tpl\"* ]] && echo 'BLOCKED: Never edit env files directly. Use: npm run env:inject' && exit 1 || exit 0"
+          },
+          {
+            "type": "command",
+            "command": "file=$(python3 -c \"import json,os; d=json.loads(os.environ.get('CLAUDE_TOOL_INPUT','{}')); print(d.get('file_path',''))\" 2>/dev/null); [[ \"$file\" == *\"package-lock.json\"* ]] && echo 'BLOCKED: Never edit package-lock.json directly. Use npm install.' && exit 1 || exit 0"
           }
         ]
       }
@@ -18,6 +22,10 @@
           {
             "type": "command",
             "command": "file=$(python3 -c \"import json,os; d=json.loads(os.environ.get('CLAUDE_TOOL_INPUT','{}')); print(d.get('file_path',''))\" 2>/dev/null); [[ \"$file\" == *.ts || \"$file\" == *.tsx ]] && cd /Users/jb/clarity && npx tsc --noEmit --pretty 2>&1 | tail -20 || true"
+          },
+          {
+            "type": "command",
+            "command": "file=$(python3 -c \"import json,os; d=json.loads(os.environ.get('CLAUDE_TOOL_INPUT','{}')); print(d.get('file_path',''))\" 2>/dev/null); [[ \"$file\" == *.ts || \"$file\" == *.tsx || \"$file\" == *.js || \"$file\" == *.jsx ]] && cd /Users/jb/clarity && npx eslint --fix \"$file\" 2>&1 | tail -10 || true"
           }
         ]
       }
