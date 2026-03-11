@@ -40,7 +40,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "dompurify": "^3.3.1",
+    "dompurify": "^3.3.2",
     "drizzle-orm": "^0.45.1",
     "googleapis": "^171.4.0",
     "jose": "^6.1.3",
@@ -88,6 +88,8 @@
     "lightningcss-darwin-arm64": "^1.31.1"
   },
   "overrides": {
-    "express-rate-limit": "^8.2.2"
+    "express-rate-limit": "^8.2.2",
+    "dompurify": "^3.3.2",
+    "esbuild": "^0.25.0"
   }
 }
