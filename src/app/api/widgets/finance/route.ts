@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
     // Runway mode: return financial snapshot data
     if (type === "runway") {
       const [snapshot] = await db
-        .select()
+        .select({
+          bankBalanceCents: financialSnapshot.bankBalanceCents,
+          monthlyBurnCents: financialSnapshot.monthlyBurnCents,
+        })
         .from(financialSnapshot)
         .where(eq(financialSnapshot.userId, userId))
         .limit(1)

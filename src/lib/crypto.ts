@@ -1,3 +1,9 @@
+/**
+ * @fileoverview AES-256-GCM encryption utilities for storing provider tokens at rest.
+ *
+ * Requires `TOKEN_ENCRYPTION_KEY` env var — a 32-byte key base64-encoded.
+ * Encrypted values are stored in the `integrations` table and decrypted at runtime.
+ */
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
 
 const ALGORITHM = "aes-256-gcm"
@@ -14,6 +20,13 @@ function getEncryptionKey(): Buffer {
   return buf
 }
 
+/**
+ * Encrypts a plaintext token using AES-256-GCM.
+ *
+ * @param plaintext - The raw token string to encrypt.
+ * @returns Base64-encoded string containing IV + auth tag + ciphertext.
+ * @throws If `TOKEN_ENCRYPTION_KEY` is missing or not 32 bytes.
+ */
 export function encryptToken(plaintext: string): string {
   const key = getEncryptionKey()
   const iv = randomBytes(IV_LENGTH)
@@ -23,6 +36,13 @@ export function encryptToken(plaintext: string): string {
   return Buffer.concat([iv, tag, encrypted]).toString("base64")
 }
 
+/**
+ * Decrypts a ciphertext produced by `encryptToken`.
+ *
+ * @param ciphertext - Base64-encoded string containing IV + auth tag + ciphertext.
+ * @returns The original plaintext token.
+ * @throws If the auth tag is invalid, the key is wrong, or the data is malformed.
+ */
 export function decryptToken(ciphertext: string): string {
   const key = getEncryptionKey()
   const buf = Buffer.from(ciphertext, "base64")

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Try to get API key from integrations table
     const [integration] = await db
-      .select()
+      .select({ accessTokenEncrypted: integrations.accessTokenEncrypted })
       .from(integrations)
       .where(
         and(

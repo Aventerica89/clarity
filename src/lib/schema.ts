@@ -94,6 +94,7 @@ export const events = sqliteTable("events", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (t) => [
   uniqueIndex("events_user_source_idx").on(t.userId, t.source, t.sourceId),
+  index("events_user_start_idx").on(t.userId, t.startAt),
 ])
 
 // Routines — recurring habits tracked by the streak engine
@@ -110,7 +111,9 @@ export const routines = sqliteTable("routines", {
   streakBest: integer("streak_best").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
-})
+}, (t) => [
+  index("routines_user_active_idx").on(t.userId, t.isActive),
+])
 
 // Routine completions — one row per day a routine was completed
 export const routineCompletions = sqliteTable("routine_completions", {
@@ -121,6 +124,7 @@ export const routineCompletions = sqliteTable("routine_completions", {
   completedAt: integer("completed_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (t) => [
   uniqueIndex("routine_completions_unique_idx").on(t.routineId, t.completedDate),
+  index("routine_completions_user_date_idx").on(t.userId, t.completedDate),
 ])
 
 // Integrations — encrypted OAuth tokens for each connected provider
@@ -150,7 +154,9 @@ export const lifeContextItems = sqliteTable("life_context_items", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
-})
+}, (t) => [
+  index("life_context_items_user_active_idx").on(t.userId, t.isActive),
+])
 
 // Life context updates — timestamped progress entries per context item
 export const lifeContextUpdates = sqliteTable("life_context_updates", {
@@ -164,7 +170,10 @@ export const lifeContextUpdates = sqliteTable("life_context_updates", {
   approvalStatus: text("approval_status", { enum: ["pending", "approved", "dismissed"] }),
   model: text("model"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
-})
+}, (t) => [
+  index("life_context_updates_item_idx").on(t.contextItemId),
+  index("life_context_updates_user_idx").on(t.userId),
+])
 
 // Context pins — lightweight links between a life context item and tasks, emails, events, or other context items
 export const contextPins = sqliteTable("context_pins", {
@@ -233,7 +242,9 @@ export const plaidItems = sqliteTable("plaid_items", {
   lastError: text("last_error"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
-})
+}, (t) => [
+  index("plaid_items_user_idx").on(t.userId),
+])
 
 // Coach messages — persistent multi-turn chat history per user/session
 export const coachMessages = sqliteTable("coach_messages", {
@@ -260,7 +271,9 @@ export const chatSessions = sqliteTable("chat_sessions", {
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
-})
+}, (t) => [
+  index("chat_sessions_user_idx").on(t.userId),
+])
 
 // Plaid Accounts — one row per account within an Item
 export const plaidAccounts = sqliteTable("plaid_accounts", {

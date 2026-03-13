@@ -154,7 +154,12 @@ export async function GET(request: NextRequest) {
 
     const today = todayString()
     const [plan] = await db
-      .select()
+      .select({
+        todayPlan: dayPlans.todayPlan,
+        horizon: dayPlans.horizon,
+        model: dayPlans.model,
+        generatedAt: dayPlans.generatedAt,
+      })
       .from(dayPlans)
       .where(
         and(
