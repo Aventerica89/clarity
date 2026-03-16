@@ -104,6 +104,7 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 - ALWAYS use Drizzle ORM with Turso client (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`)
 - NEVER expose `TURSO_AUTH_TOKEN` to client code — server/API routes only
 - ALWAYS filter by `userId` in queries (no RLS — enforced in application layer)
+- ALWAYS use Zod `safeParse()` for POST/PATCH request bodies in API routes
 
 ### AI Providers
 - Stored encrypted in `integrations` table, decrypted at runtime via `TOKEN_ENCRYPTION_KEY`
@@ -203,7 +204,6 @@ clarity/
         ai/                # AI coach endpoint
         auth/              # Better Auth handlers
         chat/              # Chat sessions
-        cron/              # GH Actions sync endpoint
         emails/            # Gmail cache CRUD
         integrations/      # Provider key management (anthropic, deepseek, groq, gemini, gemini-pro, openweathermap)
         cron/
@@ -235,7 +235,8 @@ clarity/
       dev/                 # Dev wiki components
     lib/
       auth.ts              # Better Auth config (maxPasswordAttempts: 5 — do not remove)
-      proxy.ts             # Rate-limiting middleware — called from middleware.ts, NOT middleware.ts itself
+      proxy.ts             # Rate-limiting middleware logic (delegated from src/middleware.ts)
+      middleware.ts        # Next.js middleware entry point (re-exports proxy)
       auth-client.ts       # Better Auth browser client
       db.ts                # Turso/LibSQL + Drizzle client
       schema.ts            # Drizzle schema (23 tables)
@@ -277,6 +278,6 @@ clarity/
 - Implementation Plan: `docs/PLAN.md`
 - Feature Ideas Backlog: `docs/IDEAS.md` — add here when user says "add to idea list"
 - Competitive Analysis & Roadmap: `~/.claude/plans/2026-02-26-clarity-competitive-analysis.md`
-- Google Workspace API Research: `~/.claude/plans/zazzy-exploring-mountain.md`
+
 - Design System: `.interface-design/system.md`
 - Shared docs: `~/.claude/docs/shadcn-ui.md`, `~/.claude/docs/better-auth.md`
