@@ -8,6 +8,7 @@ import { TasksFilterBar } from "@/components/tasks/tasks-filter-bar"
 import { TaskCardEnhanced } from "@/components/tasks/task-card-enhanced"
 import { TaskTable } from "@/components/tasks/task-table"
 import { CreateTaskModal } from "@/components/tasks/create-task-modal"
+import { TaskDetailModal } from "@/components/tasks/task-detail-modal"
 import { SubtaskList } from "@/components/tasks/subtask-list"
 import {
   type TaskItem,
@@ -23,6 +24,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null)
   const [search, setSearch] = useState("")
   const [view, setView] = useState<"grid2" | "grid3" | "table">("table")
   const [gridPage, setGridPage] = useState(1)
@@ -152,6 +154,10 @@ export default function TasksPage() {
     setTasks((prev) => prev.filter((t) => !ids.includes(t.id)))
   }
 
+  function handleDescriptionSaved(id: string, description: string) {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, description } : t)))
+  }
+
   async function handleBulkHide(ids: string[]) {
     await fetch("/api/tasks/bulk", {
       method: "POST",
@@ -204,6 +210,7 @@ export default function TasksPage() {
               onPriorityChange={tab === "active" ? handlePriorityChange : undefined}
               onBulkComplete={tab === "active" ? handleBulkComplete : undefined}
               onBulkHide={tab === "active" ? handleBulkHide : undefined}
+              onRowClick={setSelectedTask}
             />
           ) : (
             <div className="space-y-4">
@@ -238,6 +245,14 @@ export default function TasksPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSuccess={fetchTasks}
+      />
+
+      <TaskDetailModal
+        task={selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onComplete={tab === "active" ? (id) => { handleComplete(id); setSelectedTask(null) } : undefined}
+        onHide={tab === "active" ? (id) => { handleHide(id); setSelectedTask(null) } : undefined}
+        onDescriptionSaved={handleDescriptionSaved}
       />
     </div>
   )

@@ -57,6 +57,7 @@ interface TaskTableProps {
   onPriorityChange?: (id: string, priority: number) => Promise<void>
   onBulkComplete?: (ids: string[]) => Promise<void>
   onBulkHide?: (ids: string[]) => Promise<void>
+  onRowClick?: (task: TaskItem) => void
 }
 
 export function TaskTable({
@@ -67,6 +68,7 @@ export function TaskTable({
   onPriorityChange,
   onBulkComplete,
   onBulkHide,
+  onRowClick,
 }: TaskTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -108,7 +110,15 @@ export function TaskTable({
       {
         accessorKey: "title",
         header: ({ column }) => <SortableHeader onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} label="Title" />,
-        cell: ({ row }) => (
+        cell: ({ row }) => onRowClick ? (
+          <button
+            type="button"
+            onClick={() => onRowClick(row.original)}
+            className="font-medium text-sm leading-snug line-clamp-2 text-left hover:underline cursor-pointer"
+          >
+            {row.original.title}
+          </button>
+        ) : (
           <span className="font-medium text-sm leading-snug line-clamp-2">
             {row.original.title}
           </span>
@@ -258,7 +268,7 @@ export function TaskTable({
       },
 
     ],
-    [onPriorityChange, onReschedule],
+    [onPriorityChange, onReschedule, onRowClick],
   )
 
   const table = useReactTable({
