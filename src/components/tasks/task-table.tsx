@@ -114,7 +114,7 @@ export function TaskTable({
           <button
             type="button"
             onClick={() => onRowClick(row.original)}
-            className="font-medium text-sm leading-snug line-clamp-2 text-left hover:underline cursor-pointer"
+            className="font-medium text-sm leading-snug line-clamp-2 text-left hover:underline hover:text-primary cursor-pointer transition-colors"
           >
             {row.original.title}
           </button>
@@ -140,7 +140,7 @@ export function TaskTable({
                   if (!Number.isNaN(next)) void onPriorityChange(row.original.id, next)
                 }}
               >
-                <SelectTrigger className="h-7 w-[92px] text-xs">
+                <SelectTrigger className="h-7 w-[92px] text-xs border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
