@@ -140,7 +140,7 @@ export function TaskTable({
                   if (!Number.isNaN(next)) void onPriorityChange(row.original.id, next)
                 }}
               >
-                <SelectTrigger className="h-7 w-[92px] text-xs border-transparent">
+                <SelectTrigger className="h-7 w-[92px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
