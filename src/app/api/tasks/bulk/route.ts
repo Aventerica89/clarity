@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { and, eq, inArray, sql } from "drizzle-orm"
+import { z } from "zod"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { tasks } from "@/lib/schema"
 import { completeTodoistTask } from "@/lib/integrations/todoist"
 
-interface BulkBody {
-  action: "complete" | "hide"
-  ids: string[]
-}
+const bulkSchema = z.object({
+  action: z.enum(["complete", "hide"]),
+  ids: z.array(z.string().min(1)).min(1).max(50),
+})
 
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -17,15 +18,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = (await request.json()) as BulkBody
-  if (!body.action || !Array.isArray(body.ids) || body.ids.length === 0) {
-    return NextResponse.json({ error: "action and ids required" }, { status: 400 })
-  }
+  const parsed = bulkSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  const { action: bodyAction, ids } = parsed.data
 
-  // Limit bulk ops to 50 at a time
-  const ids = body.ids.slice(0, 50)
-
-  if (body.action === "complete") {
+  if (bodyAction === "complete") {
     // Fetch tasks to determine which are Todoist (need write-back)
     const rows = await db
       .select({ id: tasks.id, source: tasks.source, sourceId: tasks.sourceId })

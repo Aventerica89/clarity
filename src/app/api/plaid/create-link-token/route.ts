@@ -22,8 +22,6 @@ export async function POST(request: NextRequest) {
   } catch (err: unknown) {
     const plaidError = (err as { response?: { data?: unknown } })?.response?.data
     console.error("[plaid] create-link-token error:", JSON.stringify(plaidError ?? err))
-    const message = (plaidError as { error_message?: string })?.error_message
-      ?? "Failed to create link token"
-    return NextResponse.json({ error: message }, { status: 502 })
+    return NextResponse.json({ error: "Failed to create link token" }, { status: 502 })
   }
 }

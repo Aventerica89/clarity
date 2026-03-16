@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { and, eq, desc, asc, sql } from "drizzle-orm"
+import { z } from "zod"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
@@ -97,13 +98,13 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ tasks: items })
 }
 
-interface CreateTaskBody {
-  title: string
-  projectId?: string
-  dueDate?: string
-  priority?: number
-  subtasks?: string[]
-}
+const createTaskSchema = z.object({
+  title: z.string().min(1).max(500),
+  projectId: z.string().max(100).optional(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  priority: z.number().int().min(1).max(4).optional(),
+  subtasks: z.array(z.string().min(1).max(500)).max(20).optional(),
+})
 
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -111,11 +112,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const body = (await request.json()) as CreateTaskBody
-
-  if (!body.title?.trim()) {
-    return NextResponse.json({ error: "Title required" }, { status: 400 })
-  }
+  const parsed = createTaskSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  const body = parsed.data
 
   // If a Todoist project is selected, create in Todoist first then sync to DB
   if (body.projectId) {

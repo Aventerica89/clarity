@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { db } from "@/lib/db"
@@ -13,12 +14,12 @@ import {
 import { decryptToken } from "@/lib/crypto"
 import Anthropic from "@anthropic-ai/sdk"
 
-interface ApproveBody {
-  title: string
-  projectId: string
-  dueDate?: string
-  subtasks: string[]
-}
+const approveSchema = z.object({
+  title: z.string().min(1).max(500),
+  projectId: z.string().min(1).max(100),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  subtasks: z.array(z.string().min(1).max(500)).max(20),
+})
 
 export async function POST(
   request: NextRequest,
@@ -30,7 +31,9 @@ export async function POST(
   }
 
   const { id } = await params
-  const body = (await request.json()) as ApproveBody
+  const parsed = approveSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  const body = parsed.data
 
   const rows = await db
     .select()
