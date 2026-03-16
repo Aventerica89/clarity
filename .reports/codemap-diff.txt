@@ -1,0 +1,9 @@
+Codemap diff report — 2026-03-16
+Generated from scratch (no previous codemaps existed).
+Files created:
+  docs/CODEMAPS/architecture.md
+  docs/CODEMAPS/backend.md
+  docs/CODEMAPS/frontend.md
+  docs/CODEMAPS/data.md
+Source files analyzed: 254
+Change: 100% (new)
