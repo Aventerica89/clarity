@@ -183,6 +183,7 @@ Reference: `.interface-design/system.md` (committed to repo).
 ```
 clarity/
   src/
+    middleware.ts        # Next.js middleware entry point (re-exports src/lib/proxy.ts)
     app/
       (auth)/              # Login, signup, callback
       (dashboard)/         # Protected routes
@@ -235,8 +236,7 @@ clarity/
       dev/                 # Dev wiki components
     lib/
       auth.ts              # Better Auth config (maxPasswordAttempts: 5 — do not remove)
-      proxy.ts             # Rate-limiting middleware logic (delegated from src/middleware.ts)
-      middleware.ts        # Next.js middleware entry point (re-exports proxy)
+      proxy.ts             # Rate-limiting middleware logic (activated via src/middleware.ts)
       auth-client.ts       # Better Auth browser client
       db.ts                # Turso/LibSQL + Drizzle client
       schema.ts            # Drizzle schema (23 tables)
@@ -278,6 +278,5 @@ clarity/
 - Implementation Plan: `docs/PLAN.md`
 - Feature Ideas Backlog: `docs/IDEAS.md` — add here when user says "add to idea list"
 - Competitive Analysis & Roadmap: `~/.claude/plans/2026-02-26-clarity-competitive-analysis.md`
-
 - Design System: `.interface-design/system.md`
 - Shared docs: `~/.claude/docs/shadcn-ui.md`, `~/.claude/docs/better-auth.md`
