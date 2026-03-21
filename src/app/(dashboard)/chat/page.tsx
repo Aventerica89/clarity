@@ -234,7 +234,7 @@ function ChatPageInner() {
     } finally {
       setIsStreaming(false)
     }
-  }, [isStreaming, activeSessionId, messages, provider, router])
+  }, [input, isStreaming, activeSessionId, messages, provider, router])
 
   // Auto-send from ?q= query param (e.g. from Today page CTA)
   // Must be after sendMessage useCallback definition to avoid TDZ with const
