@@ -2,8 +2,8 @@ name: Sync Cron
 
 on:
   schedule:
-    # Every 60 minutes
-    - cron: '0 * * * *'
+    # Once daily at 7am Phoenix time (14:00 UTC, no DST)
+    - cron: '0 14 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
