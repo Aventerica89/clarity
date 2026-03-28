@@ -1,32 +1,63 @@
 {
   "project": "/Users/jb/repos/clarity",
-  "lastUpdated": "2026-03-10T22:00:00.000Z",
+  "lastUpdated": "2026-03-28T13:35:00Z",
+  "sessionSummary": "2026-03-16: Knocked out all open backlog items. Closed GH issues #22 (performance — indexes already done, next/dynamic for Tiptap/Plaid Link recommended), #23 (unit tests verified), #24 (JSDoc docs verified). Implemented TaskDetailModal feature: PATCH /api/tasks/[id] endpoint, TaskDetailModal component (Dialog/Drawer, description auto-saves on blur, SubtaskList, Complete+Hide), TaskTable onRowClick prop with clickable title, wired into tasks/page.tsx. All committed (77fb83f) and pushed. Next: add priority pills to TaskDetailModal, or pick from IDEAS.md backlog. No blockers. | 2026-03-16: Fixed dark mode issues in task table — Select border changed from border-input (15% white) to border-border (10% white), added hover:text-primary + transition-colors to clickable title buttons. Committed d20db1f, deployed at 09:12 UTC. Pending: add priority pills to TaskDetailModal, pick next IDEAS.md item. | 2026-03-16: Resolved Select border styling by removing the border-border override (wrong fix from prior session) and reverting to default border-input — matching Triage page behavior. Ran /update-codemaps generating docs/CODEMAPS/{architecture,backend,frontend,data}.md for 254 source files. Commits 88ca640, aa046b4, 08852f9 pushed. Next: add priority pills (P1-P4) to TaskDetailModal, then pick from IDEAS.md backlog. No blockers.",
   "sessions": {
-    "2026-03-10-legacy": {
+    "2026-03-16-main": {
       "branch": "main",
-      "startedAt": "2026-03-10T04:32:00.000Z",
-      "updatedAt": "2026-03-10T22:00:00.000Z",
+      "startedAt": "2026-03-16T06:00:00.000Z",
+      "updatedAt": "2026-03-16T07:33:24.000Z",
       "accomplished": [
-        "Mapped all 11 card components with data sources, actions, and cross-channel flows",
-        "Created docs/CARD-ARCHITECTURE.md with mermaid diagrams and card actions matrix",
-        "Fixed 6-day Vercel deploy failure: moved @tailwindcss/oxide-darwin-arm64 from devDependencies to optionalDependencies",
-        "Reviewed Pencil design explorations for TriageCard and SubtaskModal variants",
-        "Implemented TriageCard B (Split Panel) from Clarity.pen design",
-        "Fixed Node.js arm64, Bun arm64, lightningcss/oxide native binding errors",
-        "Added dynamic BETTER_AUTH_URL to .env.dev-auth.tpl for multi-port dev",
-        "Fixed Gmail triage cards showing raw URLs as titles (sender name fallback + cleanTitle)",
-        "Built responsive subtask modal: Drawer (mobile) / Dialog (desktop) from Pencil designs",
-        "Triage Tier 1-3 refactor: semantic tokens, a11y, shadcn Button, shared helpers, type extraction",
-        "Created jb-claude-plugins marketplace repo, consolidated 1p-local-auth + obsidian-bridge",
-        "Synced Pencil Clarity.pen with post-refactor code",
-        "Fixed vaul dependency Vercel deploy outage"
+        "Closed GitHub issue #23: unit tests for purgeOldCompletedTasks verified at tests/lib/tasks/cleanup.test.ts",
+        "Closed GitHub issue #24: JSDoc docs verified in src/lib/db.ts and src/lib/tasks/cleanup.ts",
+        "GitHub issue #22: already closed, commented with analysis (indexes done; recommend next/dynamic for Tiptap/Plaid Link)",
+        "Created PATCH /api/tasks/[id]/route.ts — Zod-validated description update endpoint",
+        "Created src/components/tasks/task-detail-modal.tsx — responsive Dialog/Drawer, description auto-saves on blur, SubtaskList, Complete+Hide actions",
+        "Added onRowClick prop to TaskTable — title cell becomes clickable button",
+        "Wired TaskDetailModal into tasks/page.tsx with selectedTask state",
+        "Committed 77fb83f and pushed to main"
       ],
       "nextSteps": [
+        "Add priority pills (P1-P4) to TaskDetailModal",
+        "Pick next item from docs/IDEAS.md backlog",
+        "Vercel deploy: run 'vercel --prod' if auto-deploy didn't trigger"
+      ]
+    },
+    "2026-03-10-session5": {
+      "branch": "main",
+      "startedAt": "2026-03-10T23:00:00.000Z",
+      "updatedAt": "2026-03-10T23:30:00.000Z",
+      "accomplished": [
+        "Triaged all 6 open GitHub issues",
+        "Closed #20: redacted real Turso hostname from .env.example (commit d9dfd1c)",
+        "Closed #26: confirmed deployments green, root cause was missing vaul package",
+        "Closed #27: patched 6 moderate npm vulns via package.json overrides (dompurify ^3.3.2, esbuild ^0.25.0)",
+        "Discovered cross-app PAT GitHub token in 1Password for write access to issues"
+      ],
+      "nextSteps": [
+        "GitHub issues #22 (performance), #23 (unit tests), #24 (docs) still open",
         "Refactor subtask modal into reusable TaskDetailModal for /tasks page",
-        "Add priority pills (P1-P4) to the subtask/detail modal",
-        "Persist description edits back to API (currently client-side only)",
-        "Wire TaskDetailModal into /tasks page with task-specific actions",
-        "Consider removing old /usr/local/bin/node x64 install to prevent future confusion"
+        "Persist description edits back to API"
+      ]
+    },
+    "2026-03-28-a3f1c9": {
+      "branch": "main",
+      "startedAt": "2026-03-28T13:14:00.000Z",
+      "updatedAt": "2026-03-28T13:35:00.000Z",
+      "accomplished": [
+        "Ran 1p-flawless health check — identified 16 separate clarity items needing consolidation",
+        "Consolidated 10 secrets as concealed fields onto single Clarity 1P item (was 2, now 12 fields)",
+        "Created standalone todoist 1P item for cross-app secrets (TODOIST_API, TODOIST_WEBHOOK_VERIFICATION_TOKEN)",
+        "Updated .env.local.tpl — 11 refs from 'clarity FIELD/credential' to 'Clarity/FIELD' format",
+        "Updated .env.dev-auth.tpl — replaced hardcoded item IDs with named refs",
+        "Verified all 14 fields resolve via op read",
+        "Tested npm run env:inject — all values match (fixed CRON_SECRET local/prod mismatch)",
+        "Committed 2357a03: chore: consolidate 1Password refs to single Clarity item"
+      ],
+      "nextSteps": [
+        "Delete 16 old separate 'clarity *' items from 1Password (manual cleanup)",
+        "Add priority pills (P1-P4) to TaskDetailModal",
+        "Pick next item from docs/IDEAS.md backlog"
       ]
     }
   }
