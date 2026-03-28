@@ -3,10 +3,10 @@
 # References existing #clarity credentials in 1Password
 # op run injects these and merges with .env.local — nothing is written to disk
 
-GOOGLE_CLIENT_ID=op://App Dev/k5sqdmqh6c5rdk43rcskco3fsm/credential
-GOOGLE_CLIENT_SECRET=op://App Dev/pxdbar2qzucpqb7hsu2mbqzth4/credential
-TODOIST_CLIENT_ID=op://App Dev/oklogquw3ohhdzoktpfznimajy/credential
-TODOIST_CLIENT_SECRET=op://App Dev/o74b3kf4vqjpnnbhdzh23zckam/credential
+GOOGLE_CLIENT_ID=op://App Dev/Clarity/GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=op://App Dev/Clarity/GOOGLE_CLIENT_SECRET
+TODOIST_CLIENT_ID=op://App Dev/Clarity/TODOIST_CLIENT_ID
+TODOIST_CLIENT_SECRET=op://App Dev/Clarity/TODOIST_CLIENT_SECRET
 
 # Auth base URL — matches PORT so OAuth callbacks land correctly
 BETTER_AUTH_URL=http://localhost:${PORT:-3000}

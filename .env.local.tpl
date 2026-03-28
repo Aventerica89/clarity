@@ -4,21 +4,21 @@
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # Turso (LibSQL)
-TURSO_DATABASE_URL={{ op://App Dev/clarity TURSO_DATABASE_URL/credential }}
-TURSO_AUTH_TOKEN={{ op://App Dev/clarity TURSO_AUTH_TOKEN/credential }}
+TURSO_DATABASE_URL={{ op://App Dev/Clarity/TURSO_DATABASE_URL }}
+TURSO_AUTH_TOKEN={{ op://App Dev/Clarity/TURSO_AUTH_TOKEN }}
 
-TOKEN_ENCRYPTION_KEY={{ op://App Dev/clarity TOKEN_ENCRYPTION_KEY/credential }}
+TOKEN_ENCRYPTION_KEY={{ op://App Dev/Clarity/TOKEN_ENCRYPTION_KEY }}
 
-BETTER_AUTH_SECRET={{ op://App Dev/clarity BETTER_AUTH_SECRET/credential }}
+BETTER_AUTH_SECRET={{ op://App Dev/Clarity/BETTER_AUTH_SECRET }}
 BETTER_AUTH_URL=http://localhost:3000
 
-GOOGLE_CLIENT_ID={{ op://App Dev/clarity GOOGLE_CLIENT_ID/credential }}
-GOOGLE_CLIENT_SECRET={{ op://App Dev/clarity GOOGLE_CLIENT_SECRET/credential }}
+GOOGLE_CLIENT_ID={{ op://App Dev/Clarity/GOOGLE_CLIENT_ID }}
+GOOGLE_CLIENT_SECRET={{ op://App Dev/Clarity/GOOGLE_CLIENT_SECRET }}
 
 # Anthropic — uses Claude.ai OAuth (no API key needed)
 # See CLAUDE.md for the createClient() pattern
 
-CRON_SECRET={{ op://App Dev/clarity CRON_SECRET/credential }}
+CRON_SECRET={{ op://App Dev/Clarity/CRON_SECRET }}
 
 # Plaid
 PLAID_CLIENT_ID={{ op://App Dev/PLAID_CLIENT_ID/credential }}
@@ -26,9 +26,9 @@ PLAID_SECRET={{ op://App Dev/PLAID_SECRET/credential }}
 PLAID_ENV=sandbox
 
 # Todoist OAuth
-TODOIST_CLIENT_ID={{ op://App Dev/clarity TODOIST_CLIENT_ID/credential }}
-TODOIST_CLIENT_SECRET={{ op://App Dev/clarity TODOIST_CLIENT_SECRET/credential }}
+TODOIST_CLIENT_ID={{ op://App Dev/Clarity/TODOIST_CLIENT_ID }}
+TODOIST_CLIENT_SECRET={{ op://App Dev/Clarity/TODOIST_CLIENT_SECRET }}
 
 # Upstash Redis (rate limiting)
-UPSTASH_REDIS_REST_URL={{ op://App Dev/clarity UPSTASH_REDIS_REST_URL/credential }}
-UPSTASH_REDIS_REST_TOKEN={{ op://App Dev/clarity UPSTASH_REDIS_REST_TOKEN/credential }}
+UPSTASH_REDIS_REST_URL={{ op://App Dev/Clarity/UPSTASH_REDIS_REST_URL }}
+UPSTASH_REDIS_REST_TOKEN={{ op://App Dev/Clarity/UPSTASH_REDIS_REST_TOKEN }}
