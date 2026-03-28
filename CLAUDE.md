@@ -135,8 +135,8 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | Adding integration with external API key + caching | After saving key to DB, call `revalidateTag("tag")` in the POST route. Tag the external `fetch()` with `{ next: { revalidate: N, tags: ["tag"] } }`. Without this, cached responses survive key changes for up to N seconds. |
 | Non-unique Drizzle indexes | Import `index` alongside `uniqueIndex` from `drizzle-orm/sqlite-core` — they are separate exports. |
 | Settings page: checking multiple provider connections | Use one `inArray(integrations.provider, [...])` query + `Set.has()` instead of N separate queries — already the pattern in `settings/page.tsx`. |
-| 1Password `op read` with `#` in item name | `#` is invalid in secret references — `op://Vault/#item/field` will error. No workaround via CLI; use `op item get` by item ID instead. |
-| 1Password service account vault access | Current `OP_SERVICE_ACCOUNT_TOKEN` only has **Business** vault. Todoist OAuth creds (`TODOIST_CLIENT_ID`, `TODOIST_CLIENT_SECRET`) are in **App Dev** vault → item `#clarity`. See `~/.claude/plans/todoist-env-setup.md`. |
+| 1Password `op://` format | All refs use `op://App Dev/Clarity/FIELD_NAME` (consolidated item, no `/credential` suffix). Cross-app: `op://App Dev/PLAID_CLIENT_ID/credential` (standalone items keep `/credential`). Never create separate items per secret. |
+| 1Password service account vault access | Current `OP_SERVICE_ACCOUNT_TOKEN` only has **Business** vault. All Clarity secrets are in **App Dev** vault → item `Clarity` (consolidated). Cross-app Todoist secrets are on separate `todoist` item. |
 | Turbopack + Tailwind oxide native binding error (`Cannot find native binding`) | Use `npm run dev:stable` (or `npm run dev:auth:stable`) to run webpack mode with `TAILWIND_DISABLE_OXIDE=1`. |
 | `supabase/migrations/` naming | Directory is named "supabase" but uses Turso/LibSQL — historical naming, do not rename |
 | `npm audit fix` blocked by Tailwind oxide arm64 | Same arm64 conflict blocks all npm installs locally. Use `package.json` `"overrides"` to force patched transitive dep versions instead. |
