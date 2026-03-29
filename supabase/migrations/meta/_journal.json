@@ -36,6 +36,13 @@
       "when": 1772237357098,
       "tag": "0004_salty_karma",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1774756433553,
+      "tag": "0005_brainy_thor",
+      "breakpoints": true
     }
   ]
 }

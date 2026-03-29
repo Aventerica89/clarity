@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex, index } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, real, uniqueIndex, index } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
 
 // ─── Better Auth core tables ──────────────────────────────────────────────────
@@ -366,4 +366,107 @@ export const dayPlans = sqliteTable("day_plans", {
   contextSnapshot: text("context_snapshot"),
 }, (t) => [
   uniqueIndex("dp_user_date_idx").on(t.userId, t.planDate),
+])
+
+// ─── Day Structure tables ────────────────────────────────────────────────────
+
+// Day structure templates — named schedule patterns (Work Day, Off Day)
+export const dayStructureTemplates = sqliteTable("day_structure_templates", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  daysOfWeek: text("days_of_week").notNull().default("[]"),  // JSON number[] — 0=Sun..6=Sat
+  sleepGoalHours: real("sleep_goal_hours").notNull().default(8),
+  wakeTime: text("wake_time").notNull(),                      // HH:MM (24h)
+  prepTimeMins: integer("prep_time_mins").notNull().default(45),
+  commuteTimeMins: integer("commute_time_mins").notNull().default(0),
+  workStartTime: text("work_start_time"),                     // HH:MM nullable
+  lunchTime: text("lunch_time"),                              // HH:MM nullable
+  dinnerTime: text("dinner_time"),                            // HH:MM nullable
+  windDownMins: integer("wind_down_mins").notNull().default(120),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  index("ds_templates_user_idx").on(t.userId),
+])
+
+// Custom alarm slots per template
+export const dayStructureAlarms = sqliteTable("day_structure_alarms", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  templateId: text("template_id").notNull().references(() => dayStructureTemplates.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  time: text("time").notNull(),          // HH:MM
+  alarmType: text("alarm_type").notNull().default("alarm"),  // alarm | reminder
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  index("ds_alarms_template_idx").on(t.templateId),
+])
+
+// Per-day overrides — sparse JSON merge on top of template defaults
+export const dayStructureOverrides = sqliteTable("day_structure_overrides", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  overrideDate: text("override_date").notNull(),              // YYYY-MM-DD
+  templateId: text("template_id").references(() => dayStructureTemplates.id, { onDelete: "set null" }),
+  overridesJson: text("overrides_json").notNull().default("{}"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  uniqueIndex("ds_overrides_user_date_idx").on(t.userId, t.overrideDate),
+])
+
+// Routine checklists — morning/evening routine containers
+export const routineChecklists = sqliteTable("routine_checklists", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  triggerTimeRef: text("trigger_time_ref").notNull(),         // e.g. "bedtime-30" or "wake+0"
+  alarmEnabled: integer("alarm_enabled", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  index("routine_checklists_user_idx").on(t.userId),
+])
+
+// Checklist items — subtasks that reset daily
+export const routineChecklistItems = sqliteTable("routine_checklist_items", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  checklistId: text("checklist_id").notNull().references(() => routineChecklists.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  index("routine_checklist_items_checklist_idx").on(t.checklistId),
+])
+
+// Checklist completions — one row per item per day
+export const routineChecklistCompletions = sqliteTable("routine_checklist_completions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  itemId: text("item_id").notNull().references(() => routineChecklistItems.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  completedDate: text("completed_date").notNull(),            // YYYY-MM-DD
+  completedAt: integer("completed_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (t) => [
+  uniqueIndex("routine_checklist_completions_unique_idx").on(t.itemId, t.completedDate),
+  index("routine_checklist_completions_user_date_idx").on(t.userId, t.completedDate),
+])
+
+// Companion sync state — tracks what was pushed to Apple Reminders
+export const companionSyncState = sqliteTable("companion_sync_state", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  syncDate: text("sync_date").notNull(),                      // YYYY-MM-DD
+  scheduleHash: text("schedule_hash").notNull(),
+  appleReminderIds: text("apple_reminder_ids").notNull().default("[]"),  // JSON string[]
+  syncedAt: integer("synced_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  status: text("status").notNull().default("synced"),         // synced | error | stale
+  lastError: text("last_error"),
+}, (t) => [
+  uniqueIndex("companion_sync_user_date_idx").on(t.userId, t.syncDate),
 ])
