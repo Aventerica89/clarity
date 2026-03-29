@@ -1,5 +1,5 @@
 # Clarity — Backend Codemap
-_Updated: 2026-03-16_
+_Updated: 2026-03-29_
 
 ## API Routes (`src/app/api/`)
 
@@ -84,6 +84,31 @@ _Updated: 2026-03-16_
 | `life-context/[id]/pins/search` | GET | Search pinnable items |
 | `life-context/[id]/pins/[pinId]` | DELETE | Remove pin |
 
+### Day Structure
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `day-structure/templates` | GET/POST | List/create day templates |
+| `day-structure/templates/[id]` | PATCH/DELETE | Update/soft-delete template |
+| `day-structure/templates/[id]/alarms` | GET/POST | List/add custom alarms |
+| `day-structure/templates/[id]/alarms/[alarmId]` | PATCH/DELETE | Update/remove alarm |
+| `day-structure/checklists` | GET/POST | List/create routine checklists |
+| `day-structure/checklists/[id]` | PATCH/DELETE | Update/soft-delete checklist |
+| `day-structure/checklists/[id]/items` | GET/POST | List/add checklist items |
+| `day-structure/checklists/[id]/items/[itemId]` | PATCH/DELETE | Update/soft-delete item |
+| `day-structure/completions` | POST/DELETE | Mark/unmark daily completion |
+| `day-structure/overrides` | GET/POST | List/create per-day overrides |
+| `day-structure/today` | GET | Resolved schedule for today |
+
+### Companion
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `companion/schedule` | GET | Resolved schedule + hash (for companion polling) |
+| `companion/heartbeat` | POST | Update companion lastHeartbeat |
+| `companion/sync-state` | POST | Report Apple Reminders sync status |
+| `companion/completions` | POST | Report completed reminders |
+
+Auth: `CRON_SECRET` Bearer token via `src/lib/companion-auth.ts`
+
 ### Other
 | Route | Method | Purpose |
 |-------|--------|---------|
@@ -104,10 +129,11 @@ _Updated: 2026-03-16_
 | File | Purpose |
 |------|---------|
 | `db.ts` | Turso/LibSQL + Drizzle client |
-| `schema.ts` | 23-table Drizzle schema |
+| `schema.ts` | 30-table Drizzle schema |
 | `auth.ts` | Better Auth config |
 | `crypto.ts` | Token encryption/decryption |
-| `proxy.ts` | Rate-limiting middleware |
+| `proxy.ts` | Rate-limiting middleware (moved to lib/ for Next.js 16) |
+| `companion-auth.ts` | CRON_SECRET auth for companion API routes |
 | `ratelimit.ts` | Upstash Redis limiter |
 | `pins.ts` | Polymorphic context pin logic |
 | `sanitize-html.ts` | HTML sanitization |
@@ -143,3 +169,12 @@ _Updated: 2026-03-16_
 | `triage/sync.ts` | Triage queue population |
 | `tasks/cleanup.ts` | `purgeOldCompletedTasks` |
 | `plaid/sync.ts` | Plaid transaction sync |
+
+## Day Structure (`src/lib/day-structure/`)
+
+| File | Purpose |
+|------|---------|
+| `types.ts` | TypeScript interfaces for templates, alarms, checklists, schedule entries |
+| `compute.ts` | Pure schedule computation — derives times from anchors, resolves overrides |
+
+Key: `computeDaySchedule(template, override, checklists, alarms, date) → ResolvedSchedule`

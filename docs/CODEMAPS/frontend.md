@@ -1,5 +1,5 @@
 # Clarity — Frontend Codemap
-_Updated: 2026-03-16_
+_Updated: 2026-03-29_
 
 ## Pages (`src/app/(dashboard)/`)
 
@@ -13,7 +13,8 @@ _Updated: 2026-03-16_
 | `/calendar` | `calendar/page.tsx` | Event list view |
 | `/life-context` | `life-context/page.tsx` | Life context manager |
 | `/life-context/[id]` | `life-context/[id]/page.tsx` | Item detail |
-| `/routines` | `routines/page.tsx` | Routine builder |
+| `/routines` | `routines/page.tsx` | Routines hub — Day Structure card, Habits placeholder |
+| `/routines/day-structure` | `routines/day-structure/page.tsx` | Day Structure dashboard — schedule timeline, template editor, checklists |
 | `/chat` | `chat/page.tsx` | AI coach chat |
 | `/settings` | `settings/page.tsx` | Integrations, profile |
 | `/profile` | `profile/page.tsx` | User profile |
@@ -84,6 +85,13 @@ _Updated: 2026-03-16_
 | `pin-search-dialog.tsx` | Search to pin items |
 | `update-timeline-entry.tsx` | Timeline entry display |
 | `financial-snapshot-card.tsx` | Financial summary |
+
+### Day Structure (`src/components/day-structure/`)
+| Component | Purpose |
+|-----------|---------|
+| `schedule-timeline.tsx` | Visual timeline with alarm/reminder/checklist icons, time labels |
+| `template-editor.tsx` | Template selector, day-of-week toggles, time fields, custom alarm CRUD |
+| `checklist-card.tsx` | Expandable checklist with checkbox items, add/delete, alarm toggle, progress |
 
 ### Settings (`src/components/settings/`)
 | Component | Purpose |

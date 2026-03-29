@@ -1,5 +1,5 @@
 # Clarity — Architecture Codemap
-_Updated: 2026-03-16_
+_Updated: 2026-03-29_
 
 ## Overview
 
@@ -15,10 +15,11 @@ Browser → middleware.ts (rate-limit proxy)
        → Turso (LibSQL)      — single DB, userId-filtered
 
 External:
-  GH Actions → /api/cron/sync   (every 15 min)
+  GH Actions → /api/cron/sync   (daily 7am Phoenix)
   GH Actions → /api/cron/prune  (daily 3am UTC)
   Google APIs / Todoist / Plaid → sync routes
   AI providers (Anthropic → DeepSeek → Groq → Gemini)
+  Companion (MacBook) → /api/companion/* (Apple Reminders sync)
 ```
 
 ## Key Architectural Rules
@@ -40,6 +41,22 @@ External:
 ## Middleware
 
 ```
-src/middleware.ts       — Next.js entry (re-exports src/lib/proxy.ts)
+src/middleware.ts       — Next.js entry, imports proxy + inlines config
 src/lib/proxy.ts        — rate-limiting + auth guard logic
+src/lib/companion-auth.ts — CRON_SECRET-based auth for companion API routes
 ```
+
+## Companion Process (`companion/`)
+
+Local Node.js process on macOS. Polls Clarity API every 60s, creates Apple Reminders via AppleScript/JXA.
+
+```
+companion/src/index.ts       — Entry point
+companion/src/config.ts      — Env: CLARITY_API_URL, COMPANION_TOKEN
+companion/src/api-client.ts  — HTTP client (Bearer auth via CRON_SECRET)
+companion/src/scheduler.ts   — Poll loop, hash-based change detection
+companion/src/apple/reminders.ts — Create/delete reminders in "Clarity" list
+companion/src/apple/utils.ts — osascript + JXA execution helpers
+```
+
+Runs as launchd service (`com.clarity.companion.plist`). Install: `companion/scripts/install.sh`.

@@ -1,11 +1,11 @@
 # Clarity — Data Codemap
-_Updated: 2026-03-16_
+_Updated: 2026-03-29_
 
 ## Database
 
 - **Engine**: Turso (LibSQL) — SQLite-compatible, edge-deployed
 - **ORM**: Drizzle ORM (`dialect: turso`)
-- **Schema**: `src/lib/schema.ts` (23 tables)
+- **Schema**: `src/lib/schema.ts` (30 tables)
 - **Migrations**: `supabase/migrations/` (Drizzle-generated SQL — named "supabase" for historical reasons, do not rename)
 - **Config**: `drizzle.config.ts`
 
@@ -35,6 +35,17 @@ _Updated: 2026-03-16_
 | `routines` | `id`, `userId`, `title`, `frequency`, `targetTime`, `isActive` |
 | `routine_completions` | `id`, `routineId`, `userId`, `completedAt` |
 | `routine_costs` | `id`, `userId`, `routineId`, `estimatedMinutes`, `costPerHour` |
+
+### Day Structure
+| Table | Key Columns |
+|-------|-------------|
+| `day_structure_templates` | `id`, `userId`, `name`, `daysOfWeek` (JSON), `sleepGoalHours`, `wakeTime`, `prepTimeMins`, `commuteTimeMins`, `workStartTime`, `lunchTime`, `dinnerTime`, `windDownMins`, `isActive` |
+| `day_structure_alarms` | `id`, `templateId`, `userId`, `label`, `time`, `alarmType` (alarm/reminder), `sortOrder` |
+| `day_structure_overrides` | `id`, `userId`, `overrideDate`, `templateId`, `overridesJson` (sparse merge) |
+| `routine_checklists` | `id`, `userId`, `name`, `triggerTimeRef` (e.g. "bedtime-30"), `alarmEnabled`, `sortOrder`, `isActive` |
+| `routine_checklist_items` | `id`, `checklistId`, `userId`, `label`, `sortOrder`, `isActive` |
+| `routine_checklist_completions` | `id`, `itemId`, `userId`, `completedDate` — unique on (itemId, completedDate) |
+| `companion_sync_state` | `id`, `userId`, `syncDate`, `scheduleHash`, `appleReminderIds` (JSON), `status`, `lastError` |
 
 ### Integrations
 | Table | Key Columns |
