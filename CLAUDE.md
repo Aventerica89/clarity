@@ -19,7 +19,7 @@
 | AI | Multi-provider: Anthropic → DeepSeek → Groq → Gemini (fallback order) |
 | Rate limiting | Upstash Redis (`@upstash/ratelimit`) |
 | Finance | Plaid Link + transactions sync |
-| Apple bridge | clarity-companion (local Node.js AppleScript process on each Mac) — planned |
+| Apple bridge | clarity-companion (`companion/`) — Node.js + AppleScript on macOS, syncs to Apple Reminders |
 | Mobile | PWA (installed) — native Expo deferred |
 
 ## Architecture
@@ -34,7 +34,7 @@ Todoist API -----------> /api/todoist (OAuth)
 Plaid API -------------> /api/plaid (Link token + transactions)
 AI providers ----------> /api/ai, /api/chat (coach + triage scoring)
 Upstash Redis ---------> rate limiting (AI calls, sync)
-Mac companion ---------> /api/* (Apple data push) — planned
+Mac companion ---------> /api/companion/* (CRON_SECRET auth, Apple Reminders sync)
 ```
 
 ## Commands
@@ -83,7 +83,7 @@ Migrations live in `supabase/migrations/`. Config: `drizzle.config.ts` (dialect:
 | Plaid | Link + sync API | Bank transactions, balances |
 | OpenWeatherMap | API key (stored in `integrations` table) | Weather widget |
 | Upstash Redis | REST API | Rate limiting for AI + sync |
-| Apple (planned) | AppleScript (companion) | Reminders, Calendar, Notes, Mail |
+| Apple Reminders | AppleScript/JXA (companion) | Reminders (via companion process on macOS) |
 
 ## Environment Variables
 
@@ -116,9 +116,13 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 - Override via `CLARITY_TIMEZONE` env var if needed (defaults to `America/Phoenix` — see `src/lib/ai/coach.ts`)
 - Date strings: `new Intl.DateTimeFormat("en-CA", { timeZone: "America/Phoenix" }).format(new Date())` → `YYYY-MM-DD`
 
-### Apple companion (planned)
-- Never store Apple app-specific passwords in the database or cloud
-- Companion authenticates to the web API using the user's Better Auth session
+### Apple companion (`companion/`)
+- Separate Node.js project in monorepo — own `package.json`, `tsconfig.json`
+- Authenticates via `CRON_SECRET` Bearer token (same as cron routes), NOT Better Auth sessions
+- Auth helper: `src/lib/companion-auth.ts` — timing-safe comparison, returns first user's ID
+- AppleScript iteration on Reminders collections is buggy — use JXA (`osascript -l JavaScript`) instead
+- Companion polls `/api/companion/schedule` every 60s with hash-based change detection
+- All reminders go in a dedicated "Clarity" list in Apple Reminders
 
 ## Gotchas
 
@@ -149,10 +153,13 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | SelectTrigger border in dark mode | Use default `border-input` (no override) — matches Triage table. Adding `border-border` looks similar but is architecturally wrong; just remove bad overrides from prior sessions. |
 | Codebase navigation | `docs/CODEMAPS/` has token-lean maps of all 254 source files (architecture, backend, frontend, data) — read these before exploring the file tree. |
 | Triage table as UI reference | `src/components/triage/triage-table.tsx` is the canonical reference for table/select/badge UI patterns — check here before reimplementing. |
+| `src/proxy.ts` must NOT exist | Next.js 16 treats `src/proxy.ts` as a "proxy" convention file, conflicting with `src/middleware.ts`. The rate-limit logic lives at `src/lib/proxy.ts` and middleware config is inlined in `src/middleware.ts`. |
+| AppleScript iteration on Reminders | AppleScript's `every reminder whose...` throws `-1728` on filtered/empty collections. Use JXA (`osascript -l JavaScript`) for reliable iteration and deletion. |
+| Companion auth is CRON_SECRET | Companion API routes (`/api/companion/*`) use `Authorization: Bearer <CRON_SECRET>` via `src/lib/companion-auth.ts`. Do NOT use Better Auth session cookies — they require browser context. |
 
 ## Database Tables
 
-23 tables in `src/lib/schema.ts`:
+30 tables in `src/lib/schema.ts`:
 
 | Table | Purpose |
 |-------|---------|
@@ -172,6 +179,13 @@ Also: `ANTHROPIC_API_KEY` (batch triage fallback), `OPENWEATHERMAP_API_KEY` (wea
 | `emails` | Gmail cache (inbox + starred) |
 | `triage_queue` | AI-scored email/task triage items |
 | `day_plans` | AI-generated daily plans |
+| `day_structure_templates` | Day schedule templates (Work Day, Off Day) |
+| `day_structure_alarms` | Custom alarm slots per template |
+| `day_structure_overrides` | Per-day schedule overrides (sparse JSON merge) |
+| `routine_checklists` | Morning/evening routine containers |
+| `routine_checklist_items` | Checklist subtasks (reset daily) |
+| `routine_checklist_completions` | Daily item completion tracking |
+| `companion_sync_state` | Tracks what was pushed to Apple Reminders |
 
 ## Design System
 
@@ -186,7 +200,7 @@ Reference: `.interface-design/system.md` (committed to repo).
 ```
 clarity/
   src/
-    middleware.ts        # Next.js middleware entry point (re-exports src/lib/proxy.ts)
+    middleware.ts        # Next.js middleware entry (imports lib/proxy, inlines config)
     app/
       (auth)/              # Login, signup, callback
       (dashboard)/         # Protected routes
@@ -239,7 +253,8 @@ clarity/
       dev/                 # Dev wiki components
     lib/
       auth.ts              # Better Auth config (maxPasswordAttempts: 5 — do not remove)
-      proxy.ts             # Rate-limiting middleware logic (activated via src/middleware.ts)
+      proxy.ts             # Rate-limiting middleware logic (in lib/, NOT src/ root — Next.js 16 conflict)
+      companion-auth.ts    # CRON_SECRET auth for companion API routes
       auth-client.ts       # Better Auth browser client
       db.ts                # Turso/LibSQL + Drizzle client
       schema.ts            # Drizzle schema (23 tables)
@@ -258,6 +273,9 @@ clarity/
       plaid/               # Plaid client + sync
       sync/                # Sync orchestrator
       triage/              # Triage scoring logic
+      day-structure/         # Schedule computation engine
+        types.ts             # Template, alarm, checklist, schedule types
+        compute.ts           # computeDaySchedule() — pure function
       use-active-section.ts  # IntersectionObserver hook (rooted on [data-scroll])
       use-safari-toolbar.ts  # Safari mobile toolbar height hook
       use-mobile.ts          # useIsMobile() responsive breakpoint hook
