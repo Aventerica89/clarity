@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.clarity.companion</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__COMPANION_DIR__/node_modules/.bin/tsx</string>
+        <string>__COMPANION_DIR__/src/index.ts</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>__COMPANION_DIR__</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__COMPANION_DIR__/logs/companion.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__COMPANION_DIR__/logs/companion.err</string>
+
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+</dict>
+</plist>

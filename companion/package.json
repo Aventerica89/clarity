@@ -1,0 +1,20 @@
+{
+  "name": "clarity-companion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Clarity companion — syncs day structure to Apple Reminders via AppleScript",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
