@@ -1,7 +1,7 @@
 {
   "project": "/Users/jb/repos/clarity",
-  "lastUpdated": "2026-03-28T13:35:00Z",
-  "sessionSummary": "2026-03-16: Knocked out all open backlog items. Closed GH issues #22 (performance — indexes already done, next/dynamic for Tiptap/Plaid Link recommended), #23 (unit tests verified), #24 (JSDoc docs verified). Implemented TaskDetailModal feature: PATCH /api/tasks/[id] endpoint, TaskDetailModal component (Dialog/Drawer, description auto-saves on blur, SubtaskList, Complete+Hide), TaskTable onRowClick prop with clickable title, wired into tasks/page.tsx. All committed (77fb83f) and pushed. Next: add priority pills to TaskDetailModal, or pick from IDEAS.md backlog. No blockers. | 2026-03-16: Fixed dark mode issues in task table — Select border changed from border-input (15% white) to border-border (10% white), added hover:text-primary + transition-colors to clickable title buttons. Committed d20db1f, deployed at 09:12 UTC. Pending: add priority pills to TaskDetailModal, pick next IDEAS.md item. | 2026-03-16: Resolved Select border styling by removing the border-border override (wrong fix from prior session) and reverting to default border-input — matching Triage page behavior. Ran /update-codemaps generating docs/CODEMAPS/{architecture,backend,frontend,data}.md for 254 source files. Commits 88ca640, aa046b4, 08852f9 pushed. Next: add priority pills (P1-P4) to TaskDetailModal, then pick from IDEAS.md backlog. No blockers.",
+  "lastUpdated": "2026-03-29T06:30:00Z",
+  "sessionSummary": "2026-03-16: Knocked out all open backlog items. Closed GH issues #22 (performance — indexes already done, next/dynamic for Tiptap/Plaid Link recommended), #23 (unit tests verified), #24 (JSDoc docs verified). Implemented TaskDetailModal feature: PATCH /api/tasks/[id] endpoint, TaskDetailModal component (Dialog/Drawer, description auto-saves on blur, SubtaskList, Complete+Hide), TaskTable onRowClick prop with clickable title, wired into tasks/page.tsx. All committed (77fb83f) and pushed. Next: add priority pills to TaskDetailModal, or pick from IDEAS.md backlog. No blockers. | 2026-03-16: Fixed dark mode issues in task table — Select border changed from border-input (15% white) to border-border (10% white), added hover:text-primary + transition-colors to clickable title buttons. Committed d20db1f, deployed at 09:12 UTC. Pending: add priority pills to TaskDetailModal, pick next IDEAS.md item. | 2026-03-16: Resolved Select border styling by removing the border-border override (wrong fix from prior session) and reverting to default border-input — matching Triage page behavior. Ran /update-codemaps generating docs/CODEMAPS/{architecture,backend,frontend,data}.md for 254 source files. Commits 88ca640, aa046b4, 08852f9 pushed. Next: add priority pills (P1-P4) to TaskDetailModal, then pick from IDEAS.md backlog. No blockers. | 2026-03-29: Built complete Day Structure feature (Phases 1-3). 7 new DB tables, schedule computation engine (21 tests), 14 day-structure + 4 companion API routes, routines hub + dashboard UI, companion Node.js process with AppleScript/JXA creating real Apple Reminders. Tested live — 6 reminders created. Fixed Next.js 16 proxy conflict and AppleScript iteration bug. Next: Phase 4 bidirectional sync, dashboard widget, companion on old MacBook after Liquid Glass downgrade. Follow up with Carol on Flo's pitch.",
   "sessions": {
     "2026-03-16-main": {
       "branch": "main",
@@ -40,24 +40,29 @@
         "Persist description edits back to API"
       ]
     },
-    "2026-03-28-a3f1c9": {
+    "2026-03-29-b7d2e4": {
       "branch": "main",
-      "startedAt": "2026-03-28T13:14:00.000Z",
-      "updatedAt": "2026-03-28T13:35:00.000Z",
+      "startedAt": "2026-03-28T23:42:00.000Z",
+      "updatedAt": "2026-03-29T06:30:00.000Z",
       "accomplished": [
-        "Ran 1p-flawless health check — identified 16 separate clarity items needing consolidation",
-        "Consolidated 10 secrets as concealed fields onto single Clarity 1P item (was 2, now 12 fields)",
-        "Created standalone todoist 1P item for cross-app secrets (TODOIST_API, TODOIST_WEBHOOK_VERIFICATION_TOKEN)",
-        "Updated .env.local.tpl — 11 refs from 'clarity FIELD/credential' to 'Clarity/FIELD' format",
-        "Updated .env.dev-auth.tpl — replaced hardcoded item IDs with named refs",
-        "Verified all 14 fields resolve via op read",
-        "Tested npm run env:inject — all values match (fixed CRON_SECRET local/prod mismatch)",
-        "Committed 2357a03: chore: consolidate 1Password refs to single Clarity item"
+        "Brainstormed Day Structure feature — routines with Apple Reminders integration via companion process",
+        "Phase 1: Added 7 new DB tables (day_structure_templates, alarms, overrides, routine_checklists, items, completions, companion_sync_state) + schedule computation engine (21 unit tests) + 14 CRUD API routes",
+        "Phase 2: Built routines hub page + day structure dashboard UI (schedule timeline, template editor, checklist cards)",
+        "Phase 3: Built companion Node.js process — AppleScript/JXA wrappers for Apple Reminders, 60s poll scheduler, 4 companion API routes with CRON_SECRET auth",
+        "Fixed Next.js 16 proxy convention conflict (moved proxy.ts to lib/, inlined config)",
+        "Fixed AppleScript iteration bug — switched to JXA for reliable reminder deletion",
+        "Tested companion live — created 6 reminders in Apple Reminders Clarity list (Off Day schedule)",
+        "Extracted 3 learned skills: applescript-iteration-bug, nextjs16-proxy-convention, turso-http-migration",
+        "Updated all 4 codemaps with day structure + companion additions",
+        "5 commits merged to main, all pushed to GitHub"
       ],
       "nextSteps": [
-        "Delete 16 old separate 'clarity *' items from 1Password (manual cleanup)",
-        "Add priority pills (P1-P4) to TaskDetailModal",
-        "Pick next item from docs/IDEAS.md backlog"
+        "Phase 4: Bidirectional sync (completions flow back from Apple Reminders to Clarity)",
+        "Dashboard widget on Today page (next alarm, checklist progress, companion status)",
+        "Override UX (adjust today's schedule from the web UI)",
+        "Settings panel for companion token generation",
+        "Set up companion on old MacBook as always-on launchd service (after Liquid Glass downgrade)",
+        "Follow up with Carol on Flo's pitch (8 days, no response)"
       ]
     }
   }
