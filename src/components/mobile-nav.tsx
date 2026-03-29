@@ -35,7 +35,7 @@ const MORE_PATHS = MORE_ITEMS.map((item) => item.href)
 export function MobileNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const moreIsActive = MORE_PATHS.includes(pathname)
+  const moreIsActive = MORE_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
   useSafariToolbar()
 
   return (
